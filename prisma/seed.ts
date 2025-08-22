@@ -57,7 +57,7 @@ async function main() {
       description: faker.lorem.paragraph(),
       name: faker.person.fullName(),
       email: faker.internet.email(),
-      phone: faker.phone.number(),
+      phone: faker.string.numeric(10),
       passwordHash: faker.internet.password(),
       age: faker.number.int({ min: 18, max: 80 }),
       balance: parseFloat(faker.finance.amount()),

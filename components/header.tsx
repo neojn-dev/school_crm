@@ -13,15 +13,70 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Menu, X, User, LogOut, Settings } from "lucide-react"
+import { 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Settings, 
+  ChevronDown,
+  Info,
+  Target,
+  Users,
+  Award,
+  Lightbulb,
+  Zap,
+  Building2,
+  BarChart3,
+  FileText,
+  TrendingUp,
+  Calendar,
+  HelpCircle
+} from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+
+// Navigation groups for public pages
+const navigationGroups = [
+  {
+    title: "Company",
+    items: [
+      { title: "About Us", href: "/company/about", icon: Info },
+      { title: "Our Mission", href: "/company/mission", icon: Target },
+      { title: "Leadership", href: "/company/leadership", icon: Users },
+      { title: "Careers", href: "/company/careers", icon: Award }
+    ]
+  },
+  {
+    title: "Services",
+    items: [
+      { title: "What We Do", href: "/services/overview", icon: Lightbulb },
+      { title: "Solutions", href: "/services/solutions", icon: Zap },
+      { title: "Industries", href: "/services/industries", icon: Building2 },
+      { title: "Case Studies", href: "/services/case-studies", icon: BarChart3 }
+    ]
+  },
+  {
+    title: "Resources",
+    items: [
+      { title: "Blog", href: "/resources/blog", icon: FileText },
+      { title: "News", href: "/resources/news", icon: TrendingUp },
+      { title: "Events", href: "/resources/events", icon: Calendar },
+      { title: "Support", href: "/resources/support", icon: HelpCircle }
+    ]
+  }
+]
 
 export function Header() {
   const { data: session } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" })
+  }
+
+  const handleDropdownToggle = (groupTitle: string) => {
+    setActiveDropdown(activeDropdown === groupTitle ? null : groupTitle)
   }
 
   return (
@@ -44,12 +99,48 @@ export function Header() {
             >
               Home
             </Link>
-            <Link 
-              href="/docs/api-reference" 
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              API Docs
-            </Link>
+            
+            {/* Multi-layered Navigation Groups */}
+            {navigationGroups.map((group) => (
+              <div key={group.title} className="relative">
+                <Button
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900 transition-colors p-0 h-auto font-normal"
+                  onClick={() => handleDropdownToggle(group.title)}
+                  onMouseEnter={() => setActiveDropdown(group.title)}
+                >
+                  {group.title}
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+                
+                <AnimatePresence>
+                  {activeDropdown === group.title && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-2 z-50"
+                      onMouseLeave={() => setActiveDropdown(null)}
+                    >
+                      {group.items.map((item) => {
+                        const Icon = item.icon
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                            onClick={() => setActiveDropdown(null)}
+                          >
+                            <Icon className="mr-3 h-4 w-4" />
+                            {item.title}
+                          </Link>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
           </nav>
 
           {/* Auth Section */}
@@ -141,13 +232,30 @@ export function Header() {
                 >
                   Home
                 </Link>
-                <Link 
-                  href="/docs/api-reference" 
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  API Docs
-                </Link>
+                
+                {/* Mobile Navigation Groups */}
+                {navigationGroups.map((group) => (
+                  <div key={group.title} className="space-y-2">
+                    <div className="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">
+                      {group.title}
+                    </div>
+                    {group.items.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors ml-4"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Icon className="mr-2 h-4 w-4" />
+                          {item.title}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ))}
+                
                 {!session && (
                   <>
                     <Link 

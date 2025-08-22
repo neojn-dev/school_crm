@@ -7,6 +7,7 @@ import "@/styles/globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: "NextJS Template App",
   description: "A production-ready NextJS template with authentication, data management, and modern UI",
   keywords: ["nextjs", "typescript", "prisma", "tailwind", "shadcn"],

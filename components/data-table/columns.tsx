@@ -170,6 +170,12 @@ export const createColumns = (
         {row.getValue("title")}
       </div>
     ),
+    filterFn: (row, id, value) => {
+      if (!value) return true
+      const title = row.getValue(id) as string
+      return title?.toLowerCase().includes(value.toLowerCase()) ?? false
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "name",
@@ -188,6 +194,12 @@ export const createColumns = (
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("name")}</div>
     ),
+    filterFn: (row, id, value) => {
+      if (!value) return true
+      const name = row.getValue(id) as string
+      return name?.toLowerCase().includes(value.toLowerCase()) ?? false
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "email",
@@ -197,6 +209,12 @@ export const createColumns = (
         {row.getValue("email")}
       </div>
     ),
+    filterFn: (row, id, value) => {
+      if (!value) return true
+      const email = row.getValue(id) as string
+      return email?.toLowerCase().includes(value.toLowerCase()) ?? false
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "category",
@@ -257,6 +275,13 @@ export const createColumns = (
       const age = row.getValue("age") as number
       return age ? <div>{age}</div> : <div className="text-gray-400">-</div>
     },
+    filterFn: (row, id, value) => {
+      if (!Array.isArray(value)) return true
+      const age = row.getValue(id) as number
+      if (!age) return false
+      return age >= value[0] && age <= value[1]
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "balance",
@@ -282,6 +307,13 @@ export const createColumns = (
         <div className="text-gray-400">-</div>
       )
     },
+    filterFn: (row, id, value) => {
+      if (!Array.isArray(value)) return true
+      const balance = row.getValue(id) as number
+      if (!balance) return false
+      return balance >= value[0] && balance <= value[1]
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "rating",
@@ -306,10 +338,10 @@ export const createColumns = (
       )
     },
     filterFn: (row, id, value) => {
-      if (!value || value === "") return true
+      if (!Array.isArray(value)) return true
       const rating = row.getValue(id) as number
       if (!rating) return false
-      return rating >= parseFloat(value)
+      return rating >= value[0] && rating <= value[1]
     },
     enableColumnFilter: true,
   },
@@ -360,6 +392,22 @@ export const createColumns = (
         {formatDateTime(row.getValue("createdAt"))}
       </div>
     ),
+    filterFn: (row, id, value) => {
+      if (!value || (!value.from && !value.to)) return true
+      const date = new Date(row.getValue(id) as Date)
+      const from = value.from ? new Date(value.from) : null
+      const to = value.to ? new Date(value.to) : null
+      
+      if (from && to) {
+        return date >= from && date <= to
+      } else if (from) {
+        return date >= from
+      } else if (to) {
+        return date <= to
+      }
+      return true
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "updatedAt",
