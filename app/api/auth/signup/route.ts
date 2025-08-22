@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Create verification token
     const token = generateRandomString(32)
+    console.log("🔑 Creating verification token:", token, "for user:", user.id)
+    
     await db.verificationToken.create({
       data: {
         token,
@@ -57,11 +59,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    console.log("✅ Verification token created successfully")
+
     // Send verification email
     try {
       await sendVerificationEmail(email, token)
+      console.log("📧 Verification email sent to:", email)
     } catch (error) {
-      console.error("Failed to send verification email:", error)
+      console.error("❌ Failed to send verification email:", error)
       // Don't fail the signup if email fails
     }
 

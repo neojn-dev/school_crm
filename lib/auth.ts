@@ -11,18 +11,22 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        username: { label: "Username", type: "text" },
+        identifier: { label: "Username or Email", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
+        if (!credentials?.identifier || !credentials?.password) {
           return null
         }
 
-        const user = await db.user.findUnique({
+        // Find user by username or email
+        const user = await db.user.findFirst({
           where: {
-            username: credentials.username
-          }
+            OR: [
+              { username: credentials.identifier },
+              { email: credentials.identifier },
+            ],
+          },
         })
 
         if (!user || !user.emailVerified) {
