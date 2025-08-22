@@ -3,91 +3,95 @@
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, FileText, BarChart3, MessageSquare, Clock, Target } from "lucide-react"
+import { Database, BarChart3, FileSpreadsheet, Download, Upload, RefreshCw } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 
-export default function Role2Page() {
+export default function Role3Page() {
   const { data: session } = useSession()
 
   const stats = [
     {
-      title: "Team Members",
-      value: "45",
-      change: "+3",
-      icon: Users,
+      title: "Records Processed",
+      value: "15,432",
+      change: "+1,234",
+      icon: Database,
       color: "text-blue-600 bg-blue-100"
     },
     {
-      title: "Active Projects",
-      value: "12",
-      change: "+2", 
-      icon: Target,
+      title: "Data Imports",
+      value: "89",
+      change: "+12", 
+      icon: Upload,
       color: "text-green-600 bg-green-100"
     },
     {
-      title: "Documents",
-      value: "234",
-      change: "+15",
-      icon: FileText,
+      title: "Reports Generated",
+      value: "156",
+      change: "+23",
+      icon: FileSpreadsheet,
       color: "text-purple-600 bg-purple-100"
     },
     {
-      title: "Messages",
+      title: "Data Exports",
       value: "67",
       change: "+8",
-      icon: MessageSquare,
+      icon: Download,
       color: "text-orange-600 bg-orange-100"
     }
   ]
 
   const features = [
     {
-      title: "Team Management",
-      description: "Manage team members and their assignments",
-      icon: Users,
-      href: "/app/mydata"
-    },
-    {
-      title: "Project Tracking", 
-      description: "Track project progress and milestones",
-      icon: Target,
-      href: "/app/all-roles"
-    },
-    {
-      title: "Document Management",
-      description: "Organize and share team documents",
-      icon: FileText,
-      href: "/app/mydata"
-    },
-    {
-      title: "Performance Analytics",
-      description: "View team performance metrics",
+      title: "Data Analytics",
+      description: "Analyze data patterns and generate insights",
       icon: BarChart3,
-      href: "/app/mydata"
+      href: "/pages/mydata"
+    },
+    {
+      title: "Data Import/Export", 
+      description: "Import and export data in various formats",
+      icon: Upload,
+      href: "/pages/mydata"
+    },
+    {
+      title: "Report Generation",
+      description: "Create detailed reports and visualizations",
+      icon: FileSpreadsheet,
+      href: "/pages/mydata"
+    },
+    {
+      title: "Data Processing",
+      description: "Process and transform data efficiently",
+      icon: RefreshCw,
+      href: "/pages/mydata"
     }
   ]
 
-  const recentActivities = [
+  const dataInsights = [
     {
-      action: "Project Alpha milestone completed",
-      time: "2 hours ago",
-      type: "success"
+      title: "Top Category",
+      value: "Category A",
+      percentage: "45%",
+      trend: "up"
     },
     {
-      action: "New team member onboarded",
-      time: "4 hours ago", 
-      type: "info"
+      title: "Average Rating",
+      value: "4.2/5.0",
+      percentage: "+0.3",
+      trend: "up"
     },
     {
-      action: "Weekly report generated",
-      time: "1 day ago",
-      type: "neutral"
+      title: "Active Records",
+      value: "89%",
+      percentage: "+2%",
+      trend: "up"
     },
     {
-      action: "Team meeting scheduled",
-      time: "2 days ago",
-      type: "info"
+      title: "Processing Speed",
+      value: "1.2s avg",
+      percentage: "-0.1s",
+      trend: "up"
     }
   ]
 
@@ -101,14 +105,14 @@ export default function Role2Page() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Role 2 Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Role 3 Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Welcome back, {session?.user.username}! Here's your team overview.
+            Welcome back, {session?.user.username}! Here's your data analysis overview.
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Users className="h-8 w-8 text-primary" />
-          <span className="text-lg font-semibold text-primary">Team Manager</span>
+          <Database className="h-8 w-8 text-primary" />
+          <span className="text-lg font-semibold text-primary">Data Analyst</span>
         </div>
       </div>
 
@@ -134,7 +138,7 @@ export default function Role2Page() {
                         {stat.value}
                       </p>
                       <p className="text-sm text-green-600">
-                        {stat.change} this week
+                        {stat.change} this month
                       </p>
                     </div>
                     <div className={`p-3 rounded-full ${stat.color}`}>
@@ -185,7 +189,7 @@ export default function Role2Page() {
           })}
         </div>
 
-        {/* Recent Activity */}
+        {/* Data Insights */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -194,24 +198,24 @@ export default function Role2Page() {
           <Card className="card-custom">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <span>Recent Activity</span>
+                <BarChart3 className="h-5 w-5 text-primary" />
+                <span>Data Insights</span>
               </CardTitle>
               <CardDescription>
-                Latest updates from your team
+                Key metrics from your data analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.type === 'success' ? 'bg-green-500' :
-                      activity.type === 'info' ? 'bg-blue-500' : 'bg-gray-400'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900">{activity.action}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
+                {dataInsights.map((insight, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{insight.title}</p>
+                      <p className="text-lg font-semibold text-gray-700">{insight.value}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-green-600">{insight.percentage}</p>
+                      <div className="w-2 h-2 bg-green-500 rounded-full ml-auto" />
                     </div>
                   </div>
                 ))}
@@ -225,31 +229,31 @@ export default function Role2Page() {
       <Card className="card-custom">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5 text-primary" />
-            <span>Role 2 Privileges</span>
+            <Database className="h-5 w-5 text-primary" />
+            <span>Role 3 Privileges</span>
           </CardTitle>
           <CardDescription>
-            As a Role 2 user, you have access to team management and project coordination features.
+            As a Role 3 user, you have access to advanced data analysis and processing features.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900">Team Management</h4>
+              <h4 className="font-semibold text-gray-900">Data Analysis</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Manage team member assignments</li>
-                <li>• Track team performance metrics</li>
-                <li>• Schedule and organize meetings</li>
-                <li>• Access team communication tools</li>
+                <li>• Advanced analytics and insights</li>
+                <li>• Custom data visualizations</li>
+                <li>• Statistical analysis tools</li>
+                <li>• Trend analysis and forecasting</li>
               </ul>
             </div>
             <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900">Project Coordination</h4>
+              <h4 className="font-semibold text-gray-900">Data Processing</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Create and manage projects</li>
-                <li>• Set milestones and deadlines</li>
-                <li>• Generate progress reports</li>
-                <li>• Coordinate cross-team activities</li>
+                <li>• Bulk data import/export operations</li>
+                <li>• Data transformation and cleansing</li>
+                <li>• Automated report generation</li>
+                <li>• Real-time data processing</li>
               </ul>
             </div>
           </div>

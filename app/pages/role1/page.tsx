@@ -46,25 +46,25 @@ export default function Role1Page() {
       title: "User Management",
       description: "Manage user accounts, roles, and permissions",
       icon: Users,
-      href: "/app/mydata"
+      href: "/pages/mydata"
     },
     {
       title: "System Settings", 
       description: "Configure system-wide settings and preferences",
       icon: Settings,
-      href: "/app/all-roles"
+      href: "/pages/all-roles"
     },
     {
       title: "Security Controls",
       description: "Monitor and control security settings",
       icon: Shield,
-      href: "/app/mydata"
+      href: "/pages/mydata"
     },
     {
       title: "Data Analytics",
       description: "View detailed analytics and reports",
       icon: Database,
-      href: "/app/mydata"
+      href: "/pages/mydata"
     }
   ]
 

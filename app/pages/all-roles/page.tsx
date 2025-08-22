@@ -107,6 +107,16 @@ export default function AllRolesPage() {
     }
   ]
 
+  // Get role data safely
+  const getRoleData = (role: string) => {
+    return roleFeatures[role as keyof typeof roleFeatures] || {
+      title: role,
+      icon: Shield,
+      color: "bg-gray-100 text-gray-800 border-gray-200",
+      features: ["Basic access"]
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -119,7 +129,7 @@ export default function AllRolesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">All Roles Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Welcome, {session?.user.username}! This page is accessible to all authenticated users.
+            Welcome, {session?.user?.username || 'User'}! This page is accessible to all authenticated users.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -183,8 +193,8 @@ export default function AllRolesPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-600">Role</label>
                   <div className="mt-1">
-                    <Badge className={roleFeatures[sessionInfo.session.user.role as keyof typeof roleFeatures]?.color}>
-                      {roleFeatures[sessionInfo.session.user.role as keyof typeof roleFeatures]?.title || sessionInfo.session.user.role}
+                    <Badge className={getRoleData(sessionInfo.session.user.role).color}>
+                      {getRoleData(sessionInfo.session.user.role).title}
                     </Badge>
                   </div>
                 </div>
@@ -204,33 +214,33 @@ export default function AllRolesPage() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading session information...</p>
+              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Click refresh to load session information</p>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Role Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Object.entries(roleFeatures).map(([roleKey, roleData]) => {
+          const isCurrentRole = sessionInfo?.session.user.role === roleKey
           const Icon = roleData.icon
-          const isCurrentRole = session?.user.role === roleKey
           
           return (
             <motion.div
               key={roleKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: Object.keys(roleFeatures).indexOf(roleKey) * 0.1 }}
             >
               <Card className={`card-custom ${isCurrentRole ? 'ring-2 ring-primary' : ''}`}>
                 <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${roleData.color.includes('red') ? 'bg-red-100' : roleData.color.includes('blue') ? 'bg-blue-100' : 'bg-green-100'}`}>
-                      <Icon className={`h-6 w-6 ${roleData.color.includes('red') ? 'text-red-600' : roleData.color.includes('blue') ? 'text-blue-600' : 'text-green-600'}`} />
+                  <div className="flex items-center justify-between">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Icon className="h-6 w-6 text-primary" />
                     </div>
-                    <div>
+                    <div className="text-right">
                       <CardTitle className="flex items-center space-x-2">
                         <span>{roleData.title}</span>
                         {isCurrentRole && <Badge variant="secondary">Your Role</Badge>}

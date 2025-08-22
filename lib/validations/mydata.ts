@@ -21,9 +21,9 @@ export const myDataSchema = z.object({
   rating: z.number().min(0, "Rating must be at least 0").max(5, "Rating must be at most 5").optional(),
   isActive: z.boolean().default(true),
   
-  // Enums
-  category: z.enum(["A", "B", "C"], {
-    required_error: "Please select a category",
+  // Category
+  category: z.string().refine((val) => ["A", "B", "C"].includes(val), {
+    message: "Category must be A, B, or C",
   }),
   
   // Dates

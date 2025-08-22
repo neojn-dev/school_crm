@@ -144,6 +144,67 @@ export function DataTable<TData, TValue>({
             />
           )}
 
+          {/* Category Filter */}
+          {table.getColumn("category") && (
+            <Select
+              value={(table.getColumn("category")?.getFilterValue() as string) ?? ""}
+              onValueChange={(value) => {
+                table.getColumn("category")?.setFilterValue(value === "all" ? "" : value)
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="A">Category A</SelectItem>
+                <SelectItem value="B">Category B</SelectItem>
+                <SelectItem value="C">Category C</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Status Filter */}
+          {table.getColumn("isActive") && (
+            <Select
+              value={(table.getColumn("isActive")?.getFilterValue() as string) ?? ""}
+              onValueChange={(value) => {
+                table.getColumn("isActive")?.setFilterValue(value === "all" ? "" : value)
+              }}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="true">Active</SelectItem>
+                <SelectItem value="false">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Rating Filter */}
+          {table.getColumn("rating") && (
+            <Select
+              value={(table.getColumn("rating")?.getFilterValue() as string) ?? ""}
+              onValueChange={(value) => {
+                table.getColumn("rating")?.setFilterValue(value === "all" ? "" : value)
+              }}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="All Ratings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ratings</SelectItem>
+                <SelectItem value="1">1+ Stars</SelectItem>
+                <SelectItem value="2">2+ Stars</SelectItem>
+                <SelectItem value="3">3+ Stars</SelectItem>
+                <SelectItem value="4">4+ Stars</SelectItem>
+                <SelectItem value="5">5 Stars</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
           {/* Selected Count */}
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <Badge variant="secondary">

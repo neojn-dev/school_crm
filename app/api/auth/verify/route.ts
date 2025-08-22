@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!verificationToken) {
       return NextResponse.json(
-        { error: "Invalid verification token" },
+        { error: "Invalid or expired verification token" },
         { status: 400 }
       )
     }
@@ -31,16 +31,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user is already verified
+    if (verificationToken.user.emailVerified) {
+      return NextResponse.json(
+        { error: "Email is already verified" },
+        { status: 400 }
+      )
+    }
+
     // Update user as verified
     await db.user.update({
       where: { id: verificationToken.userId },
       data: { emailVerified: new Date() },
     })
 
-    // Delete the verification token
-    await db.verificationToken.delete({
-      where: { id: verificationToken.id },
-    })
+    // Try to delete the verification token, but don't fail if it doesn't exist
+    try {
+      await db.verificationToken.delete({
+        where: { id: verificationToken.id },
+      })
+    } catch (deleteError) {
+      // Log the error but don't fail the verification
+      console.warn("Could not delete verification token:", deleteError)
+    }
 
     return NextResponse.json({
       message: "Email verified successfully",
@@ -82,7 +95,7 @@ export async function GET(request: NextRequest) {
 
     if (!verificationToken) {
       return NextResponse.json(
-        { error: "Invalid verification token" },
+        { error: "Invalid or expired verification token" },
         { status: 400 }
       )
     }
@@ -94,16 +107,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Check if user is already verified
+    if (verificationToken.user.emailVerified) {
+      return NextResponse.json(
+        { error: "Email is already verified" },
+        { status: 400 }
+      )
+    }
+
     // Update user as verified
     await db.user.update({
       where: { id: verificationToken.userId },
       data: { emailVerified: new Date() },
     })
 
-    // Delete the verification token
-    await db.verificationToken.delete({
-      where: { id: verificationToken.id },
-    })
+    // Try to delete the verification token, but don't fail if it doesn't exist
+    try {
+      await db.verificationToken.delete({
+        where: { id: verificationToken.id },
+      })
+    } catch (deleteError) {
+      // Log the error but don't fail the verification
+      console.warn("Could not delete verification token:", deleteError)
+    }
 
     return NextResponse.redirect(new URL("/auth/signin?verified=true", request.url))
   } catch (error) {

@@ -25,33 +25,33 @@ import { usePathname } from "next/navigation"
 const sidebarItems = [
   {
     title: "Role 1",
-    href: "/app/role1",
+    href: "/pages/role1",
     icon: Shield,
     allowedRoles: ["ROLE1"]
   },
   {
     title: "Role 2", 
-    href: "/app/role2",
+    href: "/pages/role2",
     icon: Users,
     allowedRoles: ["ROLE2"]
   },
   {
     title: "Role 3",
-    href: "/app/role3", 
+    href: "/pages/role3", 
     icon: Database,
     allowedRoles: ["ROLE3"]
   },
   {
     title: "All Roles",
-    href: "/app/all-roles",
+    href: "/pages/all-roles",
     icon: UserCheck,
     allowedRoles: ["ROLE1", "ROLE2", "ROLE3"]
   },
   {
     title: "My Data",
-    href: "/app/mydata",
+    href: "/pages/mydata",
     icon: Settings,
-    allowedRoles: ["ROLE1", "ROLE2", "ROLE3"]
+    allowedRoles: ["ROLE1", "ROLE2", "ROLE3", "ADMIN", "USER"] // Allow all roles
   }
 ]
 
@@ -65,6 +65,7 @@ export default function AppLayout({
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // Loading state
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -73,18 +74,33 @@ export default function AppLayout({
     )
   }
 
+  // Authentication check
   if (status === "unauthenticated") {
-    router.push("/auth/signin")
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+          <p className="mb-4">Please sign in to access this page.</p>
+          <Button onClick={() => router.push("/auth/signin")}>
+            Go to Sign In
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" })
   }
 
-  const filteredSidebarItems = sidebarItems.filter(item => 
-    item.allowedRoles.includes(session?.user.role as string)
-  )
+  const filteredSidebarItems = sidebarItems.filter(item => {
+    // MyData should be visible to all authenticated users
+    if (item.title === "My Data") {
+      return true
+    }
+    // Other items check role permissions
+    return item.allowedRoles.includes(session?.user?.role as string)
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,16 +114,17 @@ export default function AppLayout({
             className="fixed inset-0 z-50 lg:hidden"
           >
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50"
+              className="fixed inset-0 bg-gray-600 bg-opacity-75"
               onClick={() => setSidebarOpen(false)}
             />
             <motion.div
-              initial={{ x: -300 }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg"
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 20 }}
+              className="relative flex-1 flex flex-col max-w-xs w-full bg-white"
             >
-              <SidebarContent 
+              <SidebarContent
                 items={filteredSidebarItems}
                 session={session}
                 pathname={pathname}
@@ -119,62 +136,51 @@ export default function AppLayout({
         )}
       </AnimatePresence>
 
-      {/* Desktop sidebar */}
+      {/* Static sidebar for desktop */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
-          <SidebarContent 
-            items={filteredSidebarItems}
-            session={session}
-            pathname={pathname}
-            onSignOut={handleSignOut}
-          />
-        </div>
+        <SidebarContent
+          items={filteredSidebarItems}
+          session={session}
+          pathname={pathname}
+          onSignOut={handleSignOut}
+        />
       </div>
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        {/* Top header */}
-        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
+        {/* Top bar */}
+        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
           <button
+            type="button"
             className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
+            <span className="sr-only">Open sidebar</span>
             <Menu className="h-6 w-6" />
           </button>
-          
-          <div className="flex-1 px-4 flex justify-between items-center">
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex-1 px-4 flex justify-between">
+            <div className="flex-1 flex">
+              <h1 className="text-2xl font-semibold text-gray-900 self-center">
                 Dashboard
               </h1>
             </div>
-            
             <div className="ml-4 flex items-center md:ml-6">
-              <div className="flex items-center space-x-3">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {session?.user.username}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {session?.user.role}
-                  </p>
-                </div>
-                <Avatar>
-                  <AvatarFallback className="bg-primary text-white">
-                    {session?.user.username?.charAt(0).toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
 
         {/* Page content */}
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-              {children}
-            </div>
+        <main className="flex-1">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+            {children}
           </div>
         </main>
       </div>
@@ -244,15 +250,15 @@ function SidebarContent({
               <div className="flex items-center">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary text-white text-xs">
-                    {session?.user.username?.charAt(0).toUpperCase() || "U"}
+                    {session?.user?.username?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="ml-3">
                   <p className="text-xs font-medium text-gray-700 group-hover:text-gray-900">
-                    {session?.user.username}
+                    {session?.user?.username || "User"}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {session?.user.role}
+                    {session?.user?.role || "Unknown"}
                   </p>
                 </div>
               </div>

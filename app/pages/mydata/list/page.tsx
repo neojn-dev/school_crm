@@ -157,6 +157,8 @@ export default function MyDataListPage() {
     return {
       ...formData,
       tags: JSON.stringify(formData.tags),
+      dateOnly: formData.dateOnly ? new Date(formData.dateOnly) : undefined,
+      dateTime: formData.dateTime ? new Date(formData.dateTime) : undefined,
     }
   }
 
@@ -290,6 +292,8 @@ export default function MyDataListPage() {
               initialData={{
                 ...editingData,
                 tags: editingData.tags ? JSON.parse(editingData.tags) : [],
+                dateOnly: editingData.dateOnly ? editingData.dateOnly.toISOString().split('T')[0] : undefined,
+                dateTime: editingData.dateTime ? editingData.dateTime.toISOString() : undefined,
               }}
               onSubmit={handleEdit}
               submitLabel="Update"

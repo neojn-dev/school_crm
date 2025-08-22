@@ -330,7 +330,7 @@ export default function ImportPage() {
           </p>
           <div className="flex justify-center space-x-4">
             <Button asChild>
-              <Link href="/app/mydata/list">View Data Table</Link>
+              <Link href="/pages/mydata/list">View Data Table</Link>
             </Button>
             <Button variant="outline" onClick={() => window.location.reload()}>
               Import More Data
@@ -353,7 +353,7 @@ export default function ImportPage() {
         <div>
           <div className="flex items-center space-x-4 mb-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href="/app/mydata">
+              <Link href="/pages/mydata">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Link>

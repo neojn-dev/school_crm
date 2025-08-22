@@ -42,7 +42,7 @@ model User {
   username      String    @unique
   email         String    @unique
   passwordHash  String
-  role          Role      @default(ROLE1)
+  role          String    @default("ROLE1")
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -112,12 +112,12 @@ model MyData {
   isActive    Boolean     @default(true)
   
   // Enums
-  category    Category    @default(A)
+  category    String      @default("A")
   
   // Dates
-  dateOnly    DateTime?
-  dateTime    DateTime?
-  timeOnly    String?
+  dateOnly    String?     // HTML date input returns YYYY-MM-DD
+  dateTime    String?     // HTML datetime-local input returns YYYY-MM-DDTHH:MM
+  timeOnly    String?     // HTML time input returns HH:MM
   
   // URLs
   website     String?
@@ -137,14 +137,4 @@ model MyData {
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum Role {
-  ROLE1
-  ROLE2
-  ROLE3
-}
 
-enum Category {
-  A
-  B
-  C
-}

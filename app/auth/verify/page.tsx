@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { SigninForm } from "./signin-form"
+import { VerifyForm } from "./verify-form"
 
 function LoadingFallback() {
   return (
@@ -8,25 +8,18 @@ function LoadingFallback() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-          </div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-          </div>
-          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="h-12 bg-gray-200 rounded-full w-12 mx-auto"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
         </div>
       </div>
     </div>
   )
 }
 
-export default function SigninPage() {
+export default function VerifyPage() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <SigninForm />
+      <VerifyForm />
     </Suspense>
   )
 }

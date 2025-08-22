@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { SessionProvider } from "next-auth/react"
 import { Toaster } from "sonner"
+import { SessionProviderWrapper } from "@/components/providers/session-provider"
 import "@/styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -46,10 +46,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>
+        <SessionProviderWrapper>
           {children}
           <Toaster richColors position="top-right" />
-        </SessionProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   )

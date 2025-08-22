@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PasswordInput } from "@/components/forms/password-input"
 import { FileInput } from "@/components/forms/file-input"
@@ -69,7 +69,7 @@ export function MyDataForm({
       passwordHash: faker.internet.password(),
       age: faker.number.int({ min: 18, max: 80 }),
       balance: parseFloat(faker.finance.amount()),
-      rating: parseFloat(faker.number.float({ min: 1, max: 5, precision: 0.1 }).toFixed(1)),
+      rating: parseFloat(faker.number.float({ min: 1, max: 5, multipleOf: 0.1 }).toFixed(1)),
       isActive: faker.datatype.boolean(),
       category: faker.helpers.arrayElement(["A", "B", "C"] as const),
       dateOnly: faker.date.past().toISOString().split('T')[0],
@@ -83,8 +83,9 @@ export function MyDataForm({
       ], { min: 1, max: 4 }),
     }
 
+    // Set each field individually to ensure proper form state update
     Object.entries(dummyData).forEach(([key, value]) => {
-      setValue(key as keyof MyDataFormData, value)
+      setValue(key as keyof MyDataFormData, value, { shouldValidate: true })
     })
     
     setTags(dummyData.tags)
@@ -129,9 +130,11 @@ export function MyDataForm({
 
   const onFormSubmit = async (data: MyDataFormData) => {
     try {
+      console.log("Submitting form data:", data)
       await onSubmit(data)
     } catch (error) {
       console.error("Form submission error:", error)
+      toast.error("Failed to submit form. Please check the console for details.")
     }
   }
 
@@ -353,23 +356,7 @@ export function MyDataForm({
                   )}
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>Priority (Radio)</Label>
-                  <RadioGroup defaultValue="medium" className="flex space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="low" id="low" />
-                      <Label htmlFor="low">Low</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="medium" id="medium" />
-                      <Label htmlFor="medium">Medium</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="high" id="high" />
-                      <Label htmlFor="high">High</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+
               </div>
             </div>
 

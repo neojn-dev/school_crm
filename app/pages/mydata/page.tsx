@@ -19,6 +19,8 @@ export default function MyDataPage() {
   const handleSubmit = async (data: MyDataFormData) => {
     setIsLoading(true)
     try {
+      console.log("Submitting data to API:", data)
+      
       const response = await fetch("/api/mydata", {
         method: "POST",
         headers: {
@@ -28,13 +30,18 @@ export default function MyDataPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to save data")
+        const errorData = await response.json().catch(() => ({}))
+        console.error("API Error:", errorData)
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
       }
 
+      const result = await response.json()
+      console.log("API Success:", result)
       toast.success("Data saved successfully!")
       setShowForm(false)
     } catch (error) {
-      toast.error("Failed to save data")
+      console.error("Submit error:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to save data")
     } finally {
       setIsLoading(false)
     }
@@ -120,7 +127,7 @@ export default function MyDataPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <Button asChild variant="outline" className="w-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <Link href="/app/mydata/list">
+              <Link href="/pages/mydata/list">
                 View Table
               </Link>
             </Button>
@@ -141,7 +148,7 @@ export default function MyDataPage() {
           </CardHeader>
           <CardContent className="pt-0">
             <Button asChild variant="outline" className="w-full group-hover:bg-green-600 group-hover:text-white transition-colors">
-              <Link href="/app/mydata/import">
+              <Link href="/pages/mydata/import">
                 Import Data
               </Link>
             </Button>

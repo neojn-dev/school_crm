@@ -15,7 +15,9 @@ const bulkImportSchema = z.object({
     balance: z.number().min(0).optional().nullable(),
     rating: z.number().min(0).max(5).optional().nullable(),
     isActive: z.boolean().default(true),
-    category: z.enum(["A", "B", "C"]),
+    category: z.string().refine((val) => ["A", "B", "C"].includes(val), {
+      message: "Category must be A, B, or C",
+    }),
     dateOnly: z.string().optional().nullable(),
     dateTime: z.string().optional().nullable(),
     timeOnly: z.string().optional().nullable(),
@@ -73,8 +75,9 @@ export async function POST(request: NextRequest) {
     const dataToInsert = importData.map(item => ({
       ...item,
       tags: JSON.stringify(item.tags),
-      dateOnly: item.dateOnly ? new Date(item.dateOnly) : null,
-      dateTime: item.dateTime ? new Date(item.dateTime) : null,
+      // Keep dates as strings since schema now expects String
+      dateOnly: item.dateOnly || null,
+      dateTime: item.dateTime || null,
       phone: item.phone || null,
       age: item.age || null,
       balance: item.balance || null,
@@ -93,7 +96,6 @@ export async function POST(request: NextRequest) {
       const batch = dataToInsert.slice(i, i + batchSize)
       const batchResult = await db.myData.createMany({
         data: batch,
-        skipDuplicates: true,
       })
       results.push(batchResult)
     }

@@ -45,7 +45,7 @@ export type MyData = {
   balance?: number
   rating?: number
   isActive: boolean
-  category: "A" | "B" | "C"
+  category: string
   dateOnly?: Date
   dateTime?: Date
   timeOnly?: string
@@ -216,8 +216,10 @@ export const createColumns = (
       )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      if (!value || value === "") return true
+      return row.getValue(id) === value
     },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "isActive",
@@ -231,9 +233,11 @@ export const createColumns = (
       )
     },
     filterFn: (row, id, value) => {
+      if (!value || value === "") return true
       const isActive = row.getValue(id) as boolean
-      return value.includes(isActive.toString())
+      return isActive.toString() === value
     },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "age",
@@ -301,6 +305,13 @@ export const createColumns = (
         </div>
       )
     },
+    filterFn: (row, id, value) => {
+      if (!value || value === "") return true
+      const rating = row.getValue(id) as number
+      if (!rating) return false
+      return rating >= parseFloat(value)
+    },
+    enableColumnFilter: true,
   },
   {
     accessorKey: "tags",
