@@ -167,7 +167,7 @@ function ResetPasswordPageContent() {
         <Header />
         
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl mx-auto">
+          <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -274,7 +274,7 @@ function ResetPasswordPageContent() {
       <Header />
       
       <main className="flex-1 flex items-center justify-center p-4 py-12">
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
             {/* Left Side - Form */}

@@ -125,7 +125,7 @@ function VerifyPageContent() {
         <Header />
         
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl mx-auto text-center">
+          <div className="container-custom text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -155,7 +155,7 @@ function VerifyPageContent() {
         <Header />
         
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl mx-auto">
+          <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -275,7 +275,7 @@ function VerifyPageContent() {
         <Header />
         
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl mx-auto">
+          <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
