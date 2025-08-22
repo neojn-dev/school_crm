@@ -18,7 +18,7 @@ import {
   Clock,
   MessageSquare
 } from "lucide-react"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

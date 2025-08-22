@@ -22,7 +22,7 @@ import {
   Key,
   AlertCircle
 } from "lucide-react"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 
 const resetPasswordSchema = z.object({
   password: z.string()

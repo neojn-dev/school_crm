@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { 

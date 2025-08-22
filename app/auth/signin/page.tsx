@@ -25,7 +25,7 @@ import {
   Heart,
   AlertCircle
 } from "lucide-react"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
@@ -114,7 +114,7 @@ export default function SignInPage() {
         setError("Invalid username/email or password")
       } else {
         // Redirect to dashboard on success
-        router.push("/pages/all-roles")
+        router.push("/dashboard")
       }
     } catch (error) {
       setError("An error occurred during sign in")

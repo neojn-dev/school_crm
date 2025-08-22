@@ -1,3 +1,17 @@
+/**
+ * ROOT LAYOUT - Global Layout for Entire Application
+ * 
+ * This is the top-level layout that wraps ALL pages in the application.
+ * It provides:
+ * - Global HTML structure (html, body tags)
+ * - Global CSS imports
+ * - Session provider for authentication
+ * - Toast notifications
+ * - Global metadata
+ * 
+ * Used by: ALL pages in the application
+ */
+
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Toaster } from "sonner"

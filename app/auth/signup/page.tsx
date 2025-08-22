@@ -27,7 +27,7 @@ import {
   Star,
   AlertCircle
 } from "lucide-react"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 import { useRouter } from "next/navigation"
 
 const signupSchema = z.object({

@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react"
-import { Header, Footer } from "@/components/layout"
+import { Header, Footer } from "@/components/website-components"
 
 const features = [
   {
@@ -345,7 +345,7 @@ export default function VerifyPage() {
                     asChild
                     className="h-12 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-200"
                   >
-                    <Link href="/pages/all-roles">
+                    <Link href="/dashboard">
                       View Dashboard
                     </Link>
                   </Button>
