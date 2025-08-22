@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -50,7 +50,10 @@ model User {
   accounts Account[]
   sessions Session[]
   uploads  Upload[]
-  myData   MyData[]
+  teachers Teacher[]
+  doctors  Doctor[]
+  engineers Engineer[]
+  lawyers  Lawyer[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
 }
@@ -88,53 +91,223 @@ model Upload {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model MyData {
-  id          String      @id @default(cuid())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+model Teacher {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
-  // Text fields
-  title       String
-  description String
+  // Personal Information
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String?
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
   
-  // User fields
-  name        String
-  email       String      @unique
-  phone       String?
+  // Professional Information
+  employeeId      String   @unique
+  department      String
+  subject         String
+  gradeLevel      String
+  yearsOfExperience Int?
+  salary          Decimal? @db.Decimal(10, 2)
+  hireDate        DateTime?
+  isActive        Boolean  @default(true)
   
-  // Security fields (demo only)
-  passwordHash String?
+  // Education & Certifications
+  highestDegree   String?
+  university      String?
+  graduationYear  Int?
+  certifications  String? // JSON array
+  specializations String? // JSON array
   
-  // Typed fields
-  age         Int?
-  balance     Float?
-  rating      Float?
-  isActive    Boolean     @default(true)
+  // Performance & Ratings
+  performanceRating Float? @db.Float
+  studentSatisfaction Float? @db.Float
+  attendanceRate   Float? @db.Float
   
-  // Enums
-  category    String      @default("A")
-  
-  // Dates
-  dateOnly    String?     // HTML date input returns YYYY-MM-DD
-  dateTime    String?     // HTML datetime-local input returns YYYY-MM-DDTHH:MM
-  timeOnly    String?     // HTML time input returns HH:MM
-  
-  // URLs
-  website     String?
-  avatarUrl   String?
-  
-  // Media
-  filePath    String?
-  
-  // Arrays/tags (stored as JSON)
-  tags        String?     // JSON array
-  
-  // Color
-  color       String?     // hex string
+  // Additional Fields
+  bio             String? @db.Text
+  profileImage    String?
+  emergencyContact String?
+  emergencyPhone  String?
+  notes           String? @db.Text
   
   // Relations
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Doctor {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Personal Information
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String?
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  
+  // Professional Information
+  employeeId      String   @unique
+  department      String
+  specialization  String
+  licenseNumber   String   @unique
+  yearsOfExperience Int?
+  salary          Decimal? @db.Decimal(10, 2)
+  hireDate        DateTime?
+  isActive        Boolean  @default(true)
+  
+  // Medical Information
+  medicalSchool   String?
+  graduationYear  Int?
+  boardCertifications String? // JSON array
+  languages       String? // JSON array
+  
+  // Performance & Metrics
+  patientSatisfaction Float? @db.Float
+  successRate     Float? @db.Float
+  averageWaitTime Int? // in minutes
+  
+  // Schedule & Availability
+  workingHours   String? // JSON object
+  onCallSchedule String? // JSON object
+  
+  // Additional Fields
+  bio             String? @db.Text
+  profileImage    String?
+  emergencyContact String?
+  emergencyPhone  String?
+  notes           String? @db.Text
+  
+  // Relations
+  userId          String
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Engineer {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Personal Information
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String?
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  
+  // Professional Information
+  employeeId      String   @unique
+  department      String
+  specialization  String
+  engineeringType String // Civil, Mechanical, Electrical, Software, etc.
+  yearsOfExperience Int?
+  salary          Decimal? @db.Decimal(10, 2)
+  hireDate        DateTime?
+  isActive        Boolean  @default(true)
+  
+  // Education & Certifications
+  highestDegree   String?
+  university      String?
+  graduationYear  Int?
+  certifications  String? // JSON array
+  technicalSkills String? // JSON array
+  
+  // Performance & Projects
+  projectSuccessRate Float? @db.Float
+  codeQuality      Float? @db.Float
+  innovationScore  Float? @db.Float
+  
+  // Technical Details
+  programmingLanguages String? // JSON array
+  frameworks         String? // JSON array
+  tools              String? // JSON array
+  
+  // Additional Fields
+  bio               String? @db.Text
+  profileImage      String?
+  emergencyContact  String?
+  emergencyPhone    String?
+  notes             String? @db.Text
+  
+  // Relations
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Lawyer {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Personal Information
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String?
+  dateOfBirth     DateTime?
+  gender          String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+  
+  // Professional Information
+  employeeId      String   @unique
+  department      String
+  practiceArea    String
+  barNumber       String   @unique
+  yearsOfExperience Int?
+  salary          Decimal? @db.Decimal(10, 2)
+  hireDate        DateTime?
+  isActive        Boolean  @default(true)
+  
+  // Legal Information
+  lawSchool       String?
+  graduationYear  Int?
+  barAdmissions   String? // JSON array
+  specializations String? // JSON array
+  
+  // Performance & Cases
+  caseSuccessRate Float? @db.Float
+  clientSatisfaction Float? @db.Float
+  averageCaseDuration Int? // in days
+  
+  // Practice Details
+  courtExperience String? // JSON array
+  languages       String? // JSON array
+  
+  // Additional Fields
+  bio             String? @db.Text
+  profileImage    String?
+  emergencyContact String?
+  emergencyPhone  String?
+  notes           String? @db.Text
+  
+  // Relations
+  userId          String
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 

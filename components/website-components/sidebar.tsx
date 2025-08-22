@@ -44,7 +44,10 @@ const navigationGroups = [
     title: "Dashboard",
     items: [
       { title: "Overview", href: "/dashboard", icon: BarChart3, badge: "New" },
-      { title: "My Data", href: "/mydata", icon: Database },
+      { title: "Teachers", href: "/teachers", icon: Users },
+      { title: "Doctors", href: "/doctors", icon: Shield },
+      { title: "Engineers", href: "/engineers", icon: Zap },
+      { title: "Lawyers", href: "/lawyers", icon: Award },
       { title: "Profile", href: "/profile", icon: User },
       { title: "Settings", href: "/settings", icon: Settings }
     ]
@@ -63,7 +66,7 @@ const navigationGroups = [
     items: [
       { title: "Analytics", href: "/analytics", icon: TrendingUp },
       { title: "Reports", href: "/reports", icon: FileText },
-      { title: "Import/Export", href: "/mydata/import", icon: Database },
+      { title: "Import/Export", href: "/teachers", icon: Database },
       { title: "Support", href: "/support", icon: HelpCircle }
     ]
   }
