@@ -58,10 +58,10 @@ app/
 - Professional app-like interface
 
 **Features**:
-- ✨ Smooth animations with Framer Motion
+- ✨ Smooth CSS transitions
 - 📱 Mobile-first responsive design
 - 🎨 Modern gradient styling
-- 🔄 Collapsible sidebar (280px ↔ 80px)
+- 🔄 Collapsible sidebar (320px ↔ 80px)
 - 🍔 Mobile overlay menu
 
 ### 3. 🏢 WEBSITE LAYOUT (`app/(public-website)/layout.tsx`)
@@ -181,6 +181,30 @@ app/
 2. **Sidebar not showing**: Ensure page is in `(authenticated-app)` group
 3. **Styling conflicts**: Check layout hierarchy and CSS specificity
 4. **Authentication issues**: Verify middleware configuration
+
+### DOM Manipulation Errors
+
+#### **Error**: "Failed to execute 'removeChild' on 'Node'"
+
+**Causes**:
+- Complex Framer Motion animations during navigation
+- Session state changes causing unexpected component unmounting
+- Multiple motion components conflicting across pages
+
+**Solutions Applied**:
+- ✅ **Replaced motion components** with CSS transitions
+- ✅ **Added route-based keys** to force clean re-renders
+- ✅ **Added loading states** to prevent premature rendering
+- ✅ **Simplified animations** to avoid DOM conflicts
+- ✅ **Added Error Boundary** to catch and handle any remaining errors
+- ✅ **Added navigation states** to prevent error flashes during route changes
+- ✅ **Increased transition delay** to 100ms for smoother DOM transitions
+
+**Prevention**:
+- Use CSS transitions instead of complex JavaScript animations
+- Add proper loading states for authentication
+- Use route-based keys for layout components
+- Avoid staggered animations during navigation
 
 ### Debug Tips
 

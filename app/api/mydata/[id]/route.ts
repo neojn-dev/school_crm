@@ -7,9 +7,10 @@ import { z } from "zod"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -21,7 +22,7 @@ export async function GET(
 
     const myData = await db.myData.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -45,9 +46,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -60,13 +62,13 @@ export async function PUT(
     const body = await request.json()
     const validatedData = myDataUpdateSchema.parse({
       ...body,
-      id: params.id,
+      id: id,
     })
 
     // Check if the record exists and belongs to the user
     const existingData = await db.myData.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -86,7 +88,7 @@ export async function PUT(
     }
 
     const updatedData = await db.myData.update({
-      where: { id: params.id },
+      where: { id: id },
       data: dataToUpdate,
     })
 
@@ -110,9 +112,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -125,7 +128,7 @@ export async function DELETE(
     // Check if the record exists and belongs to the user
     const existingData = await db.myData.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     })
@@ -138,7 +141,7 @@ export async function DELETE(
     }
 
     await db.myData.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ message: "Data deleted successfully" })

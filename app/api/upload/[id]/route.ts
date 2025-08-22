@@ -8,9 +8,10 @@ import path from "path"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -23,7 +24,7 @@ export async function GET(
     // Find the upload record
     const upload = await db.upload.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id, // Only allow access to own files
       },
     })
@@ -69,9 +70,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -84,7 +86,7 @@ export async function DELETE(
     // Find the upload record
     const upload = await db.upload.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id, // Only allow deletion of own files
       },
     })
@@ -105,7 +107,7 @@ export async function DELETE(
 
     // Delete record from database
     await db.upload.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ message: "File deleted successfully" })

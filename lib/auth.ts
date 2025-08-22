@@ -6,7 +6,7 @@ import { db } from "@/lib/db"
 import { config } from "@/lib/config"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db) as any,
+  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -75,4 +75,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
   secret: config.auth.secret,
+  debug: process.env.NODE_ENV === "development",
+  trustHost: true,
 }

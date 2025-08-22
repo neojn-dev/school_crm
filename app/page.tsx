@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header, Footer } from "@/components/website-components"
@@ -102,19 +102,41 @@ const itemVariants = {
 }
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
 
-  // Show loading while checking authentication
-  if (status === "loading") {
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleGetStarted = () => {
+    if (session) {
+      router.push("/dashboard")
+    } else {
+      router.push("/auth/signup")
+    }
+  }
+
+  const handleSignIn = () => {
+    router.push("/auth/signin")
+  }
+
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <div className="w-8 h-8 bg-white rounded-lg"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <div className="w-8 h-8 bg-white rounded-lg"></div>
+            </div>
+            <p className="text-gray-600">Loading...</p>
           </div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        </main>
+        <Footer />
       </div>
     )
   }

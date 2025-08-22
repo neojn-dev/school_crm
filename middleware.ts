@@ -4,7 +4,12 @@ import { NextResponse } from "next/server"
 export default withAuth(
   function middleware(req) {
     // Allow access to all authenticated users for the app routes
-    if (req.nextUrl.pathname.startsWith("/app")) {
+    if (req.nextUrl.pathname.startsWith("/dashboard") || 
+        req.nextUrl.pathname.startsWith("/mydata") ||
+        req.nextUrl.pathname.startsWith("/role1") ||
+        req.nextUrl.pathname.startsWith("/role2") ||
+        req.nextUrl.pathname.startsWith("/role3") ||
+        req.nextUrl.pathname.startsWith("/all-roles")) {
       if (!req.nextauth.token) {
         return NextResponse.redirect(new URL("/auth/signin", req.url))
       }
@@ -20,8 +25,13 @@ export default withAuth(
           return true
         }
         
-        // Require token for app routes
-        if (req.nextUrl.pathname.startsWith("/app")) {
+        // Require token for protected routes
+        if (req.nextUrl.pathname.startsWith("/dashboard") || 
+            req.nextUrl.pathname.startsWith("/mydata") ||
+            req.nextUrl.pathname.startsWith("/role1") ||
+            req.nextUrl.pathname.startsWith("/role2") ||
+            req.nextUrl.pathname.startsWith("/role3") ||
+            req.nextUrl.pathname.startsWith("/all-roles")) {
           return !!token
         }
         
@@ -33,5 +43,13 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ["/pages/:path*", "/auth/:path*"]
+  matcher: [
+    "/dashboard/:path*",
+    "/mydata/:path*", 
+    "/role1/:path*",
+    "/role2/:path*",
+    "/role3/:path*",
+    "/all-roles/:path*",
+    "/auth/:path*"
+  ]
 }

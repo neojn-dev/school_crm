@@ -1,90 +1,63 @@
-const { PrismaClient } = require('@prisma/client')
-const bcrypt = require('bcryptjs')
+// Debug script to help identify hydration issues
+// Run this in the browser console when the error occurs
 
-const prisma = new PrismaClient()
+console.log('=== Hydration Debug Info ===');
 
-async function main() {
-  console.log('🐛 Creating test user for debugging...')
+// Check if we're in the browser
+if (typeof window !== 'undefined') {
+  console.log('Environment: Browser');
+  console.log('User Agent:', navigator.userAgent);
+  console.log('URL:', window.location.href);
   
-  // Create a test user
-  const passwordHash = await bcrypt.hash('testpass123', 12)
-  
-  const user = await prisma.user.create({
-    data: {
-      username: 'debuguser',
-      email: 'debug@example.com',
-      passwordHash,
-      role: 'ROLE1',
-      // Don't set emailVerified - let it be null
-    }
-  })
-  
-  console.log(`👤 Created test user: ${user.username} (${user.email})`)
-  console.log(`📧 Verification status: ${user.emailVerified ? 'VERIFIED' : 'NOT VERIFIED'}`)
-  
-  // Create verification token
-  const token = generateRandomString(32)
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-  
-  await prisma.verificationToken.create({
-    data: {
-      token,
-      userId: user.id,
-      expires
-    }
-  })
-  
-  console.log('🔑 Verification token created')
-  console.log(`📝 Token: ${token}`)
-  console.log(`⏰ Expires: ${expires}`)
-  console.log(`🔗 Verification URL: http://localhost:3000/auth/verify?token=${token}`)
-  
-  console.log('\n🔍 Now I will test this step by step...')
-  
-  // Step 1: Check initial state
-  console.log('\n📊 Step 1: Initial database state')
-  const initialUser = await prisma.user.findUnique({ where: { id: user.id } })
-  console.log(`   User verified: ${initialUser.emailVerified ? 'YES' : 'NO'}`)
-  
-  const initialToken = await prisma.verificationToken.findUnique({ where: { token } })
-  console.log(`   Token exists: ${initialToken ? 'YES' : 'NO'}`)
-  
-  // Step 2: Test API directly
-  console.log('\n📡 Step 2: Testing API directly')
-  const response = await fetch(`http://localhost:3000/api/auth/verify?token=${token}`)
-  console.log(`   API Status: ${response.status}`)
-  console.log(`   API OK: ${response.ok}`)
-  
-  if (response.ok) {
-    const data = await response.json()
-    console.log(`   API Response:`, data)
+  // Check for React DevTools
+  if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+    console.log('React DevTools: Available');
   } else {
-    const errorData = await response.json()
-    console.log(`   API Error:`, errorData)
+    console.log('React DevTools: Not available');
   }
   
-  // Step 3: Check final state
-  console.log('\n📊 Step 3: Final database state')
-  const finalUser = await prisma.user.findUnique({ where: { id: user.id } })
-  console.log(`   User verified: ${finalUser.emailVerified ? 'YES' : 'NO'}`)
-  
-  const finalToken = await prisma.verificationToken.findUnique({ where: { token } })
-  console.log(`   Token exists: ${finalToken ? 'YES' : 'NO'}`)
-  
-  console.log('\n🎯 Analysis complete!')
-}
-
-function generateRandomString(length = 32) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  // Check for Next.js specific globals
+  if (window.__NEXT_DATA__) {
+    console.log('Next.js Data: Available');
+    console.log('Page:', window.__NEXT_DATA__.page);
+    console.log('Props:', window.__NEXT_DATA__.props);
+  } else {
+    console.log('Next.js Data: Not available');
   }
-  return result
+  
+  // Check for session data
+  if (window.__NEXT_AUTH_SESSION__) {
+    console.log('NextAuth Session: Available');
+  } else {
+    console.log('NextAuth Session: Not available');
+  }
+  
+  // Check DOM state
+  console.log('Body children count:', document.body.children.length);
+  console.log('Root div exists:', !!document.getElementById('__next'));
+  
+} else {
+  console.log('Environment: Server');
 }
 
-main()
-  .catch(console.error)
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+// Check for common hydration issues
+console.log('\n=== Common Hydration Issues ===');
+console.log('1. Server/Client mismatch in rendering');
+console.log('2. Dynamic content that differs between server and client');
+console.log('3. Authentication state differences');
+console.log('4. Route changes during hydration');
+console.log('5. Component mounting/unmounting during navigation');
+
+// Check for specific NextAuth issues
+console.log('\n=== NextAuth Specific Issues ===');
+console.log('1. Session provider not wrapping correctly');
+console.log('2. Authentication state changing during render');
+console.log('3. Redirect happening before hydration completes');
+console.log('4. Middleware conflicts with client-side routing');
+
+console.log('\n=== Recommendations ===');
+console.log('1. Check browser console for additional errors');
+console.log('2. Verify session state in React DevTools');
+console.log('3. Check network tab for failed requests');
+console.log('4. Look for timing issues in component lifecycle');
+console.log('5. Verify route group configuration');

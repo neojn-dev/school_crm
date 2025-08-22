@@ -36,7 +36,7 @@ import {
   Bell,
   Database
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 
 // Navigation groups for public pages
 const navigationGroups = [
@@ -74,6 +74,12 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" })
@@ -91,6 +97,26 @@ export function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false)
+    setActiveDropdown(null)
+  }, [])
+
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/30">
+        <div className="container-custom">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            <div className="w-32 h-8 bg-gray-200 rounded animate-pulse"></div>
+            <div className="w-32 h-8 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <motion.header
@@ -159,44 +185,42 @@ export function Header() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
                 </motion.button>
                 
-                <AnimatePresence>
-                  {activeDropdown === group.title && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="absolute top-full left-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200/50 py-3 z-50 backdrop-blur-md"
-                      onMouseLeave={() => setActiveDropdown(null)}
-                    >
-                      <div className="px-1">
-                        {group.items.map((item, index) => {
-                          const Icon = item.icon
-                          return (
-                            <motion.div
-                              key={item.href}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
+                {activeDropdown === group.title && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute top-full left-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200/50 py-3 z-50 backdrop-blur-md"
+                    onMouseLeave={() => setActiveDropdown(null)}
+                  >
+                    <div className="px-1">
+                      {group.items.map((item, index) => {
+                        const Icon = item.icon
+                        return (
+                          <motion.div
+                            key={item.href}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.05 }}
+                          >
+                            <Link
+                              href={item.href}
+                              className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-900 transition-all duration-200 rounded-xl mx-1 group"
+                              onClick={() => setActiveDropdown(null)}
                             >
-                              <Link
-                                href={item.href}
-                                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-900 transition-all duration-200 rounded-xl mx-1 group"
-                                onClick={() => setActiveDropdown(null)}
-                              >
-                                <Icon className="mr-3 h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-colors" />
-                                <span className="font-medium">{item.title}</span>
-                                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <ChevronDown className="h-3 w-3 rotate-[-90deg] text-blue-600" />
-                                </div>
-                              </Link>
-                            </motion.div>
-                          )
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                              <Icon className="mr-3 h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-colors" />
+                              <span className="font-medium">{item.title}</span>
+                              <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <ChevronDown className="h-3 w-3 rotate-[-90deg] text-blue-600" />
+                              </div>
+                            </Link>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             ))}
           </nav>
@@ -301,94 +325,92 @@ export function Header() {
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="lg:hidden border-t border-gray-200/50 py-4 overflow-hidden"
-            >
-              <nav className="flex flex-col space-y-4">
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="lg:hidden border-t border-gray-200/50 py-4 overflow-hidden"
+          >
+            <nav className="flex flex-col space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+              >
+                <Link 
+                  href="/" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+              </motion.div>
+              
+              {/* Mobile Navigation Groups */}
+              {navigationGroups.map((group, groupIndex) => (
+                <motion.div
+                  key={group.title}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + groupIndex * 0.1 }}
+                  className="space-y-3"
+                >
+                  <div className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    {group.title}
+                  </div>
+                  <div className="space-y-2 ml-4">
+                    {group.items.map((item, itemIndex) => {
+                      const Icon = item.icon
+                      return (
+                        <motion.div
+                          key={item.href}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.2 + groupIndex * 0.1 + itemIndex * 0.05 }}
+                        >
+                          <Link
+                            href={item.href}
+                            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors py-2 group"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Icon className="mr-3 h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-colors" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              ))}
+              
+              {!session && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                  className="pt-4 border-t border-gray-200 space-y-3"
                 >
                   <Link 
-                    href="/" 
-                    className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                    href="/auth/signin" 
+                    className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Home
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/auth/signup" 
+                    className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign Up
                   </Link>
                 </motion.div>
-                
-                {/* Mobile Navigation Groups */}
-                {navigationGroups.map((group, groupIndex) => (
-                  <motion.div
-                    key={group.title}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 + groupIndex * 0.1 }}
-                    className="space-y-3"
-                  >
-                    <div className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                      {group.title}
-                    </div>
-                    <div className="space-y-2 ml-4">
-                      {group.items.map((item, itemIndex) => {
-                        const Icon = item.icon
-                        return (
-                          <motion.div
-                            key={item.href}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: 0.2 + groupIndex * 0.1 + itemIndex * 0.05 }}
-                          >
-                            <Link
-                              href={item.href}
-                              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors py-2 group"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              <Icon className="mr-3 h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-colors" />
-                              <span className="font-medium">{item.title}</span>
-                            </Link>
-                          </motion.div>
-                        )
-                      })}
-                    </div>
-                  </motion.div>
-                ))}
-                
-                {!session && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                    className="pt-4 border-t border-gray-200 space-y-3"
-                  >
-                    <Link 
-                      href="/auth/signin" 
-                      className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sign In
-                    </Link>
-                    <Link 
-                      href="/auth/signup" 
-                      className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sign Up
-                    </Link>
-                  </motion.div>
-                )}
-              </nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              )}
+            </nav>
+          </motion.div>
+        )}
       </div>
     </motion.header>
   )

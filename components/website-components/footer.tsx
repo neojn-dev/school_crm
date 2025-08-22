@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { 
@@ -85,8 +86,39 @@ const itemVariants = {
 }
 
 export function Footer() {
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-blue-900 text-white relative overflow-hidden">
+        <div className="container-custom">
+          <div className="py-16 lg:py-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <div className="w-24 h-6 bg-gray-700 rounded animate-pulse"></div>
+                  <div className="space-y-2">
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="w-20 h-4 bg-gray-700 rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
+    )
   }
 
   return (

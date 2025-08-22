@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
@@ -82,8 +82,10 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
+  // All hooks must be called before any conditional returns
   const {
     register,
     handleSubmit,
@@ -99,7 +101,14 @@ export default function SignInPage() {
 
   const rememberMe = watch("rememberMe")
 
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const onSubmit = async (data: SigninForm) => {
+    if (isLoading) return // Prevent multiple submissions
+    
     setIsLoading(true)
     setError(null)
     
@@ -112,9 +121,9 @@ export default function SignInPage() {
 
       if (result?.error) {
         setError("Invalid username/email or password")
-      } else {
-        // Redirect to dashboard on success
-        router.push("/dashboard")
+      } else if (result?.ok) {
+        // Use replace instead of push to prevent back navigation issues
+        router.replace("/dashboard")
       }
     } catch (error) {
       setError("An error occurred during sign in")
@@ -131,12 +140,32 @@ export default function SignInPage() {
     console.log(`Signing in with ${provider}`)
   }
 
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <div className="container-custom">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <div className="w-8 h-8 bg-white rounded-lg"></div>
+              </div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col" suppressHydrationWarning>
       <Header />
       
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
             {/* Left Side - Form */}
@@ -174,6 +203,7 @@ export default function SignInPage() {
                 {/* Error Message */}
                 {error && (
                   <motion.div
+                    key={error}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
@@ -185,6 +215,7 @@ export default function SignInPage() {
 
                 {/* Form */}
                 <motion.form
+                  key="signin-form"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
@@ -203,6 +234,7 @@ export default function SignInPage() {
                         type="text"
                         placeholder="Enter your username or email"
                         className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl transition-all duration-200"
+                        disabled={isLoading}
                         {...register("identifier")}
                       />
                     </div>
@@ -230,6 +262,7 @@ export default function SignInPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         className="pl-10 pr-12 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl transition-all duration-200"
+                        disabled={isLoading}
                         {...register("password")}
                       />
                       <button

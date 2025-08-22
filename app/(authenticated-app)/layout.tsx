@@ -15,11 +15,10 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
 import { 
   ChevronLeft, 
   ChevronRight,
@@ -34,6 +33,7 @@ import {
   X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 const navigationItems = [
   {
@@ -73,174 +73,219 @@ export default function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
+  // Ensure component is mounted before rendering
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Handle authentication redirect
+  useEffect(() => {
+    if (mounted && status === "unauthenticated" && !isRedirecting) {
+      setIsRedirecting(true)
+      router.push("/auth/signin")
+    }
+  }, [mounted, status, router, isRedirecting])
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleSignOut = useCallback(async () => {
+    try {
+      await signOut({ callbackUrl: "/" })
+    } catch (error) {
+      console.error("Sign out error:", error)
+    }
+  }, [])
+
+  const goToWebsite = useCallback(() => {
+    router.push("/")
+  }, [router])
+
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => !prev)
+  }, [])
+
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev)
+  }, [])
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false)
+  }, [])
+
+  // Show loading state while session is being determined
+  if (status === "loading" || !mounted) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <div className="w-8 h-8 bg-white rounded-lg"></div>
+          </div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
-  const goToWebsite = () => {
-    router.push("/")
+  // Don't render anything while redirecting
+  if (status === "unauthenticated" || isRedirecting) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <div className="w-8 h-8 bg-white rounded-lg"></div>
+          </div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
+    <ErrorBoundary>
+      <div className="flex h-screen bg-gray-50">
+        {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
           />
         )}
-      </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ width: isCollapsed ? 80 : 280 }}
-        animate={{ width: isCollapsed ? 80 : 280 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="relative hidden lg:flex flex-col bg-white border-r border-gray-200 shadow-lg"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex items-center space-x-3"
-            >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-bold text-lg text-gray-900">App</span>
-            </motion.div>
+        {/* Sidebar */}
+        <aside
+          className={cn(
+            "relative hidden lg:flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
+            isCollapsed ? "w-20" : "w-80"
           )}
-          
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
-            ) : (
-              <ChevronLeft className="h-4 w-4 text-gray-600" />
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            {!isCollapsed && (
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold text-lg text-gray-900">App</span>
+              </div>
             )}
-          </button>
-        </div>
+            
+            <button
+              onClick={toggleCollapse}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              type="button"
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-4 w-4 text-gray-600" />
+              ) : (
+                <ChevronLeft className="h-4 w-4 text-gray-600" />
+              )}
+            </button>
+          </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-          {navigationItems.map((item, index) => {
-            const Icon = item.icon
-            return (
-              <motion.div
-                key={item.href}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 + index * 0.05 }}
-              >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200",
-                    "hover:shadow-sm"
-                  )}
-                >
-                  <div className="flex items-center justify-center w-8 h-8 mr-3">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  {!isCollapsed && (
-                    <div className="flex-1">
-                      <div className="font-medium">{item.title}</div>
-                      <div className="text-xs text-gray-500 group-hover:text-blue-600">
-                        {item.description}
-                      </div>
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+            {navigationItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
+              return (
+                <div key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200",
+                      "hover:shadow-sm",
+                      isActive && "bg-blue-50 text-blue-700 border-r-2 border-blue-600"
+                    )}
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 mr-3">
+                      <Icon className="h-5 w-5" />
                     </div>
-                  )}
-                </Link>
-              </motion.div>
-            )
-          })}
-        </nav>
-
-        {/* Footer Actions */}
-        <div className="p-3 border-t border-gray-200 space-y-2">
-          {/* Website Home Link */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            onClick={goToWebsite}
-            className={cn(
-              "group w-full flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200",
-              "hover:shadow-sm"
-            )}
-          >
-            <div className="flex items-center justify-center w-8 h-8 mr-3">
-              <Globe className="h-5 w-5" />
-            </div>
-            {!isCollapsed && (
-              <div className="flex-1">
-                <div className="font-medium">Website Home</div>
-                <div className="text-xs text-gray-500 group-hover:text-green-600">
-                  Back to landing page
+                    {!isCollapsed && (
+                      <div className="flex-1">
+                        <div className="font-medium">{item.title}</div>
+                        <div className="text-xs text-gray-500 group-hover:text-blue-600">
+                          {item.description}
+                        </div>
+                      </div>
+                    )}
+                  </Link>
                 </div>
-              </div>
-            )}
-          </motion.button>
+              )
+            })}
+          </nav>
 
-          {/* Logout Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            onClick={handleSignOut}
-            className={cn(
-              "group w-full flex items-center px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200",
-              "hover:shadow-sm"
-            )}
-          >
-            <div className="flex items-center justify-center w-8 h-8 mr-3">
-              <LogOut className="h-5 w-5" />
-            </div>
-            {!isCollapsed && (
-              <div className="flex-1">
-                <div className="font-medium">Sign Out</div>
-                <div className="text-xs text-gray-500 group-hover:text-red-600">
-                  {session?.user?.username || 'User'}
+          {/* Footer Actions */}
+          <div className="p-3 border-t border-gray-200 space-y-2">
+            {/* Website Home Link */}
+            <button
+              onClick={goToWebsite}
+              className={cn(
+                "group w-full flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200",
+                "hover:shadow-sm"
+              )}
+              type="button"
+            >
+              <div className="flex items-center justify-center w-8 h-8 mr-3">
+                <Globe className="h-5 w-5" />
+              </div>
+              {!isCollapsed && (
+                <div className="flex-1">
+                  <div className="font-medium">Website Home</div>
+                  <div className="text-xs text-gray-500 group-hover:text-green-600">
+                    Back to landing page
+                  </div>
                 </div>
+              )}
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleSignOut}
+              className={cn(
+                "group w-full flex items-center px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200",
+                "hover:shadow-sm"
+              )}
+              type="button"
+            >
+              <div className="flex items-center justify-center w-8 h-8 mr-3">
+                <LogOut className="h-5 w-5" />
               </div>
-            )}
-          </motion.button>
-        </div>
-      </motion.aside>
+              {!isCollapsed && (
+                <div className="flex-1">
+                  <div className="font-medium">Sign Out</div>
+                  <div className="text-xs text-gray-500 group-hover:text-red-600">
+                    {session?.user?.username || 'User'}
+                  </div>
+                </div>
+              )}
+            </button>
+          </div>
+        </aside>
 
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setMobileMenuOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
-      >
-        <Menu className="h-5 w-5 text-gray-600" />
-      </button>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={toggleMobileMenu}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
+          type="button"
+        >
+          <Menu className="h-5 w-5 text-gray-600" />
+        </button>
 
-      {/* Mobile Sidebar */}
-      <AnimatePresence>
+        {/* Mobile Sidebar */}
         {mobileMenuOpen && (
-          <motion.aside
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 shadow-2xl lg:hidden"
-          >
+          <aside className="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 shadow-2xl lg:hidden">
             {/* Mobile Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center space-x-3">
@@ -250,8 +295,9 @@ export default function AppLayout({
                 <span className="font-bold text-lg text-gray-900">Application</span>
               </div>
               <button
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                type="button"
               >
                 <X className="h-5 w-5 text-gray-600" />
               </button>
@@ -259,19 +305,18 @@ export default function AppLayout({
 
             {/* Mobile Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-              {navigationItems.map((item, index) => {
+              {navigationItems.map((item) => {
                 const Icon = item.icon
+                const isActive = pathname === item.href
                 return (
-                  <motion.div
-                    key={item.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + index * 0.05 }}
-                  >
+                  <div key={item.href}>
                     <Link
                       href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="group flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:shadow-sm"
+                      onClick={closeMobileMenu}
+                      className={cn(
+                        "group flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 hover:shadow-sm",
+                        isActive && "bg-blue-50 text-blue-700 border-r-2 border-blue-600"
+                      )}
                     >
                       <div className="flex items-center justify-center w-8 h-8 mr-3">
                         <Icon className="h-5 w-5" />
@@ -283,7 +328,7 @@ export default function AppLayout({
                         </div>
                       </div>
                     </Link>
-                  </motion.div>
+                  </div>
                 )
               })}
             </nav>
@@ -293,9 +338,10 @@ export default function AppLayout({
               <button
                 onClick={() => {
                   goToWebsite()
-                  setMobileMenuOpen(false)
+                  closeMobileMenu()
                 }}
                 className="group w-full flex items-center px-3 py-3 rounded-xl text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 hover:shadow-sm"
+                type="button"
               >
                 <div className="flex items-center justify-center w-8 h-8 mr-3">
                   <Globe className="h-5 w-5" />
@@ -311,9 +357,10 @@ export default function AppLayout({
               <button
                 onClick={() => {
                   handleSignOut()
-                  setMobileMenuOpen(false)
+                  closeMobileMenu()
                 }}
                 className="group w-full flex items-center px-3 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 hover:shadow-sm"
+                type="button"
               >
                 <div className="flex items-center justify-center w-8 h-8 mr-3">
                   <LogOut className="h-5 w-5" />
@@ -326,17 +373,17 @@ export default function AppLayout({
                 </div>
               </button>
             </div>
-          </motion.aside>
+          </aside>
         )}
-      </AnimatePresence>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div key={pathname} className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ErrorBoundary>
   )
 }
 
