@@ -33,7 +33,8 @@ import {
   Calendar,
   HelpCircle,
   Search,
-  Bell
+  Bell,
+  Database
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -258,15 +259,33 @@ export function Header() {
                   <DropdownMenuSeparator />
                   <div className="p-1">
                     <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                      <Link href="/pages/all-roles" className="flex items-center p-2">
-                        <User className="mr-3 h-4 w-4" />
+                      <Link href="/dashboard" className="flex items-center p-2">
+                        <BarChart3 className="mr-3 h-4 w-4" />
                         <span>Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                      <Link href="/pages/mydata" className="flex items-center p-2">
-                        <Settings className="mr-3 h-4 w-4" />
+                      <Link href="/mydata" className="flex items-center p-2">
+                        <Database className="mr-3 h-4 w-4" />
                         <span>My Data</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                      <Link href="/role1" className="flex items-center p-2">
+                        <Users className="mr-3 h-4 w-4" />
+                        <span>Role 1</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                      <Link href="/role2" className="flex items-center p-2">
+                        <FileText className="mr-3 h-4 w-4" />
+                        <span>Role 2</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                      <Link href="/role3" className="flex items-center p-2">
+                        <Settings className="mr-3 h-4 w-4" />
+                        <span>Role 3</span>
                       </Link>
                     </DropdownMenuItem>
                   </div>
