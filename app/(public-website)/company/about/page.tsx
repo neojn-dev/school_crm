@@ -1,6 +1,6 @@
 "use client"
 
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import { motion } from "framer-motion"
 import { 
   Users, 
@@ -105,7 +105,7 @@ const cardVariants = {
 export default function AboutPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <WebsiteHeader />
       <main className="flex-1 pt-20">
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 lg:py-32">
@@ -415,7 +415,7 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

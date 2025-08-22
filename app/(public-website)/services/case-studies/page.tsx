@@ -1,4 +1,4 @@
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 
 export default function CaseStudiesPage() {
   const caseStudies = [
@@ -70,7 +70,7 @@ export default function CaseStudiesPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <WebsiteHeader />
       <main className="flex-1">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-20">
@@ -256,7 +256,7 @@ export default function CaseStudiesPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

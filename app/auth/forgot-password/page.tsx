@@ -18,7 +18,7 @@ import {
   Clock,
   MessageSquare
 } from "lucide-react"
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="container-custom">
@@ -257,14 +257,14 @@ export default function ForgotPasswordPage() {
           </div>
         </main>
 
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-      <Header />
+      <WebsiteHeader />
       
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="container-custom">
@@ -503,7 +503,7 @@ export default function ForgotPasswordPage() {
         </div>
       </main>
 
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react"
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 
 const features = [
   {
@@ -122,7 +122,7 @@ function VerifyPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="container-custom text-center">
@@ -144,7 +144,7 @@ function VerifyPageContent() {
           </div>
         </main>
 
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
@@ -152,7 +152,7 @@ function VerifyPageContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="container-custom">
@@ -264,7 +264,7 @@ function VerifyPageContent() {
           </div>
         </main>
 
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
@@ -272,7 +272,7 @@ function VerifyPageContent() {
   if (isVerified) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="container-custom">
@@ -372,7 +372,7 @@ function VerifyPageContent() {
           </div>
         </main>
 
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
@@ -385,7 +385,7 @@ export default function VerifyPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -394,7 +394,7 @@ export default function VerifyPage() {
             <p className="text-gray-600">Loading...</p>
           </div>
         </main>
-        <Footer />
+        <WebsiteFooter />
       </div>
     }>
       <VerifyPageContent />

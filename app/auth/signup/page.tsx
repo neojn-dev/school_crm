@@ -27,7 +27,7 @@ import {
   Star,
   AlertCircle
 } from "lucide-react"
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import { useRouter } from "next/navigation"
 
 const signupSchema = z.object({
@@ -185,7 +185,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-      <Header />
+      <WebsiteHeader />
       
       <main className="flex-1 flex items-center justify-center p-4 py-12">
         <div className="container-custom">
@@ -722,7 +722,7 @@ export default function SignUpPage() {
         </div>
       </main>
 
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

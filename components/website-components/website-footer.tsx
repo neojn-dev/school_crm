@@ -85,7 +85,7 @@ const itemVariants = {
   }
 }
 
-export function Footer() {
+export function WebsiteFooter() {
   const [mounted, setMounted] = useState(false)
 
   // Ensure component is mounted before rendering

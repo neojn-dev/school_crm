@@ -25,7 +25,7 @@ import {
   Heart,
   AlertCircle
 } from "lucide-react"
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
@@ -144,7 +144,7 @@ export default function SignInPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="container-custom">
             <div className="text-center">
@@ -155,14 +155,14 @@ export default function SignInPage() {
             </div>
           </div>
         </main>
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col" suppressHydrationWarning>
-      <Header />
+      <WebsiteHeader />
       
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="container-custom">
@@ -497,7 +497,7 @@ export default function SignInPage() {
         </div>
       </main>
 
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

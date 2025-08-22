@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Header, Footer } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { 
@@ -127,7 +127,7 @@ export default function HomePage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <Header />
+        <WebsiteHeader />
         <main className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -136,14 +136,14 @@ export default function HomePage() {
             <p className="text-gray-600">Loading...</p>
           </div>
         </main>
-        <Footer />
+        <WebsiteFooter />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Header />
+      <WebsiteHeader />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden section-padding">
@@ -460,7 +460,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
+      <WebsiteFooter />
     </div>
   )
 }

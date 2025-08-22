@@ -69,7 +69,7 @@ const navigationGroups = [
   }
 ]
 
-export function Header() {
+export function WebsiteHeader() {
   const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
