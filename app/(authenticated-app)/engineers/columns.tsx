@@ -57,7 +57,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "name",
+    accessorKey: "firstName", // Fixed: was "name"
     header: "Name",
     cell: ({ row }) => {
       const engineer = row.original
@@ -75,7 +75,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "contact",
+    accessorKey: "phone", // Fixed: was "contact"
     header: "Contact",
     cell: ({ row }) => {
       const engineer = row.original
@@ -92,7 +92,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "department",
+    accessorKey: "department", // This one was correct
     header: "Department",
     cell: ({ row }) => {
       const engineer = row.original
@@ -110,7 +110,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "engineeringType",
+    accessorKey: "engineeringType", // This one was correct
     header: "Engineering Type",
     cell: ({ row }) => {
       const engineer = row.original
@@ -123,7 +123,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "experience",
+    accessorKey: "yearsOfExperience", // Fixed: was "experience"
     header: "Experience",
     cell: ({ row }) => {
       const engineer = row.original
@@ -140,7 +140,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "performance",
+    accessorKey: "projectSuccessRate", // Fixed: was "performance"
     header: "Performance",
     cell: ({ row }) => {
       const engineer = row.original
@@ -164,7 +164,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "innovation",
+    accessorKey: "innovationScore", // Fixed: was "innovation"
     header: "Innovation",
     cell: ({ row }) => {
       const engineer = row.original
@@ -181,7 +181,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "salary",
+    accessorKey: "salary", // This one was correct
     header: "Salary",
     cell: ({ row }) => {
       const engineer = row.original
@@ -196,7 +196,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "isActive", // Fixed: was "status"
     header: "Status",
     cell: ({ row }) => {
       const engineer = row.original
@@ -208,7 +208,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "skills",
+    accessorKey: "programmingLanguages", // Fixed: was "skills"
     header: "Skills",
     cell: ({ row }) => {
       const engineer = row.original
@@ -225,7 +225,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "createdAt", // This one was correct
     header: "Created",
     cell: ({ row }) => {
       const engineer = row.original

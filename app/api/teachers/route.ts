@@ -4,22 +4,43 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 export async function GET() {
+  console.log('🔍 [API DEBUG] GET /api/teachers called')
+  
   try {
+    console.log('🔍 [API DEBUG] Getting server session...')
     const session = await getServerSession(authOptions)
+    console.log('🔍 [API DEBUG] Session result:', session ? 'Authenticated' : 'No session')
     
     if (!session) {
+      console.log('❌ [API DEBUG] Unauthorized - no session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('🔍 [API DEBUG] User authenticated:', session.user?.email)
+    console.log('🔍 [API DEBUG] Querying database for teachers...')
+    
     const teachers = await prisma.teacher.findMany({
       orderBy: { createdAt: 'desc' }
     })
 
+    console.log('🔍 [API DEBUG] Database query completed')
+    console.log('🔍 [API DEBUG] Found teachers count:', teachers.length)
+    console.log('🔍 [API DEBUG] First teacher sample:', teachers[0] ? {
+      id: teachers[0].id,
+      firstName: teachers[0].firstName,
+      lastName: teachers[0].lastName,
+      email: teachers[0].email
+    } : 'No teachers found')
+    
+    // Log the full response for debugging
+    console.log('🔍 [API DEBUG] Full response data:', JSON.stringify(teachers, null, 2))
+
     return NextResponse.json(teachers)
   } catch (error) {
-    console.error('Error fetching teachers:', error)
+    console.error('❌ [API ERROR] Error fetching teachers:', error)
+    console.error('❌ [API ERROR] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

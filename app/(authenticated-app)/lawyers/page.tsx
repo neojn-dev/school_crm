@@ -21,7 +21,7 @@ import {
   Gavel
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { EnhancedDataTable } from "@/components/data-table/enhanced-data-table"
+import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 interface Lawyer {
@@ -43,9 +43,10 @@ interface Lawyer {
 }
 
 export default function LawyersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [lawyers, setLawyers] = useState<Lawyer[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingLawyer, setEditingLawyer] = useState<Lawyer | null>(null)
   const [formData, setFormData] = useState({
@@ -71,18 +72,41 @@ export default function LawyersPage() {
   })
 
   useEffect(() => {
-    fetchLawyers()
-  }, [])
+    if (status === 'authenticated') {
+      fetchLawyers()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
+    }
+  }, [status])
 
   const fetchLawyers = async () => {
+    setLoading(true)
+    setError(null)
+    
     try {
-      const response = await fetch('/api/lawyers')
+      const response = await fetch('/api/lawyers', {
+        credentials: 'include'
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        setLawyers(data)
+        if (Array.isArray(data)) {
+          setLawyers(data)
+        } else {
+          console.error('❌ [ERROR] Lawyers - API returned non-array data:', data)
+          setError('Invalid data format received from API')
+          setLawyers([])
+        }
+      } else {
+        const errorText = await response.text()
+        console.error('❌ [ERROR] Lawyers - API request failed:', response.status, errorText)
+        setError(`API request failed: ${response.status} - ${errorText}`)
+        setLawyers([])
       }
     } catch (error) {
-      console.error('Error fetching lawyers:', error)
+      console.error('❌ [ERROR] Lawyers - Error fetching lawyers:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setLawyers([])
     } finally {
       setLoading(false)
     }
@@ -98,6 +122,7 @@ export default function LawyersPage() {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
       
@@ -282,22 +307,37 @@ export default function LawyersPage() {
             <CardDescription>A comprehensive list of all legal staff</CardDescription>
           </CardHeader>
           <CardContent>
-            <EnhancedDataTable
-              data={lawyers}
-              columns={columns}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={async (id) => {
-                try {
-                  await fetch(`/api/lawyers/${id}`, { method: 'DELETE' })
-                  fetchLawyers()
-                } catch (error) {
-                  console.error('Error deleting lawyer:', error)
-                }
-              }}
-              searchPlaceholder="Search lawyers..."
-              exportData={exportData}
-            />
+            {error ? (
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <h3 className="text-lg font-semibold">Error Loading Data</h3>
+                  <p>{error}</p>
+                </div>
+                <Button onClick={fetchLawyers} variant="outline">
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <DataTable
+                data={lawyers}
+                columns={columns}
+                isLoading={loading}
+                onEdit={handleEdit}
+                onDelete={async (id) => {
+                  try {
+                    await fetch(`/api/lawyers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchLawyers()
+                  } catch (error) {
+                    console.error('Error deleting lawyer:', error)
+                  }
+                }}
+                searchPlaceholder="Search lawyers..."
+                exportData={exportData}
+              />
+            )}
           </CardContent>
         </Card>
 

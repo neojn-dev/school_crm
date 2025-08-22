@@ -35,7 +35,7 @@ import {
   Shield
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { EnhancedDataTable } from "@/components/data-table/enhanced-data-table"
+import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 interface Doctor {
@@ -56,9 +56,10 @@ interface Doctor {
 }
 
 export default function DoctorsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [formData, setFormData] = useState({
@@ -97,18 +98,39 @@ export default function DoctorsPage() {
   })
 
   useEffect(() => {
-    fetchDoctors()
-  }, [])
+    if (status === 'authenticated') {
+      fetchDoctors()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
+    }
+  }, [status])
 
   const fetchDoctors = async () => {
+    setLoading(true)
+    setError(null)
+    
     try {
-      const response = await fetch('/api/doctors')
+      const response = await fetch('/api/doctors', {
+        credentials: 'include'
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        setDoctors(data)
+        
+        if (Array.isArray(data)) {
+          setDoctors(data)
+        } else {
+          setError('Invalid data format received from API')
+          setDoctors([])
+        }
+      } else {
+        const errorText = await response.text()
+        setError(`API request failed: ${response.status} - ${errorText}`)
+        setDoctors([])
       }
     } catch (error) {
-      console.error('Error fetching doctors:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setDoctors([])
     } finally {
       setLoading(false)
     }
@@ -124,6 +146,7 @@ export default function DoctorsPage() {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
       
@@ -334,22 +357,37 @@ export default function DoctorsPage() {
             <CardDescription>A comprehensive list of all medical staff</CardDescription>
           </CardHeader>
           <CardContent>
-            <EnhancedDataTable
-              data={doctors}
-              columns={columns}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={async (id) => {
-                try {
-                  await fetch(`/api/doctors/${id}`, { method: 'DELETE' })
-                  fetchDoctors()
-                } catch (error) {
-                  console.error('Error deleting doctor:', error)
-                }
-              }}
-              searchPlaceholder="Search doctors..."
-              exportData={exportData}
-            />
+            {error ? (
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <h3 className="text-lg font-semibold">Error Loading Data</h3>
+                  <p>{error}</p>
+                </div>
+                <Button onClick={fetchDoctors} variant="outline">
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <DataTable
+                data={doctors}
+                columns={columns}
+                isLoading={loading}
+                onEdit={handleEdit}
+                onDelete={async (id) => {
+                  try {
+                    await fetch(`/api/doctors/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchDoctors()
+                  } catch (error) {
+                    console.error('Error deleting doctor:', error)
+                  }
+                }}
+                searchPlaceholder="Search doctors..."
+                exportData={exportData}
+              />
+            )}
           </CardContent>
         </Card>
 

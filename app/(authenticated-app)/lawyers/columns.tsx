@@ -59,7 +59,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "name",
+    accessorKey: "firstName", // Fixed: was "name"
     header: "Name",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -77,7 +77,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "contact",
+    accessorKey: "phone", // Fixed: was "contact"
     header: "Contact",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -94,7 +94,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "department",
+    accessorKey: "department", // This one was correct
     header: "Department",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -112,7 +112,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "barNumber",
+    accessorKey: "barNumber", // This one was correct
     header: "Bar Number",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -127,7 +127,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "experience",
+    accessorKey: "yearsOfExperience", // Fixed: was "experience"
     header: "Experience",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -144,7 +144,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "performance",
+    accessorKey: "caseSuccessRate", // Fixed: was "performance"
     header: "Performance",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -168,7 +168,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "caseMetrics",
+    accessorKey: "averageCaseDuration", // Fixed: was "caseMetrics"
     header: "Case Metrics",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -185,7 +185,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "salary",
+    accessorKey: "salary", // This one was correct
     header: "Salary",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -200,7 +200,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "isActive", // Fixed: was "status"
     header: "Status",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -212,7 +212,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "education",
+    accessorKey: "lawSchool", // Fixed: was "education"
     header: "Education",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -233,7 +233,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "createdAt", // This one was correct
     header: "Created",
     cell: ({ row }) => {
       const lawyer = row.original

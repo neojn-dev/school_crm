@@ -9,7 +9,7 @@
  * - Navigation to app features (Dashboard, My Data, Roles)
  * - Website home and logout functionality
  * 
- * Used by: /dashboard, /mydata, /role1, /role2, /role3, /all-roles
+ * Used by: /dashboard, /doctors, /engineers, /teachers, /lawyers
  * Route Group: (authenticated-app)
  */
 
@@ -43,28 +43,28 @@ const navigationItems = [
     description: "Overview and analytics"
   },
   {
-    title: "My Data",
-    href: "/mydata",
-    icon: Database,
-    description: "Manage your data entries"
-  },
-  {
-    title: "Role 1",
-    href: "/role1",
+    title: "Doctors",
+    href: "/doctors",
     icon: Users,
-    description: "Access Role 1 features"
+    description: "Manage doctor records"
   },
   {
-    title: "Role 2",
-    href: "/role2",
+    title: "Engineers",
+    href: "/engineers",
     icon: FileText,
-    description: "Access Role 2 features"
+    description: "Manage engineer records"
   },
   {
-    title: "Role 3",
-    href: "/role3",
+    title: "Teachers",
+    href: "/teachers",
     icon: Settings,
-    description: "Access Role 3 features"
+    description: "Manage teacher records"
+  },
+  {
+    title: "Lawyers",
+    href: "/lawyers",
+    icon: Database,
+    description: "Manage lawyer records"
   }
 ]
 

@@ -71,6 +71,11 @@ interface DataTableProps<TData, TValue> {
     total: number
   }
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
+  onEdit?: (id: string) => void
+  onDelete?: (id: string) => Promise<void>
+  searchPlaceholder?: string
+  exportData?: () => void
+  loading?: boolean
 }
 
 interface FilterState {
@@ -87,7 +92,7 @@ interface FilterState {
   tags: string[]
 }
 
-export function EnhancedDataTable<TData, TValue>({
+export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
@@ -96,6 +101,11 @@ export function EnhancedDataTable<TData, TValue>({
   isLoading = false,
   pagination,
   onPaginationChange,
+  onEdit,
+  onDelete,
+  searchPlaceholder,
+  exportData,
+  loading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -139,7 +149,7 @@ export function EnhancedDataTable<TData, TValue>({
       globalFilter,
       pagination: pagination ? {
         pageIndex: pagination.pageIndex,
-        pageSize: pagination.pageSize,
+        pageSize: pagination?.pageSize || 10,
       } : undefined,
     },
     pageCount: pagination?.pageCount ?? -1,
@@ -235,7 +245,7 @@ export function EnhancedDataTable<TData, TValue>({
           <div className="relative max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search all columns..."
+              placeholder={searchPlaceholder || "Search all columns..."}
               value={globalFilter ?? ""}
               onChange={(event) => setGlobalFilter(String(event.target.value))}
               className="pl-8"
@@ -573,7 +583,7 @@ export function EnhancedDataTable<TData, TValue>({
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Rows per page</p>
             <Select
-              value={`${pagination?.pageSize ?? table.getState().pagination.pageSize}`}
+              value={`${pagination?.pageSize || table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
                 const pageSize = Number(value)
                 if (pagination && onPaginationChange) {
@@ -602,7 +612,7 @@ export function EnhancedDataTable<TData, TValue>({
               className="hidden h-8 w-8 p-0 lg:flex"
               onClick={() => {
                 if (pagination && onPaginationChange) {
-                  handlePaginationChange({ pageIndex: 0, pageSize: pagination.pageSize })
+                  handlePaginationChange({ pageIndex: 0, pageSize: pagination?.pageSize || 10 })
                 } else {
                   table.setPageIndex(0)
                 }
@@ -619,7 +629,7 @@ export function EnhancedDataTable<TData, TValue>({
                 if (pagination && onPaginationChange) {
                   handlePaginationChange({ 
                     pageIndex: pagination.pageIndex - 1, 
-                    pageSize: pagination.pageSize 
+                    pageSize: pagination?.pageSize || 10
                   })
                 } else {
                   table.previousPage()
@@ -637,7 +647,7 @@ export function EnhancedDataTable<TData, TValue>({
                 if (pagination && onPaginationChange) {
                   handlePaginationChange({ 
                     pageIndex: pagination.pageIndex + 1, 
-                    pageSize: pagination.pageSize 
+                    pageSize: pagination?.pageSize || 10
                   })
                 } else {
                   table.nextPage()
@@ -655,7 +665,7 @@ export function EnhancedDataTable<TData, TValue>({
                 if (pagination && onPaginationChange) {
                   handlePaginationChange({ 
                     pageIndex: pagination.pageCount - 1, 
-                    pageSize: pagination.pageSize 
+                    pageSize: pagination?.pageSize || 10
                   })
                 } else {
                   table.setPageIndex(table.getPageCount() - 1)

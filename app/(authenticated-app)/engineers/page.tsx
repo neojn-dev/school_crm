@@ -21,7 +21,7 @@ import {
   Cpu
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { EnhancedDataTable } from "@/components/data-table/enhanced-data-table"
+import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 interface Engineer {
@@ -43,9 +43,10 @@ interface Engineer {
 }
 
 export default function EngineersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [engineers, setEngineers] = useState<Engineer[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEngineer, setEditingEngineer] = useState<Engineer | null>(null)
   const [formData, setFormData] = useState({
@@ -68,18 +69,39 @@ export default function EngineersPage() {
   })
 
   useEffect(() => {
-    fetchEngineers()
-  }, [])
+    if (status === 'authenticated') {
+      fetchEngineers()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
+    }
+  }, [status])
 
   const fetchEngineers = async () => {
+    setLoading(true)
+    setError(null)
+    
     try {
-      const response = await fetch('/api/engineers')
+      const response = await fetch('/api/engineers', {
+        credentials: 'include'
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        setEngineers(data)
+        
+        if (Array.isArray(data)) {
+          setEngineers(data)
+        } else {
+          setError('Invalid data format received from API')
+          setEngineers([])
+        }
+      } else {
+        const errorText = await response.text()
+        setError(`API request failed: ${response.status} - ${errorText}`)
+        setEngineers([])
       }
     } catch (error) {
-      console.error('Error fetching engineers:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setEngineers([])
     } finally {
       setLoading(false)
     }
@@ -95,6 +117,7 @@ export default function EngineersPage() {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
       
@@ -273,22 +296,37 @@ export default function EngineersPage() {
             <CardDescription>A comprehensive list of all engineering staff</CardDescription>
           </CardHeader>
           <CardContent>
-            <EnhancedDataTable
-              data={engineers}
-              columns={columns}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={async (id) => {
-                try {
-                  await fetch(`/api/engineers/${id}`, { method: 'DELETE' })
-                  fetchEngineers()
-                } catch (error) {
-                  console.error('Error deleting engineer:', error)
-                }
-              }}
-              searchPlaceholder="Search engineers..."
-              exportData={exportData}
-            />
+            {error ? (
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <h3 className="text-lg font-semibold">Error Loading Data</h3>
+                  <p>{error}</p>
+                </div>
+                <Button onClick={fetchEngineers} variant="outline">
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <DataTable
+                data={engineers}
+                columns={columns}
+                isLoading={loading}
+                onEdit={handleEdit}
+                onDelete={async (id) => {
+                  try {
+                    await fetch(`/api/engineers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchEngineers()
+                  } catch (error) {
+                    console.error('Error deleting engineer:', error)
+                  }
+                }}
+                searchPlaceholder="Search engineers..."
+                exportData={exportData}
+              />
+            )}
           </CardContent>
         </Card>
 

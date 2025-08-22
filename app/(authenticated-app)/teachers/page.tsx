@@ -33,7 +33,7 @@ import {
   UserCheck
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { EnhancedDataTable } from "@/components/data-table/enhanced-data-table"
+import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 
 interface Teacher {
@@ -54,9 +54,10 @@ interface Teacher {
 }
 
 export default function TeachersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
   const [formData, setFormData] = useState({
@@ -94,18 +95,41 @@ export default function TeachersPage() {
   })
 
   useEffect(() => {
-    fetchTeachers()
-  }, [])
+    if (status === 'authenticated') {
+      fetchTeachers()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
+    }
+  }, [status])
 
   const fetchTeachers = async () => {
+    setLoading(true)
+    setError(null)
+    
     try {
-      const response = await fetch('/api/teachers')
+      const response = await fetch('/api/teachers', {
+        credentials: 'include'
+      })
+      
       if (response.ok) {
         const data = await response.json()
-        setTeachers(data)
+        if (Array.isArray(data)) {
+          setTeachers(data)
+        } else {
+          console.error('❌ [ERROR] Teachers - API returned non-array data:', data)
+          setError('Invalid data format received from API')
+          setTeachers([])
+        }
+      } else {
+        const errorText = await response.text()
+        console.error('❌ [ERROR] Teachers - API request failed:', response.status, errorText)
+        setError(`API request failed: ${response.status} - ${errorText}`)
+        setTeachers([])
       }
     } catch (error) {
-      console.error('Error fetching teachers:', error)
+      console.error('❌ [ERROR] Teachers - Error fetching teachers:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setTeachers([])
     } finally {
       setLoading(false)
     }
@@ -121,6 +145,7 @@ export default function TeachersPage() {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData)
       })
       
@@ -329,22 +354,37 @@ export default function TeachersPage() {
             <CardDescription>A comprehensive list of all teaching staff</CardDescription>
           </CardHeader>
           <CardContent>
-            <EnhancedDataTable
-              data={teachers}
-              columns={columns}
-              loading={loading}
-              onEdit={handleEdit}
-              onDelete={async (id) => {
-                try {
-                  await fetch(`/api/teachers/${id}`, { method: 'DELETE' })
-                  fetchTeachers()
-                } catch (error) {
-                  console.error('Error deleting teacher:', error)
-                }
-              }}
-              searchPlaceholder="Search teachers..."
-              exportData={exportData}
-            />
+            {error ? (
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <h3 className="text-lg font-semibold">Error Loading Data</h3>
+                  <p>{error}</p>
+                </div>
+                <Button onClick={fetchTeachers} variant="outline">
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <DataTable
+                data={teachers}
+                columns={columns}
+                isLoading={loading}
+                onEdit={handleEdit}
+                onDelete={async (id) => {
+                  try {
+                    await fetch(`/api/teachers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchTeachers()
+                  } catch (error) {
+                    console.error('Error deleting teacher:', error)
+                  }
+                }}
+                searchPlaceholder="Search teachers..."
+                exportData={exportData}
+              />
+            )}
           </CardContent>
         </Card>
 

@@ -74,7 +74,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "name",
+    accessorKey: "firstName", // Fixed: was "name"
     header: "Name",
     cell: ({ row }) => {
       const doctor = row.original
@@ -92,7 +92,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "contact",
+    accessorKey: "phone", // Fixed: was "contact"
     header: "Contact",
     cell: ({ row }) => {
       const doctor = row.original
@@ -115,7 +115,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "department",
+    accessorKey: "department", // This one was correct
     header: "Department",
     cell: ({ row }) => {
       const doctor = row.original
@@ -133,7 +133,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "license",
+    accessorKey: "licenseNumber", // Fixed: was "license"
     header: "License",
     cell: ({ row }) => {
       const doctor = row.original
@@ -148,7 +148,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "experience",
+    accessorKey: "yearsOfExperience", // Fixed: was "experience"
     header: "Experience",
     cell: ({ row }) => {
       const doctor = row.original
@@ -170,7 +170,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "performance",
+    accessorKey: "patientSatisfaction", // Fixed: was "performance"
     header: "Performance",
     cell: ({ row }) => {
       const doctor = row.original
@@ -194,7 +194,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "metrics",
+    accessorKey: "averageWaitTime", // Fixed: was "metrics"
     header: "Metrics",
     cell: ({ row }) => {
       const doctor = row.original
@@ -216,7 +216,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "salary",
+    accessorKey: "salary", // This one was correct
     header: "Salary",
     cell: ({ row }) => {
       const doctor = row.original
@@ -231,7 +231,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "status",
+    accessorKey: "isActive", // This one was correct
     header: "Status",
     cell: ({ row }) => {
       const doctor = row.original
@@ -243,7 +243,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "education",
+    accessorKey: "medicalSchool", // Fixed: was "education"
     header: "Education",
     cell: ({ row }) => {
       const doctor = row.original
@@ -264,7 +264,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "createdAt", // This one was correct
     header: "Created",
     cell: ({ row }) => {
       const doctor = row.original
