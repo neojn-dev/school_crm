@@ -4,21 +4,12 @@ import { useState, useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
 import { 
   Menu, 
   X, 
-  User, 
   LogOut, 
-  Settings, 
+  ArrowRight,
   ChevronDown,
   Info,
   Target,
@@ -31,10 +22,7 @@ import {
   FileText,
   TrendingUp,
   Calendar,
-  HelpCircle,
-  Search,
-  Bell,
-  Database
+  HelpCircle
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -70,7 +58,17 @@ const navigationGroups = [
 ]
 
 export function WebsiteHeader() {
-  const { data: session, status } = useSession()
+  const [sessionError, setSessionError] = useState(false)
+  
+  const { data: session, status } = useSession({
+    required: false,
+    onError: (error) => {
+      console.warn('Session error in website header:', error)
+      setSessionError(true)
+      // Don't throw error, just continue without session
+    }
+  })
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
@@ -80,6 +78,10 @@ export function WebsiteHeader() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Check if user is authenticated (handle both direct and nested session structures)
+  const user = session?.user || (session as any)?.session?.user
+  const isAuthenticated = !sessionError && status === "authenticated" && user
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" })
@@ -225,90 +227,85 @@ export function WebsiteHeader() {
             ))}
           </nav>
 
-          {/* Right Section */}
-          <div className="flex items-center space-x-3 lg:space-x-4">
-            {/* Search Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden md:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
-            >
-              <Search className="h-5 w-5" />
-            </motion.button>
-
-            {/* Notifications */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden md:flex p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 relative"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-            </motion.button>
-
+          {/* Right Section - User Info and Auth */}
+          <div className="flex items-center space-x-4">
             {/* Auth Section */}
-            {status === "loading" ? (
-              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-            ) : session ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative h-10 w-10 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-blue-500/20 transition-all duration-200"
+            {(status === "loading" || sessionError) ? (
+              <span className="text-sm text-gray-500">
+                {sessionError ? "..." : "Loading..."}
+              </span>
+            ) : isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                {/* User Name - Desktop */}
+                <div className="hidden md:flex items-center space-x-3">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl px-3 py-2 border border-green-200 shadow-sm"
                   >
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-gradient-primary text-white font-semibold">
-                        {session?.user?.username?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </motion.button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal p-3">
-                    <div className="flex flex-col space-y-2">
-                      <p className="text-sm font-semibold leading-none text-gray-900">
-                        {session?.user?.username || "User"}
-                      </p>
-                      <p className="text-xs leading-none text-gray-500">
-                        {session?.user?.email || "No email"}
-                      </p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {session?.user?.role || "Unknown"}
-                        </span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="p-1">
-                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                      <Link href="/dashboard" className="flex items-center p-2">
-                        <BarChart3 className="mr-3 h-4 w-4" />
-                        <span>Go to Application</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <div className="p-1">
-                    <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600 rounded-lg cursor-pointer"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="mr-3 h-4 w-4" />
-                      <span>Sign out</span>
-                    </DropdownMenuItem>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {user?.username || user?.email || 'User'}
+                    </span>
+                    <div className="text-xs text-green-600 font-medium">Online</div>
+                  </motion.div>
+                </div>
+
+                {/* Go to Application Button */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button 
+                    asChild
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0 px-4 py-2 rounded-lg font-semibold"
+                  >
+                    <Link href="/dashboard" className="flex items-center space-x-2">
+                      <span>Go to App</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </motion.div>
+
+                {/* Logout Button */}
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
+              </div>
             ) : (
-              <div className="hidden lg:flex items-center space-x-3">
-                <Button variant="ghost" asChild className="btn-ghost">
-                  <Link href="/auth/signin">Sign In</Link>
-                </Button>
-                <Button asChild className="btn-primary">
-                  <Link href="/auth/signup">Sign Up</Link>
-                </Button>
+              <div className="hidden lg:flex items-center">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button 
+                    asChild 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0 px-6 py-2.5 rounded-xl font-semibold relative overflow-hidden"
+                  >
+                    <Link href="/auth/signin" className="flex items-center space-x-2">
+                      <span>Sign In</span>
+                      <motion.div
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <ChevronDown className="h-4 w-4 rotate-[-90deg]" />
+                      </motion.div>
+                      {/* Subtle shine effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        animate={{ x: [-100, 200] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </Link>
+                  </Button>
+                </motion.div>
               </div>
             )}
 
@@ -385,27 +382,58 @@ export function WebsiteHeader() {
                 </motion.div>
               ))}
               
-              {!session && (
+              {!isAuthenticated && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                  className="pt-4 border-t border-gray-200"
+                >
+                  <Link 
+                    href="/auth/signin" 
+                    className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span>Sign In</span>
+                    <ChevronDown className="ml-2 h-4 w-4 rotate-[-90deg]" />
+                  </Link>
+                </motion.div>
+              )}
+
+              {isAuthenticated && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.4 }}
                   className="pt-4 border-t border-gray-200 space-y-3"
                 >
+                  <div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl px-3 py-2 border border-green-200 shadow-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {user?.username || user?.email || 'User'}
+                    </span>
+                    <div className="text-xs text-green-600 font-medium">Online</div>
+                  </div>
+                  
                   <Link 
-                    href="/auth/signin" 
-                    className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                    href="/dashboard"
+                    className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Sign In
+                    <span>Go to Application</span>
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
-                  <Link 
-                    href="/auth/signup" 
-                    className="block text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
+                  
+                  <button
+                    onClick={() => {
+                      handleSignOut()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 bg-red-50 text-red-600 hover:bg-red-100 py-3 px-6 rounded-xl font-semibold transition-all duration-300"
                   >
-                    Sign Up
-                  </Link>
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </button>
                 </motion.div>
               )}
             </nav>

@@ -10,9 +10,10 @@ interface SessionProviderWrapperProps {
 export function SessionProviderWrapper({ children }: SessionProviderWrapperProps) {
   return (
     <SessionProvider 
-      refetchInterval={5 * 60} // Refetch every 5 minutes
+      refetchInterval={0} // Disable automatic refetching to prevent CLIENT_FETCH_ERROR
       refetchOnWindowFocus={false} // Don't refetch on window focus to prevent hydration issues
       basePath="/api/auth" // Explicitly set the base path for NextAuth API calls
+      refetchWhenOffline={false} // Don't refetch when offline
     >
       {children}
     </SessionProvider>

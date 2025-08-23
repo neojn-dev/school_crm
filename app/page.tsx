@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+// Removed useSession to prevent CLIENT_FETCH_ERROR on public pages
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -102,7 +102,6 @@ const itemVariants = {
 }
 
 export default function HomePage() {
-  const { data: session } = useSession()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
@@ -112,11 +111,8 @@ export default function HomePage() {
   }, [])
 
   const handleGetStarted = () => {
-    if (session) {
-      router.push("/dashboard")
-    } else {
-      router.push("/auth/signup")
-    }
+    // Always redirect to signup for public homepage
+    router.push("/auth/signup")
   }
 
   const handleSignIn = () => {
@@ -155,17 +151,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center max-w-5xl mx-auto"
           >
-            {session && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-4"
-              >
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Welcome back, {session.user?.username || 'User'}!
-              </motion.div>
-            )}
+            {/* Removed session-dependent welcome message to prevent CLIENT_FETCH_ERROR */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -193,21 +179,14 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
-              {session ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="btn-primary text-lg px-8 py-4 group">
-                    Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/signin">
-                  <Button size="lg" className="btn-primary text-lg px-8 py-4 group">
-                    Get Started Free
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              )}
+              <Button 
+                onClick={handleGetStarted}
+                size="lg" 
+                className="btn-primary text-lg px-8 py-4 group"
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
               <Button size="lg" variant="outline" className="btn-outline text-lg px-8 py-4 group">
                 <Play className="mr-2 h-5 w-5" />
                 Watch Demo
@@ -327,21 +306,15 @@ export default function HomePage() {
               Join thousands of companies already using our platform to transform their business.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {session ? (
-                <Link href="/dashboard">
-                  <Button size="lg" variant="secondary" className="text-lg px-8 py-4 group">
-                    Access Application
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/signin">
-                  <Button size="lg" variant="secondary" className="text-lg px-8 py-4 group">
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              )}
+              <Button 
+                onClick={handleGetStarted}
+                size="lg" 
+                variant="secondary" 
+                className="text-lg px-8 py-4 group"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
               <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-primary group">
                 Contact Sales
                 <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -441,21 +414,14 @@ export default function HomePage() {
             <p className="text-xl mb-8 opacity-90">
               Join the future of business technology. Start your transformation today.
             </p>
-            {session ? (
-              <Link href="/dashboard">
-                <Button size="lg" className="btn-primary text-lg px-10 py-4 group">
-                  Access Dashboard
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/auth/signin">
-                <Button size="lg" className="btn-primary text-lg px-10 py-4 group">
-                  Get Started Now
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            )}
+            <Button 
+              onClick={handleGetStarted}
+              size="lg" 
+              className="btn-primary text-lg px-10 py-4 group"
+            >
+              Get Started Now
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </motion.div>
         </div>
       </section>

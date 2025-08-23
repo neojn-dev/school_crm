@@ -56,26 +56,49 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.role = user.role
-        token.username = user.username
+      try {
+        if (user) {
+          token.id = user.id
+          token.role = user.role
+          token.username = user.username
+        }
+        return token
+      } catch (error) {
+        console.warn('JWT callback error:', error)
+        return token
       }
-      return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
-        session.user.username = token.username as string
+      try {
+        if (token && session?.user) {
+          session.user.id = token.id as string
+          session.user.role = token.role as string
+          session.user.username = token.username as string
+        }
+        return session
+      } catch (error) {
+        console.warn('Session callback error:', error)
+        return session
       }
-      return session
     }
   },
   pages: {
     signIn: "/auth/signin",
+    error: "/auth/signin", // Redirect errors to signin page
   },
   secret: config.auth.secret,
   debug: process.env.NODE_ENV === "development",
   trustHost: true,
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 }
