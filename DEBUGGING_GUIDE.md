@@ -1,171 +1,267 @@
-# 🔍 Debugging Guide for Data Loading Issues
+# 🐛 Server-Side Debugging Guide for Next.js
 
-This guide explains the comprehensive logging and debugging features I've added to help troubleshoot why the data isn't being displayed in the tables for doctors, engineers, lawyers, and teachers.
+This guide explains how to debug server-side Next.js code using browser DevTools with the Node.js inspector.
 
-## 🚀 What I've Added
+## 🚀 Quick Start
 
-### 1. **Enhanced Console Logging**
-- **Session Status Tracking**: Logs when user authentication status changes
-- **API Request Logging**: Detailed logging of all API calls and responses
-- **Data Flow Tracking**: Logs when data is fetched, processed, and stored in state
-- **Error Handling**: Comprehensive error logging with stack traces
+### Available Debug Scripts
 
-### 2. **Debug Panels on Each Page**
-Each page now has a development-only debug panel that shows:
-- Current session status
-- Loading state
-- Data count
-- Any errors that occurred
-- Raw debug information
-- Database test results
+```bash
+# Standard development (no debugging)
+npm run dev
 
-### 3. **Database Connection Testing**
-- New `/api/test-db` endpoint to test database connectivity
-- Tests all table counts and sample data retrieval
-- Helps identify if the issue is with the database or the frontend
+# Enable debugging (recommended for most cases)
+npm run dev:debug
 
-### 4. **Enhanced Error Handling**
-- Better error messages displayed to users
-- Retry buttons when data loading fails
-- Graceful fallbacks when data is malformed
+# Enable debugging with break on start (pauses immediately)
+npm run dev:debug-brk
 
-## 🔧 How to Use the Debugging Features
+# Enable remote debugging (for Docker/containers)
+npm run dev:debug-remote
 
-### **Step 1: Open Browser Developer Tools**
-1. Navigate to any of the pages (doctors, engineers, lawyers, teachers)
-2. Press `F12` or right-click → "Inspect" → "Console" tab
-3. Look for logs starting with `🔍 [DEBUG]` and `❌ [ERROR]`
+# Enable debugging with verbose logging
+npm run dev:debug-verbose
 
-### **Step 2: Check the Debug Panel**
-1. Look for the orange debug panel below the stats cards
-2. Check the session status, loading state, and data count
-3. Use the "Log State to Console" button to see current state
-4. Use the "Test Database" button to test database connectivity
-
-### **Step 3: Monitor Console Logs**
-Watch for these key log patterns:
-
-```
-🔍 [DEBUG] Session status changed: loading
-🔍 [DEBUG] User authenticated, fetching doctors...
-🔍 [DEBUG] Making API request to /api/doctors
-🔍 [API DEBUG] GET /api/doctors called
-🔍 [API DEBUG] User authenticated: user@example.com
-🔍 [API DEBUG] Found doctors count: 0
+# Debug production build
+npm run start:debug
 ```
 
-## 🐛 Common Issues to Look For
+## 🔧 Setup Instructions
 
-### **1. Authentication Issues**
-- **Symptoms**: Session status shows "unauthenticated" or "loading"
-- **Check**: Look for session-related logs in console
-- **Solution**: Ensure user is properly logged in
+### 1. Start Debug Server
 
-### **2. Database Connection Issues**
-- **Symptoms**: API calls fail with 500 errors
-- **Check**: Use "Test Database" button in debug panel
-- **Solution**: Check database connection string and Prisma setup
+Choose one of the debug scripts based on your needs:
 
-### **3. Empty Data Sets**
-- **Symptoms**: Count shows 0, no error messages
-- **Check**: Look for "Found doctors count: 0" in API logs
-- **Solution**: Check if seed data exists, run database seeding
-
-### **4. API Route Issues**
-- **Symptoms**: Frontend shows loading indefinitely
-- **Check**: Look for API request/response logs
-- **Solution**: Check API route implementation and middleware
-
-## 📊 Debug Panel Information
-
-The debug panel shows real-time information about:
-
-- **Session Status**: Current authentication state
-- **Loading State**: Whether data is being fetched
-- **Data Count**: Number of records loaded
-- **Error Messages**: Any errors that occurred
-- **Raw Data**: Complete debug information object
-- **Database Test Results**: Results from database connectivity tests
-
-## 🗄️ Database Testing
-
-The "Test Database" button will:
-
-1. Test Prisma connection
-2. Count records in all tables
-3. Retrieve sample data from each table
-4. Show detailed results in the debug panel
-
-This helps identify if the issue is:
-- Database connection problems
-- Empty tables (no seed data)
-- Permission issues
-- Schema mismatches
-
-## 🔍 What to Look For in Console
-
-### **Successful Data Loading:**
-```
-🔍 [DEBUG] User authenticated, fetching doctors...
-🔍 [DEBUG] Making API request to /api/doctors
-🔍 [API DEBUG] Found doctors count: 10
-🔍 [DEBUG] Doctors state updated with 10 records
+```bash
+# Most common - enables debugging
+npm run dev:debug
 ```
 
-### **Failed Data Loading:**
+You'll see output like:
 ```
-❌ [ERROR] API request failed: 500 - Internal server error
-❌ [API ERROR] Error fetching doctors: [error details]
-```
-
-### **Authentication Issues:**
-```
-🔍 [DEBUG] Session status changed: unauthenticated
-❌ [API DEBUG] Unauthorized - no session
+Debugger listening on ws://127.0.0.1:9229/0cf90313-350d-4466-a748-cd60f4e47c95
+For help, see: https://nodejs.org/en/docs/inspector
+ready - started server on 0.0.0.0:3000, url: http://localhost:3000
 ```
 
-## 🚨 Troubleshooting Steps
+### 2. Connect Browser DevTools
 
-### **If No Data is Loading:**
+#### For Chrome/Edge:
+1. Open a new tab and visit `chrome://inspect`
+2. Click **Configure...** to ensure debugging ports are listed
+3. Add `localhost:9229` and `localhost:9230` if not present
+4. Look for your Next.js application in the **Remote Target** section
+5. Click **inspect** to open DevTools
+6. Go to the **Sources** tab
 
-1. **Check Authentication**: Ensure user is logged in
-2. **Test Database**: Use the "Test Database" button
-3. **Check Console**: Look for error messages
-4. **Verify API Routes**: Check if `/api/doctors` etc. are accessible
-5. **Check Database**: Ensure tables have data (run seed script if needed)
+#### For Firefox:
+1. Open a new tab and visit `about:debugging`
+2. Click **This Firefox** in the left sidebar
+3. Under **Remote Targets**, find your Next.js application
+4. Click **Inspect** to open the debugger
+5. Go to the **Debugger** tab
 
-### **If Getting Errors:**
+## 🎯 Debug Script Explanations
 
-1. **Check Console Logs**: Look for detailed error messages
-2. **Check Network Tab**: See actual HTTP responses
-3. **Check Server Logs**: Look for backend error messages
-4. **Test Database Connection**: Use the test endpoint
+### `dev:debug`
+- **Purpose**: Standard debugging for development
+- **Use Case**: General server-side debugging
+- **Command**: `NODE_OPTIONS='--inspect' next dev`
 
-### **If Data Count is 0:**
+### `dev:debug-brk`
+- **Purpose**: Debugging with immediate breakpoint
+- **Use Case**: Debug startup issues or early initialization code
+- **Command**: `NODE_OPTIONS='--inspect-brk' next dev`
+- **Note**: Server will pause immediately, waiting for debugger to attach
 
-1. **Run Database Seed**: Execute `npm run db:seed` or similar
-2. **Check Database**: Verify tables exist and have data
-3. **Check Permissions**: Ensure user has access to data
-4. **Verify Schema**: Check if Prisma schema matches database
+### `dev:debug-remote`
+- **Purpose**: Remote debugging access
+- **Use Case**: Debugging in Docker containers or remote environments
+- **Command**: `NODE_OPTIONS='--inspect=0.0.0.0:9229' next dev`
+- **Security**: Only use in secure environments (exposes debugging port)
 
-## 📝 Next Steps
+### `dev:debug-verbose`
+- **Purpose**: Debugging with comprehensive logging
+- **Use Case**: Complex issues requiring detailed logs
+- **Command**: `NODE_OPTIONS='--inspect' DEBUG=* next dev`
+- **Note**: Generates extensive console output
 
-After using these debugging features:
+### `start:debug`
+- **Purpose**: Debug production build
+- **Use Case**: Production-specific issues
+- **Command**: `NODE_OPTIONS='--inspect' next start`
+- **Prerequisite**: Run `npm run build` first
 
-1. **Identify the Root Cause**: Use logs to pinpoint where the issue occurs
-2. **Check Database**: Ensure tables exist and have data
-3. **Verify Authentication**: Confirm user sessions are working
-4. **Test API Routes**: Ensure endpoints are accessible
-5. **Check Prisma**: Verify database schema and connections
+## 🔍 Debugging Techniques
 
-## 🆘 Still Having Issues?
+### Setting Breakpoints
 
-If the debugging doesn't reveal the problem:
+1. **In DevTools Sources Tab**:
+   - Navigate to your file (use Ctrl+P/⌘+P to search)
+   - Click line numbers to set breakpoints
+   - Files appear as `webpack://{application-name}/./path/to/file`
 
-1. **Check the database directly** using a database client
-2. **Verify environment variables** (DATABASE_URL, etc.)
-3. **Check Prisma migrations** are up to date
-4. **Look at server logs** for additional error details
-5. **Test with a simple query** to isolate the issue
+2. **In Code (debugger statement)**:
+   ```javascript
+   // Add this line in your server-side code
+   debugger;
+   ```
 
-The comprehensive logging should now give you clear visibility into exactly what's happening at each step of the data loading process!
+### Common Debug Locations
+
+#### API Routes
+```javascript
+// app/api/auth/signin/route.ts
+export async function POST(request: Request) {
+  debugger; // Breakpoint here
+  const body = await request.json();
+  // ... rest of your code
+}
+```
+
+#### Server Components
+```javascript
+// app/dashboard/page.tsx
+export default async function DashboardPage() {
+  debugger; // Breakpoint here
+  const data = await fetchData();
+  return <div>{data}</div>;
+}
+```
+
+#### Middleware
+```javascript
+// middleware.ts
+export function middleware(request: NextRequest) {
+  debugger; // Breakpoint here
+  // ... your middleware logic
+}
+```
+
+#### NextAuth Configuration
+```javascript
+// lib/auth.ts
+export const authOptions: NextAuthOptions = {
+  callbacks: {
+    async jwt({ token, user }) {
+      debugger; // Breakpoint here
+      // ... callback logic
+    }
+  }
+}
+```
+
+## 🛠️ Debugging Specific Issues
+
+### Authentication Issues
+```bash
+# Start with verbose logging
+npm run dev:debug-verbose
+
+# Then check these files in DevTools:
+# - lib/auth.ts (NextAuth configuration)
+# - app/api/auth/[...nextauth]/route.ts
+# - middleware.ts (route protection)
+```
+
+### Database Issues
+```bash
+# Debug database operations
+npm run dev:debug
+
+# Check these locations:
+# - lib/db.ts (Prisma client)
+# - API routes that interact with database
+# - Server components that fetch data
+```
+
+### API Route Issues
+```bash
+# Debug API endpoints
+npm run dev:debug
+
+# Set breakpoints in:
+# - app/api/*/route.ts files
+# - lib/ utility functions
+# - Database query functions
+```
+
+## 📊 Debug Output Examples
+
+### Successful Debug Connection
+```
+Debugger listening on ws://127.0.0.1:9229/abc123...
+ready - started server on 0.0.0.0:3000
+```
+
+### Debug with Breakpoint Hit
+```
+Debugger attached.
+Waiting for the debugger to disconnect...
+```
+
+### Verbose Debug Output
+```
+next:server:lib:squash-cache squashing cache +0ms
+next:server:lib:incremental-cache:fs writing cache file +1ms
+```
+
+## 🚨 Troubleshooting
+
+### Port Already in Use
+```bash
+# Kill existing debug processes
+lsof -ti:9229 | xargs kill -9
+
+# Or use different port
+NODE_OPTIONS='--inspect=9230' npm run dev
+```
+
+### DevTools Not Connecting
+1. Ensure debug script is running
+2. Check `chrome://inspect` configuration
+3. Verify port numbers match
+4. Try refreshing the Remote Targets list
+
+### Breakpoints Not Hit
+1. Verify you're debugging server-side code (not client-side)
+2. Check file paths in DevTools Sources tab
+3. Ensure code is actually executing (add console.log)
+4. Try using `debugger;` statement instead of DevTools breakpoints
+
+## 🎯 Best Practices
+
+### Development Workflow
+1. **Start with `dev:debug`** for general debugging
+2. **Use `dev:debug-brk`** for startup issues
+3. **Add `debugger;` statements** for specific breakpoints
+4. **Use console.log** for quick debugging
+5. **Check Network tab** for API call issues
+
+### Performance Considerations
+- **Debugging adds overhead** - don't use in production
+- **Close DevTools** when not actively debugging
+- **Use specific breakpoints** instead of stepping through everything
+
+### Security Notes
+- **Never use `dev:debug-remote`** in production
+- **Don't commit `debugger;` statements** to production code
+- **Be careful with sensitive data** in debug sessions
+
+## 📚 Additional Resources
+
+- [Node.js Debugging Guide](https://nodejs.org/en/docs/guides/debugging-getting-started/)
+- [Chrome DevTools Documentation](https://developer.chrome.com/docs/devtools/)
+- [Next.js Debugging Documentation](https://nextjs.org/docs/advanced-features/debugging)
+- [VS Code Debugging Setup](https://code.visualstudio.com/docs/nodejs/nodejs-debugging)
+
+## 🔗 Quick Links
+
+- **Start Debugging**: `npm run dev:debug`
+- **Chrome Inspector**: `chrome://inspect`
+- **Firefox Debugger**: `about:debugging`
+- **Kill Debug Process**: `lsof -ti:9229 | xargs kill -9`
+
+---
+
+Happy Debugging! 🐛✨

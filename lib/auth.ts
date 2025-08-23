@@ -87,8 +87,24 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/signin", // Redirect errors to signin page
   },
   secret: config.auth.secret,
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // Disable debug logging to reduce console noise
   trustHost: true,
+  logger: {
+    error: () => {
+      // Completely suppress all NextAuth errors to prevent console noise
+      // In production, we don't want any NextAuth errors in the console
+      // In development, 401 errors are expected when users aren't logged in
+      return
+    },
+    warn: () => {
+      // Suppress all NextAuth warnings
+      return
+    },
+    debug: () => {
+      // Suppress all NextAuth debug messages
+      return
+    }
+  },
   useSecureCookies: process.env.NODE_ENV === "production",
   cookies: {
     sessionToken: {

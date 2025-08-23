@@ -42,6 +42,9 @@ A comprehensive, production-ready Next.js 14 starter template with authenticatio
 - ✅ Database migrations and seeding
 - ✅ Environment variable validation
 - ✅ Comprehensive error handling
+- ✅ **Server-side debugging** with Node.js inspector
+- ✅ **VS Code debugging** configurations
+- ✅ **Debug utilities** for API, DB, and Auth operations
 
 ## 📋 Prerequisites
 
@@ -108,6 +111,79 @@ npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see your app!
+
+## 🐛 Server-Side Debugging
+
+### Debug Scripts
+
+```bash
+# Enable debugging (recommended for most cases)
+npm run dev:debug
+
+# Enable debugging with break on start (pauses immediately)
+npm run dev:debug-brk
+
+# Enable remote debugging (for Docker/containers)
+npm run dev:debug-remote
+
+# Enable debugging with verbose logging
+npm run dev:debug-verbose
+
+# Debug production build
+npm run start:debug
+```
+
+### Quick Debug Setup
+
+1. **Start debug server:**
+   ```bash
+   npm run dev:debug
+   ```
+
+2. **Connect Chrome DevTools:**
+   - Open `chrome://inspect`
+   - Click **Configure...** and add `localhost:9229`
+   - Find your Next.js app and click **inspect**
+
+3. **Set breakpoints:**
+   - Go to Sources tab in DevTools
+   - Find your files (use Ctrl+P/⌘+P to search)
+   - Click line numbers to set breakpoints
+
+### VS Code Debugging
+
+- Use **F5** to start debugging with pre-configured launch configurations
+- Available configurations:
+  - Debug Next.js (Server)
+  - Debug Next.js (Server + Client)
+  - Debug Next.js (Production)
+  - Debug API Route
+  - Attach to Next.js
+
+### Debug Utilities
+
+```typescript
+import { debug } from '@/lib/debug-utils'
+
+// Debug API calls
+debug.api('POST', '/api/auth/signin', requestData, responseData)
+
+// Debug database operations
+debug.db('CREATE', 'users', userData, result)
+
+// Debug authentication
+debug.auth('LOGIN', user, session)
+
+// Performance debugging
+const result = debug.perf('Database Query', () => {
+  return prisma.user.findMany()
+})
+
+// Conditional breakpoints
+debug.breakpoint(user.role === 'admin', 'Admin user detected')
+```
+
+📖 **For detailed debugging instructions, see [DEBUGGING_GUIDE.md](./DEBUGGING_GUIDE.md)**
 
 ## 👥 Test Accounts
 

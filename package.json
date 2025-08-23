@@ -4,8 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:debug": "NODE_OPTIONS='--inspect' next dev",
+    "dev:debug-brk": "NODE_OPTIONS='--inspect-brk' next dev",
+    "dev:debug-remote": "NODE_OPTIONS='--inspect=0.0.0.0:9229' next dev",
+    "dev:debug-verbose": "NODE_OPTIONS='--inspect' DEBUG=* next dev",
     "build": "next build",
     "start": "next start",
+    "start:debug": "NODE_OPTIONS='--inspect' next start",
     "lint": "next lint",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
