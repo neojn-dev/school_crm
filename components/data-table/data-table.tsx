@@ -76,6 +76,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string
   exportData?: () => void
   loading?: boolean
+  meta?: Record<string, any>
 }
 
 interface FilterState {
@@ -106,6 +107,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder,
   exportData,
   loading,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -142,6 +144,7 @@ export function DataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
+    meta,
     initialState: {
       pagination: {
         pageSize: 10,
@@ -678,8 +681,7 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {(() => {
-              
-              if (!tableReady || isLoading || loading) {
+              if (isLoading || loading) {
                 return (
                   <TableRow>
                     <TableCell
@@ -692,19 +694,54 @@ export function DataTable<TData, TValue>({
                 )
               }
               
-              // If we have data but table isn't ready, show a simple fallback
+              // Use proper React Table rendering when table is available
+              if (table && table.getRowModel && typeof table.getRowModel === 'function') {
+                try {
+                  const rowModel = table.getRowModel()
+                  if (rowModel && rowModel.rows && rowModel.rows.length > 0) {
+                    return rowModel.rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected && row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells && row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className={densityClasses[density]}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  }
+                } catch (error) {
+                  console.warn('Error getting row model:', error)
+                }
+              }
+              
+              // Fallback for when table is not ready but we have data
               if (data && data.length > 0) {
-                
                 return data.map((item: any, index: number) => (
                   <TableRow key={item.id || index}>
-                    {columns.map((column, colIndex) => (
-                      <TableCell key={colIndex} className={densityClasses[density]}>
-                        <span>
-                          {item[(column as any).accessorKey] || 
-                           (item.id ? `Row ${index + 1}` : '')}
-                        </span>
-                      </TableCell>
-                    ))}
+                    {columns.map((column, colIndex) => {
+                      // Handle actions column specially
+                      if (column.id === 'actions') {
+                        return (
+                          <TableCell key={colIndex} className={densityClasses[density]}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-600 text-lg bg-blue-100 p-1 rounded-full">👁️</span>
+                              <span className="text-green-600 text-lg bg-green-100 p-1 rounded-full">✏️</span>
+                              <span className="text-red-600 text-lg bg-red-100 p-1 rounded-full">🗑️</span>
+                            </div>
+                          </TableCell>
+                        )
+                      }
+                      
+                      // Regular columns
+                      return (
+                        <TableCell key={colIndex} className={densityClasses[density]}>
+                          <span>{item[(column as any).accessorKey] || ''}</span>
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
                 ))
               }

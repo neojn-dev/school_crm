@@ -13,6 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2, Eye, Copy, FileText, Type, Hash, Calendar, Star, Upload, CheckSquare, CircleDot } from "lucide-react"
 import { format } from "date-fns"
+import { 
+  VisibilityRounded as VisibilityIcon,
+  EditRounded as EditIcon,
+  DeleteRounded as DeleteIcon
+} from "@mui/icons-material"
 
 export type FormLibrary = {
   id: string
@@ -232,8 +237,9 @@ export const columns: ColumnDef<FormLibrary>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const item = row.original
+      const { onEdit, onDelete } = table.options.meta as { onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
 
       return (
         <DropdownMenu>
@@ -250,17 +256,36 @@ export const columns: ColumnDef<FormLibrary>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
+            <DropdownMenuItem onClick={() => {
+              // View functionality - could open a details modal
+              console.log('View form library item:', item.id)
+              // TODO: Implement view details modal
+            }}>
+              <VisibilityIcon className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Edit className="mr-2 h-4 w-4" />
+            <DropdownMenuItem onClick={() => {
+              if (onEdit) {
+                onEdit(item.id)
+              }
+            }}>
+              <EditIcon className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
-              <Trash2 className="mr-2 h-4 w-4" />
+            <DropdownMenuItem 
+              className="text-red-600"
+              onClick={async () => {
+                if (onDelete && confirm(`Are you sure you want to delete "${item.title}"?`)) {
+                  try {
+                    await onDelete(item.id)
+                  } catch (error) {
+                    console.error('Error deleting form library item:', error)
+                  }
+                }
+              }}
+            >
+              <DeleteIcon className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

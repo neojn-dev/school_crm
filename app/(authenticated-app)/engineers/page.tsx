@@ -321,8 +321,19 @@ export default function EngineersPage() {
                     console.error('Error deleting engineer:', error)
                   }
                 }}
-                searchPlaceholder="Search engineers..."
+                                searchPlaceholder="Search engineers..."
                 exportData={exportData}
+                meta={{ onEdit: handleEdit, onDelete: async (id) => {
+                  try {
+                    await fetch(`/api/engineers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchEngineers()
+                  } catch (error) {
+                    console.error('Error deleting engineer:', error)
+                  }
+                }}}
               />
             )}
           </CardContent>

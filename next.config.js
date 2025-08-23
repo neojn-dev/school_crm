@@ -7,6 +7,7 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  outputFileTracingRoot: __dirname,
 }
 
 module.exports = nextConfig

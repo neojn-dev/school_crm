@@ -343,6 +343,17 @@ export default function TeachersPage() {
                 }}
                 searchPlaceholder="Search teachers..."
                 exportData={exportData}
+                meta={{ onEdit: handleEdit, onDelete: async (id) => {
+                  try {
+                    await fetch(`/api/teachers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchTeachers()
+                  } catch (error) {
+                    console.error('Error deleting teacher:', error)
+                  }
+                }}}
               />
             )}
           </CardContent>

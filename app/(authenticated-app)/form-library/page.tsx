@@ -606,6 +606,7 @@ export default function FormLibraryPage() {
             onExport={handleExport}
             searchPlaceholder="Search forms..."
             exportData={() => handleExport('csv')}
+            meta={{ onEdit: handleEditForm, onDelete: handleDeleteForm }}
           />
         </CardContent>
       </Card>

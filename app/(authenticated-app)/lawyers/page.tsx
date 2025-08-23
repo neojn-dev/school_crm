@@ -325,6 +325,17 @@ export default function LawyersPage() {
                 }}
                 searchPlaceholder="Search lawyers..."
                 exportData={exportData}
+                meta={{ onEdit: handleEdit, onDelete: async (id) => {
+                  try {
+                    await fetch(`/api/lawyers/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchLawyers()
+                  } catch (error) {
+                    console.error('Error deleting lawyer:', error)
+                  }
+                }}}
               />
             )}
           </CardContent>

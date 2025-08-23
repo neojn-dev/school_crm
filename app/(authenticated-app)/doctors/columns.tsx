@@ -20,6 +20,11 @@ import {
   Heart
 } from "lucide-react"
 import { format } from "date-fns"
+import { 
+  VisibilityRounded as VisibilityIcon,
+  EditRounded as EditIcon,
+  DeleteRounded as DeleteIcon
+} from "@mui/icons-material"
 
 export interface Doctor {
   id: string
@@ -160,41 +165,54 @@ export const columns: ColumnDef<Doctor>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const doctor = row.original
+      const { onEdit, onDelete } = table.options.meta as { onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
+      
       return (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full"
             title="View Details"
+            onClick={() => {
+              // View functionality - could open a details modal
+              console.log('View doctor:', doctor.id)
+              // TODO: Implement view details modal
+            }}
           >
-            <Eye className="h-4 w-4" />
+            <VisibilityIcon className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 text-green-600 rounded-full"
             title="Edit Doctor"
             onClick={() => {
-              // This will be handled by the parent component
-              console.log('Edit doctor:', doctor.id)
+              if (onEdit) {
+                onEdit(doctor.id)
+              }
             }}
           >
-            <Edit className="h-4 w-4" />
+            <EditIcon className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full"
             title="Delete Doctor"
-            onClick={() => {
-              // This will be handled by the parent component
-              console.log('Delete doctor:', doctor.id)
+            onClick={async () => {
+              if (onDelete && confirm(`Are you sure you want to delete Dr. ${doctor.firstName} ${doctor.lastName}?`)) {
+                try {
+                  await onDelete(doctor.id)
+                } catch (error) {
+                  console.error('Error deleting doctor:', error)
+                }
+              }
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <DeleteIcon className="h-4 w-4" />
           </Button>
         </div>
       )

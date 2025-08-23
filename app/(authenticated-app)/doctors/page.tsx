@@ -336,6 +336,17 @@ export default function DoctorsPage() {
                 }}
                 searchPlaceholder="Search doctors..."
                 exportData={exportData}
+                meta={{ onEdit: handleEdit, onDelete: async (id) => {
+                  try {
+                    await fetch(`/api/doctors/${id}`, { 
+                      method: 'DELETE',
+                      credentials: 'include'
+                    })
+                    fetchDoctors()
+                  } catch (error) {
+                    console.error('Error deleting doctor:', error)
+                  }
+                }}}
               />
             )}
           </CardContent>
