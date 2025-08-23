@@ -1,5 +1,3 @@
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 export default function EventsPage() {
   const upcomingEvents = [
     {
@@ -80,9 +78,7 @@ export default function EventsPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <WebsiteHeader />
-      <main className="flex-1">
+    <>
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-20">
           <div className="container mx-auto px-4">
@@ -339,8 +335,6 @@ export default function EventsPage() {
             </div>
           </div>
         </section>
-      </main>
-      <WebsiteFooter />
-    </div>
+      </>
   )
 }

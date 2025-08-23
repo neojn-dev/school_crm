@@ -18,8 +18,6 @@ import {
   Clock,
   MessageSquare
 } from "lucide-react"
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 })
@@ -133,10 +131,7 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <WebsiteHeader />
-        
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -255,18 +250,12 @@ export default function ForgotPasswordPage() {
               </motion.div>
             </motion.div>
           </div>
-        </main>
-
-        <WebsiteFooter />
-      </div>
+        </div></div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-      <WebsiteHeader />
-      
-      <main className="flex-1 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
@@ -501,9 +490,6 @@ export default function ForgotPasswordPage() {
             </motion.div>
           </div>
         </div>
-      </main>
-
-      <WebsiteFooter />
-    </div>
+      </div></div>
   )
 }

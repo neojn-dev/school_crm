@@ -1,5 +1,3 @@
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 export default function LeadershipPage() {
   const leaders = [
     {
@@ -41,10 +39,8 @@ export default function LeadershipPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <WebsiteHeader />
-      <main className="flex-1">
-        {/* Hero Section */}
+    <>
+      {/* Hero Section */}
         <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
@@ -174,8 +170,6 @@ export default function LeadershipPage() {
             </div>
           </div>
         </section>
-      </main>
-      <WebsiteFooter />
-    </div>
+    </>
   )
 }

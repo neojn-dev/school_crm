@@ -1,5 +1,3 @@
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 export default function ServicesOverviewPage() {
   const services = [
     {
@@ -41,9 +39,7 @@ export default function ServicesOverviewPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <WebsiteHeader />
-      <main className="flex-1">
+    <>
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-20">
           <div className="container mx-auto px-4">
@@ -195,8 +191,6 @@ export default function ServicesOverviewPage() {
             </div>
           </div>
         </section>
-      </main>
-      <WebsiteFooter />
-    </div>
+      </>
   )
 }

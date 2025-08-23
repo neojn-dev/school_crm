@@ -15,8 +15,6 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react"
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 const features = [
   {
     icon: Shield,
@@ -121,10 +119,7 @@ function VerifyPageContent() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <WebsiteHeader />
-        
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="container-custom text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -142,19 +137,13 @@ function VerifyPageContent() {
               </p>
             </motion.div>
           </div>
-        </main>
-
-        <WebsiteFooter />
-      </div>
+        </div></div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-100 flex flex-col">
-        <WebsiteHeader />
-        
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -262,19 +251,13 @@ function VerifyPageContent() {
               </motion.div>
             </motion.div>
           </div>
-        </main>
-
-        <WebsiteFooter />
-      </div>
+        </div></div>
     )
   }
 
   if (isVerified) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <WebsiteHeader />
-        
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -370,10 +353,7 @@ function VerifyPageContent() {
               </motion.div>
             </motion.div>
           </div>
-        </main>
-
-        <WebsiteFooter />
-      </div>
+        </div></div>
     )
   }
 
@@ -384,18 +364,14 @@ function VerifyPageContent() {
 export default function VerifyPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <WebsiteHeader />
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
               <div className="w-8 h-8 bg-white rounded-lg"></div>
             </div>
             <p className="text-gray-600">Loading...</p>
           </div>
-        </main>
-        <WebsiteFooter />
-      </div>
+        </div></div>
     }>
       <VerifyPageContent />
     </Suspense>

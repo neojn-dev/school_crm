@@ -22,8 +22,6 @@ import {
   Key,
   AlertCircle
 } from "lucide-react"
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
-
 const resetPasswordSchema = z.object({
   password: z.string()
     .min(8, "Password must be at least 8 characters")
@@ -163,10 +161,7 @@ function ResetPasswordPageContent() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        <WebsiteHeader />
-        
-        <main className="flex-1 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -262,18 +257,12 @@ function ResetPasswordPageContent() {
               </motion.div>
             </motion.div>
           </div>
-        </main>
-
-        <WebsiteFooter />
-      </div>
+        </div></div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-      <WebsiteHeader />
-      
-      <main className="flex-1 flex items-center justify-center p-4 py-12">
+    <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
@@ -629,10 +618,7 @@ function ResetPasswordPageContent() {
             </motion.div>
           </div>
         </div>
-      </main>
-
-      <WebsiteFooter />
-    </div>
+      </div></div>
   )
 }
 

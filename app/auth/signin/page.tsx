@@ -25,7 +25,7 @@ import {
   Heart,
   AlertCircle
 } from "lucide-react"
-import { WebsiteFooter } from "@/components/website-components"
+
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
@@ -143,64 +143,21 @@ export default function SignInPage() {
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
-        {/* Simple Header for Auth Pages */}
-        <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-bold text-xl text-gray-900">AdminPanel</span>
-              </div>
-              <Link
-                href="/"
-                className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
-              >
-                ← Back to Home
-              </Link>
+      <div className="flex items-center justify-center p-4">
+        <div className="container-custom">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <div className="w-8 h-8 bg-white rounded-lg"></div>
             </div>
+            <p className="text-gray-600">Loading...</p>
           </div>
-        </header>
-        <main className="flex-1 flex items-center justify-center p-4">
-          <div className="container-custom">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <div className="w-8 h-8 bg-white rounded-lg"></div>
-              </div>
-              <p className="text-gray-600">Loading...</p>
-            </div>
-          </div>
-        </main>
-        <WebsiteFooter />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col" suppressHydrationWarning>
-      {/* Simple Header for Auth Pages */}
-      <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-bold text-xl text-gray-900">AdminPanel</span>
-            </div>
-            <Link
-              href="/"
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </header>
-      
-      <main className="flex-1 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4" suppressHydrationWarning>
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
@@ -531,9 +488,6 @@ export default function SignInPage() {
             </motion.div>
           </div>
         </div>
-      </main>
-
-      <WebsiteFooter />
     </div>
   )
 }
