@@ -215,7 +215,56 @@ export default function TeachersPage() {
   // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    // Server-side filtering will be triggered by useEffect
+    
+    // Map advanced filters to server-side filter parameters
+    let newSearchQuery = ''
+    let newDepartmentFilter = ''
+    let newSubjectFilter = ''
+    let newStatusFilter = ''
+    
+    newFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'firstName':
+        case 'lastName':
+        case 'email':
+        case 'employeeId':
+          // For text fields, use as search query
+          if (filter.operator === 'contains' && filter.value) {
+            newSearchQuery = filter.value
+          }
+          break
+        case 'department':
+          if (filter.operator === 'equals' && filter.value) {
+            newDepartmentFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newDepartmentFilter = `!${filter.value}`
+          }
+          break
+        case 'subject':
+          if (filter.operator === 'equals' && filter.value) {
+            newSubjectFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newSubjectFilter = `!${filter.value}`
+          }
+          break
+        case 'isActive':
+          if (filter.operator === 'equals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'true' : 'false'
+          } else if (filter.operator === 'notEquals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'false' : 'true'
+          }
+          break
+      }
+    })
+    
+    // Update filter state (this will trigger useEffect to refetch data)
+    setSearchQuery(newSearchQuery)
+    setDepartmentFilter(newDepartmentFilter)
+    setSubjectFilter(newSubjectFilter)
+    setStatusFilter(newStatusFilter)
+    
+    // Reset pagination to first page when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -650,6 +699,153 @@ export default function TeachersPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* View Teacher Details Dialog */}
+      <Dialog open={!!viewingTeacher} onOpenChange={() => setViewingTeacher(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              Teacher Details
+            </DialogTitle>
+            <DialogDescription>
+              View detailed information about the teacher
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewingTeacher && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span className="font-medium">{viewingTeacher.firstName} {viewingTeacher.lastName}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Badge variant="outline" className="font-mono">
+                      {viewingTeacher.employeeId}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Email</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span>{viewingTeacher.email}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Badge variant={viewingTeacher.isActive ? "default" : "secondary"}>
+                      {viewingTeacher.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Department</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Building className="h-4 w-4 text-gray-500" />
+                    <span>{viewingTeacher.department}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Subject</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <BookOpen className="h-4 w-4 text-gray-500" />
+                    <span>{viewingTeacher.subject}</span>
+                  </div>
+                </div>
+                
+                {viewingTeacher.yearsOfExperience && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Years of Experience</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <Star className="h-4 w-4 text-gray-500" />
+                      <span>{viewingTeacher.yearsOfExperience} years</span>
+                    </div>
+                  </div>
+                )}
+                
+                {viewingTeacher.salary && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Salary</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <DollarSign className="h-4 w-4 text-gray-500" />
+                      <span>${viewingTeacher.salary.toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {viewingTeacher.hireDate && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Hire Date</Label>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span>{new Date(viewingTeacher.hireDate).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Created At</Label>
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span>{new Date(viewingTeacher.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewingTeacher(null)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                if (viewingTeacher) {
+                  setViewingTeacher(null)
+                  setEditingTeacher(viewingTeacher)
+                  setFormData({
+                    firstName: viewingTeacher.firstName,
+                    lastName: viewingTeacher.lastName,
+                    email: viewingTeacher.email,
+                    employeeId: viewingTeacher.employeeId,
+                    department: viewingTeacher.department,
+                    subject: viewingTeacher.subject,
+                    yearsOfExperience: viewingTeacher.yearsOfExperience?.toString() || "",
+                    salary: viewingTeacher.salary?.toString() || "",
+                    hireDate: viewingTeacher.hireDate || "",
+                    isActive: viewingTeacher.isActive
+                  })
+                  setIsAddDialogOpen(true)
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Teacher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog

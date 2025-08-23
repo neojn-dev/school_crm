@@ -41,19 +41,31 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { employeeId: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { email: { contains: search } },
+        { employeeId: { contains: search } },
       ]
     }
 
     if (department) {
-      where.department = { contains: department, mode: 'insensitive' }
+      if (department.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = department.substring(1)
+        where.department = { not: { equals: value } }
+      } else {
+        where.department = { contains: department }
+      }
     }
 
     if (subject) {
-      where.subject = { contains: subject, mode: 'insensitive' }
+      if (subject.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = subject.substring(1)
+        where.subject = { not: { equals: value } }
+      } else {
+        where.subject = { contains: subject }
+      }
     }
 
     if (isActive !== '') {

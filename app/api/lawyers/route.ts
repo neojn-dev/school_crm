@@ -41,20 +41,32 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { employeeId: { contains: search, mode: 'insensitive' } },
-        { barNumber: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { email: { contains: search } },
+        { employeeId: { contains: search } },
+        { barNumber: { contains: search } },
       ]
     }
 
     if (department) {
-      where.department = { contains: department, mode: 'insensitive' }
+      if (department.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = department.substring(1)
+        where.department = { not: { equals: value } }
+      } else {
+        where.department = { contains: department }
+      }
     }
 
     if (practiceArea) {
-      where.practiceArea = { contains: practiceArea, mode: 'insensitive' }
+      if (practiceArea.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = practiceArea.substring(1)
+        where.practiceArea = { not: { equals: value } }
+      } else {
+        where.practiceArea = { contains: practiceArea }
+      }
     }
 
     if (isActive !== '') {

@@ -239,20 +239,56 @@ export default function DoctorsPage() {
   // Legacy filter handler for compatibility
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    // Convert filters to individual state variables
+    
+    // Map advanced filters to server-side filter parameters
+    let newSearchQuery = ''
+    let newDepartmentFilter = ''
+    let newSpecializationFilter = ''
+    let newStatusFilter = ''
+    
     newFilters.forEach(filter => {
       switch (filter.field) {
+        case 'firstName':
+        case 'lastName':
+        case 'email':
+        case 'employeeId':
+        case 'licenseNumber':
+          // For text fields, use as search query
+          if (filter.operator === 'contains' && filter.value) {
+            newSearchQuery = filter.value
+          }
+          break
         case 'department':
-          setDepartmentFilter(String(filter.value))
+          if (filter.operator === 'equals' && filter.value) {
+            newDepartmentFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newDepartmentFilter = `!${filter.value}`
+          }
           break
         case 'specialization':
-          setSpecializationFilter(String(filter.value))
+          if (filter.operator === 'equals' && filter.value) {
+            newSpecializationFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newSpecializationFilter = `!${filter.value}`
+          }
           break
         case 'isActive':
-          setStatusFilter(filter.value === true ? 'true' : filter.value === false ? 'false' : '')
+          if (filter.operator === 'equals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'true' : 'false'
+          } else if (filter.operator === 'notEquals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'false' : 'true'
+          }
           break
       }
     })
+    
+    // Update filter state (this will trigger useEffect to refetch data)
+    setSearchQuery(newSearchQuery)
+    setDepartmentFilter(newDepartmentFilter)
+    setSpecializationFilter(newSpecializationFilter)
+    setStatusFilter(newStatusFilter)
+    
+    // Reset pagination to first page when filters change
     setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 

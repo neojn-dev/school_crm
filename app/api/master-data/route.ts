@@ -33,17 +33,29 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { title: { contains: search } },
+        { description: { contains: search } },
       ]
     }
 
     if (category) {
-      where.category = category
+      if (category.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = category.substring(1)
+        where.category = { not: { equals: value } }
+      } else {
+        where.category = category
+      }
     }
 
     if (fieldType) {
-      where.fieldType = fieldType
+      if (fieldType.startsWith('!')) {
+        // Handle "not equals" filter
+        const value = fieldType.substring(1)
+        where.fieldType = { not: { equals: value } }
+      } else {
+        where.fieldType = fieldType
+      }
     }
 
     if (isActive !== "") {

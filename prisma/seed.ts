@@ -155,41 +155,6 @@ async function main() {
   })
   console.log(`✅ Created ${createdLawyers.count} Lawyer records`)
 
-  // Create some sample uploads
-  const uploads = [
-    {
-      filename: 'sample-document.pdf',
-      originalName: 'Sample Document.pdf',
-      mimeType: 'application/pdf',
-      size: 1024000,
-      path: '/uploads/sample-document.pdf',
-      userId: users[0].id,
-    },
-    {
-      filename: 'profile-image.jpg',
-      originalName: 'Profile Image.jpg',
-      mimeType: 'image/jpeg',
-      size: 512000,
-      path: '/uploads/profile-image.jpg',
-      userId: users[1].id,
-    },
-    {
-      filename: 'data-export.csv',
-      originalName: 'Data Export.csv',
-      mimeType: 'text/csv',
-      size: 256000,
-      path: '/uploads/data-export.csv',
-      userId: users[2].id,
-    },
-  ]
-
-  const createdUploads = await prisma.upload.createMany({
-    data: uploads,
-  })
-
-  console.log(`✅ Created ${createdUploads.count} upload records`)
-
-
 
   // Create comprehensive Master Data entries with realistic field combinations
   const masterDataEntries = []
@@ -453,10 +418,17 @@ async function main() {
   console.log(`✅ Created ${createdMasterData.count} Master Data records`)
 
   console.log('🎉 Database seeded successfully!')
+  console.log('\n📊 Summary:')
+  console.log(`  • ${users.length} Users created`)
+  console.log(`  • 100 Teachers created`)
+  console.log(`  • 100 Doctors created`)
+  console.log(`  • 100 Engineers created`)
+  console.log(`  • 100 Lawyers created`)
+  console.log(`  • 100 Master Data entries created`)
   console.log('\n📋 Test accounts:')
-  console.log('  Admin: admin / password123 (admin role)')
-  console.log('  Manager: manager / password123 (user role)')
-  console.log('  Analyst: analyst / password123 (user role)')
+  console.log('  Admin: admin@example.com / password123 (admin role)')
+  console.log('  Manager: manager@example.com / password123 (user role)')
+  console.log('  Analyst: analyst@example.com / password123 (user role)')
 }
 
 main()

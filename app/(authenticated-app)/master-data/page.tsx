@@ -229,7 +229,57 @@ export default function MasterDataPage() {
   // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    // Server-side filtering will be triggered by useEffect
+    
+    // Map advanced filters to server-side filter parameters
+    let newSearchQuery = ''
+    let newCategoryFilter = ''
+    let newFieldTypeFilter = ''
+    let newStatusFilter = ''
+    
+    newFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'title':
+        case 'description':
+        case 'textField':
+        case 'emailField':
+        case 'phoneField':
+          // For text fields, use as search query
+          if (filter.operator === 'contains' && filter.value) {
+            newSearchQuery = filter.value
+          }
+          break
+        case 'category':
+          if (filter.operator === 'equals' && filter.value) {
+            newCategoryFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newCategoryFilter = `!${filter.value}`
+          }
+          break
+        case 'fieldType':
+          if (filter.operator === 'equals' && filter.value) {
+            newFieldTypeFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newFieldTypeFilter = `!${filter.value}`
+          }
+          break
+        case 'isActive':
+          if (filter.operator === 'equals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'true' : 'false'
+          } else if (filter.operator === 'notEquals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'false' : 'true'
+          }
+          break
+      }
+    })
+    
+    // Update filter state (this will trigger useEffect to refetch data)
+    setSearchQuery(newSearchQuery)
+    setCategoryFilter(newCategoryFilter)
+    setFieldTypeFilter(newFieldTypeFilter)
+    setStatusFilter(newStatusFilter)
+    
+    // Reset pagination to first page when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

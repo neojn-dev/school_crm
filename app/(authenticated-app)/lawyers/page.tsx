@@ -203,7 +203,57 @@ export default function LawyersPage() {
   // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    // Server-side filtering will be triggered by useEffect
+    
+    // Map advanced filters to server-side filter parameters
+    let newSearchQuery = ''
+    let newDepartmentFilter = ''
+    let newPracticeAreaFilter = ''
+    let newStatusFilter = ''
+    
+    newFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'firstName':
+        case 'lastName':
+        case 'email':
+        case 'employeeId':
+        case 'barNumber':
+          // For text fields, use as search query
+          if (filter.operator === 'contains' && filter.value) {
+            newSearchQuery = filter.value
+          }
+          break
+        case 'department':
+          if (filter.operator === 'equals' && filter.value) {
+            newDepartmentFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newDepartmentFilter = `!${filter.value}`
+          }
+          break
+        case 'practiceArea':
+          if (filter.operator === 'equals' && filter.value) {
+            newPracticeAreaFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newPracticeAreaFilter = `!${filter.value}`
+          }
+          break
+        case 'isActive':
+          if (filter.operator === 'equals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'true' : 'false'
+          } else if (filter.operator === 'notEquals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'false' : 'true'
+          }
+          break
+      }
+    })
+    
+    // Update filter state (this will trigger useEffect to refetch data)
+    setSearchQuery(newSearchQuery)
+    setDepartmentFilter(newDepartmentFilter)
+    setPracticeAreaFilter(newPracticeAreaFilter)
+    setStatusFilter(newStatusFilter)
+    
+    // Reset pagination to first page when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

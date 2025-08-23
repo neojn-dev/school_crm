@@ -257,28 +257,38 @@ export function AdvancedFilters({ fields, onFiltersChange, className = '' }: Adv
         )}
 
         {filters.length > 0 && (
-          <span className="text-sm text-gray-500">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
             {filters.length} filter{filters.length !== 1 ? 's' : ''} applied
-          </span>
+          </Badge>
         )}
       </div>
 
-      {/* Active Filters */}
+      {/* Applied Filters Section */}
       {filters.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {filters.map((filter, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-2 pr-1">
-              <span className="text-xs">{filter.label}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => removeFilter(index)}
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Applied Filters:
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {filters.map((filter, index) => (
+              <Badge 
+                key={index} 
+                variant="secondary" 
+                className="flex items-center gap-2 pr-1 py-1 px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/30"
               >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          ))}
+                <span className="text-xs font-medium">{filter.label}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full ml-1"
+                  onClick={() => removeFilter(index)}
+                  title={`Remove filter: ${filter.label}`}
+                >
+                  <X className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
     </div>

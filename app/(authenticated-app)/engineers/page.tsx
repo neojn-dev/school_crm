@@ -216,7 +216,65 @@ export default function EngineersPage() {
   // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    // Server-side filtering will be triggered by useEffect
+    
+    // Map advanced filters to server-side filter parameters
+    let newSearchQuery = ''
+    let newDepartmentFilter = ''
+    let newSpecializationFilter = ''
+    let newEngineeringTypeFilter = ''
+    let newStatusFilter = ''
+    
+    newFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'firstName':
+        case 'lastName':
+        case 'email':
+        case 'employeeId':
+          // For text fields, use as search query
+          if (filter.operator === 'contains' && filter.value) {
+            newSearchQuery = filter.value
+          }
+          break
+        case 'department':
+          if (filter.operator === 'equals' && filter.value) {
+            newDepartmentFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newDepartmentFilter = `!${filter.value}`
+          }
+          break
+        case 'specialization':
+          if (filter.operator === 'equals' && filter.value) {
+            newSpecializationFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newSpecializationFilter = `!${filter.value}`
+          }
+          break
+        case 'engineeringType':
+          if (filter.operator === 'equals' && filter.value) {
+            newEngineeringTypeFilter = filter.value
+          } else if (filter.operator === 'notEquals' && filter.value) {
+            newEngineeringTypeFilter = `!${filter.value}`
+          }
+          break
+        case 'isActive':
+          if (filter.operator === 'equals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'true' : 'false'
+          } else if (filter.operator === 'notEquals' && filter.value !== undefined) {
+            newStatusFilter = filter.value === true ? 'false' : 'true'
+          }
+          break
+      }
+    })
+    
+    // Update filter state (this will trigger useEffect to refetch data)
+    setSearchQuery(newSearchQuery)
+    setDepartmentFilter(newDepartmentFilter)
+    setSpecializationFilter(newSpecializationFilter)
+    setEngineeringTypeFilter(newEngineeringTypeFilter)
+    setStatusFilter(newStatusFilter)
+    
+    // Reset pagination to first page when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
