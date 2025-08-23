@@ -57,7 +57,7 @@ async function main() {
 
   // Create sample Teachers
   const teachers = []
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const user = faker.helpers.arrayElement(users)
     const teacher = {
       firstName: faker.person.firstName(),
@@ -82,7 +82,7 @@ async function main() {
 
   // Create sample Doctors
   const doctors = []
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const user = faker.helpers.arrayElement(users)
     const doctor = {
       firstName: faker.person.firstName(),
@@ -107,7 +107,7 @@ async function main() {
 
   // Create sample Engineers
   const engineers = []
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const user = faker.helpers.arrayElement(users)
     const engineer = {
       firstName: faker.person.firstName(),
@@ -132,7 +132,7 @@ async function main() {
 
   // Create sample Lawyers
   const lawyers = []
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const user = faker.helpers.arrayElement(users)
     const lawyer = {
       firstName: faker.person.firstName(),
@@ -392,7 +392,7 @@ async function main() {
     }
   ]
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 100; i++) {
     const user = faker.helpers.arrayElement(users)
     const template = fieldTemplates[i] || fieldTemplates[i % fieldTemplates.length]
     
@@ -436,44 +436,10 @@ async function main() {
       switchField: template.switchField !== undefined ? template.switchField : faker.datatype.boolean(),
       checkboxField: faker.datatype.boolean(),
       
-      // File fields
-      filePath: `/uploads/files/${faker.system.fileName()}`,
-      imagePath: `/uploads/images/${faker.system.fileName({ extensionCount: 1 })}`,
-      documentPath: `/uploads/docs/${faker.system.fileName({ extensionCount: 1 })}`,
-      
       // Special fields
       colorField: template.colorField || faker.internet.color(),
       ratingField: template.ratingField || faker.number.float({ min: 1, max: 5, multipleOf: 0.5 }),
       tagsField: template.tagsField || JSON.stringify(faker.helpers.arrayElements(['tag1', 'tag2', 'tag3', 'tag4'], { min: 1, max: 3 })),
-      
-      // Advanced fields
-      autocompleteField: faker.lorem.word(),
-      comboboxField: faker.lorem.word(),
-      multiInputField: JSON.stringify(faker.helpers.arrayElements(['input1', 'input2', 'input3'], { min: 1, max: 2 })),
-      
-      // Validation fields
-      isRequired: template.isRequired !== undefined ? template.isRequired : faker.datatype.boolean(),
-      minLength: template.minLength || faker.number.int({ min: 1, max: 10 }),
-      maxLength: template.maxLength || faker.number.int({ min: 50, max: 200 }),
-      minValue: template.minValue || faker.number.float({ min: 0, max: 10, multipleOf: 0.1 }),
-      maxValue: template.maxValue || faker.number.float({ min: 100, max: 1000, multipleOf: 1 }),
-      pattern: template.pattern || faker.helpers.arrayElement(['^[A-Za-z0-9]+$', '^\\d{3}-\\d{3}-\\d{4}$', '^[a-zA-Z\\s]+$']),
-      placeholder: template.placeholder || faker.lorem.words(2),
-      helpText: template.helpText || faker.lorem.sentence(),
-      inputMode: faker.helpers.arrayElement(['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search']),
-      step: template.step || faker.number.float({ min: 0.01, max: 10, multipleOf: 0.01 }),
-      multiple: template.multiple !== undefined ? template.multiple : faker.datatype.boolean(),
-      
-      // Conditional logic
-      dependsOn: faker.helpers.arrayElement(['field1', 'field2', 'field3']),
-      condition: faker.helpers.arrayElement(['equals:value', 'not_equals:value', 'contains:text']),
-      isVisible: faker.datatype.boolean(0.9), // 90% visible
-      isDisabled: faker.datatype.boolean(0.1), // 10% disabled
-      
-      // Styling
-      fieldSize: faker.helpers.arrayElement(['sm', 'md', 'lg']),
-      fieldWidth: faker.helpers.arrayElement(['full', 'half', 'third', 'quarter']),
-      cssClass: faker.helpers.arrayElement(['form-control', 'input-group', 'custom-field', 'enhanced-input']),
       
       userId: user.id,
     }
