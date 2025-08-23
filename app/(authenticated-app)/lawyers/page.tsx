@@ -18,7 +18,9 @@ import {
   UserCheck,
   Building,
   Scale,
-  Gavel
+  Gavel,
+  CheckCircle,
+  Zap
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
@@ -40,6 +42,7 @@ interface Lawyer {
   clientSatisfaction?: number
   averageCaseDuration?: number
   createdAt: string
+  employeeId: string
 }
 
 export default function LawyersPage() {
@@ -53,22 +56,13 @@ export default function LawyersPage() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     employeeId: "",
     department: "",
     practiceArea: "",
     barNumber: "",
     yearsOfExperience: "",
     salary: "",
-    lawSchool: "",
-    graduationYear: "",
-    barAdmissions: "",
-    specializations: "",
-    caseSuccessRate: "",
-    clientSatisfaction: "",
-    averageCaseDuration: "",
-    courtExperience: "",
-    languages: ""
+    isActive: true
   })
 
   useEffect(() => {
@@ -115,9 +109,14 @@ export default function LawyersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('🔍 [FORM DEBUG] Submitting lawyer form with data:', formData)
+    console.log('🔍 [FORM DEBUG] Current session:', session)
+    
     try {
       const url = editingLawyer ? `/api/lawyers/${editingLawyer.id}` : '/api/lawyers'
       const method = editingLawyer ? 'PUT' : 'POST'
+      
+      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
       
       const response = await fetch(url, {
         method,
@@ -126,14 +125,25 @@ export default function LawyersPage() {
         body: JSON.stringify(formData)
       })
       
+      console.log('🔍 [FORM DEBUG] Response status:', response.status)
+      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
+      
       if (response.ok) {
+        const result = await response.json()
+        console.log('🔍 [FORM DEBUG] Success response:', result)
         setIsAddDialogOpen(false)
         setEditingLawyer(null)
         resetForm()
         fetchLawyers()
+        alert(editingLawyer ? 'Lawyer updated successfully!' : 'Lawyer added successfully!')
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ [FORM ERROR] API error:', errorData)
+        alert(`Error: ${errorData.error || 'Failed to save lawyer'}`)
       }
     } catch (error) {
-      console.error('Error saving lawyer:', error)
+      console.error('❌ [FORM ERROR] Network error:', error)
+      alert('Network error occurred. Please try again.')
     }
   }
 
@@ -143,22 +153,13 @@ export default function LawyersPage() {
       firstName: lawyer.firstName,
       lastName: lawyer.lastName,
       email: lawyer.email,
-      phone: lawyer.phone || "",
-      employeeId: "",
+      employeeId: lawyer.employeeId,
       department: lawyer.department,
       practiceArea: lawyer.practiceArea,
       barNumber: lawyer.barNumber,
       yearsOfExperience: lawyer.yearsOfExperience?.toString() || "",
       salary: lawyer.salary?.toString() || "",
-      lawSchool: "",
-      graduationYear: "",
-      barAdmissions: "",
-      specializations: "",
-      caseSuccessRate: lawyer.caseSuccessRate?.toString() || "",
-      clientSatisfaction: lawyer.clientSatisfaction?.toString() || "",
-      averageCaseDuration: lawyer.averageCaseDuration?.toString() || "",
-      courtExperience: "",
-      languages: ""
+      isActive: lawyer.isActive
     })
     setIsAddDialogOpen(true)
   }
@@ -168,22 +169,36 @@ export default function LawyersPage() {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
       employeeId: "",
       department: "",
       practiceArea: "",
       barNumber: "",
       yearsOfExperience: "",
       salary: "",
-      lawSchool: "",
-      graduationYear: "",
-      barAdmissions: "",
-      specializations: "",
-      caseSuccessRate: "",
-      clientSatisfaction: "",
-      averageCaseDuration: "",
-      courtExperience: "",
-      languages: ""
+      isActive: true
+    })
+  }
+
+  const fillDummyData = () => {
+    const departments = ["Corporate Law", "Criminal Law", "Family Law", "Real Estate Law", "Intellectual Property", "Tax Law", "Employment Law", "Environmental Law"]
+    const practiceAreas = [
+      "Mergers & Acquisitions", "Criminal Defense", "Family Mediation", "Property Transactions",
+      "Patent Law", "Tax Planning", "Labor Disputes", "Environmental Compliance"
+    ]
+    const firstNames = ["Atty. Sarah", "Atty. Michael", "Atty. Emily", "Atty. David", "Atty. Jennifer", "Atty. Robert", "Atty. Lisa", "Atty. James"]
+    const lastNames = ["Johnson", "Chen", "Williams", "Brown", "Davis", "Miller", "Wilson", "Taylor"]
+    
+    setFormData({
+      firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
+      lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
+      email: `atty.${Math.random().toString(36).substring(2, 8)}@lawfirm.com`,
+      employeeId: `LAW${Math.floor(Math.random() * 9000) + 1000}`,
+      department: departments[Math.floor(Math.random() * departments.length)],
+      practiceArea: practiceAreas[Math.floor(Math.random() * practiceAreas.length)],
+      barNumber: `BAR${Math.floor(Math.random() * 900000) + 100000}`,
+      yearsOfExperience: (Math.floor(Math.random() * 25) + 1).toString(),
+      salary: (Math.floor(Math.random() * 180000) + 100000).toString(),
+      isActive: true
     })
   }
 
@@ -195,9 +210,9 @@ export default function LawyersPage() {
 
   const exportData = () => {
     const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Phone,Department,Practice Area,Bar Number,Years of Experience,Salary,Case Success Rate,Client Satisfaction,Average Case Duration\n" +
+      "First Name,Last Name,Email,Employee ID,Department,Practice Area,Bar Number,Years of Experience,Salary,Status\n" +
       lawyers.map(l => 
-        `${l.firstName},${l.lastName},${l.email},${l.phone || ''},${l.department},${l.practiceArea},${l.barNumber},${l.yearsOfExperience || ''},${l.salary || ''},${l.caseSuccessRate || ''},${l.clientSatisfaction || ''},${l.averageCaseDuration || ''}`
+        `${l.firstName},${l.lastName},${l.email},${l.employeeId},${l.department},${l.practiceArea},${l.barNumber},${l.yearsOfExperience || ''},${l.salary || ''},${l.isActive ? 'Active' : 'Inactive'}`
       ).join("\n")
     
     const encodedUri = encodeURI(csvContent)
@@ -237,65 +252,39 @@ export default function LawyersPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Users className="h-5 w-5 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Lawyers</p>
-                  <p className="text-2xl font-bold text-gray-900">{lawyers.length}</p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Lawyers</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{lawyers.length}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <UserCheck className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Lawyers</p>
-                  <p className="text-2xl font-bold text-gray-900">{lawyers.filter(l => l.isActive).length}</p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Lawyers</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{lawyers.filter(l => l.isActive).length}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Star className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Success Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {lawyers.length > 0 
-                      ? (lawyers.reduce((sum, l) => sum + (l.caseSuccessRate || 0), 0) / lawyers.length).toFixed(1)
-                      : '0'
-                    }%
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Departments</CardTitle>
+              <Building className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{new Set(lawyers.map(l => l.department)).size}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Scale className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Practice Areas</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {new Set(lawyers.map(l => l.practiceArea)).size}
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Practice Areas</CardTitle>
+              <Gavel className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{new Set(lawyers.map(l => l.practiceArea)).size}</div>
             </CardContent>
           </Card>
         </div>
@@ -354,6 +343,31 @@ export default function LawyersPage() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Authentication Status */}
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-600">
+                  <strong>Authentication Status:</strong> {session ? `✅ Authenticated as ${session.user?.email || 'User'}` : '❌ Not authenticated'}
+                </div>
+                {!session && (
+                  <div className="text-xs text-red-600 mt-1">
+                    You must be signed in to create or edit lawyers.
+                  </div>
+                )}
+              </div>
+              
+              {/* Fill Dummy Data Button */}
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={fillDummyData}
+                  className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                >
+                  <Zap className="h-4 w-4" />
+                  Fill Dummy Data
+                </Button>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
@@ -381,14 +395,6 @@ export default function LawyersPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
                 <div>
@@ -460,99 +466,24 @@ export default function LawyersPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="caseSuccessRate">Case Success Rate (%)</Label>
-                  <Input
-                    id="caseSuccessRate"
-                    type="number"
-                    value={formData.caseSuccessRate}
-                    onChange={(e) => setFormData({...formData, caseSuccessRate: e.target.value})}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                  />
+                  <Label htmlFor="isActive">Status</Label>
+                  <Select value={formData.isActive ? "true" : "false"} onValueChange={(value) => setFormData({...formData, isActive: value === "true"})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Active</SelectItem>
+                      <SelectItem value="false">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <Label htmlFor="clientSatisfaction">Client Satisfaction (1-10)</Label>
-                  <Input
-                    id="clientSatisfaction"
-                    type="number"
-                    value={formData.clientSatisfaction}
-                    onChange={(e) => setFormData({...formData, clientSatisfaction: e.target.value})}
-                    min="1"
-                    max="10"
-                    step="0.1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="averageCaseDuration">Average Case Duration (days)</Label>
-                  <Input
-                    id="averageCaseDuration"
-                    type="number"
-                    value={formData.averageCaseDuration}
-                    onChange={(e) => setFormData({...formData, averageCaseDuration: e.target.value})}
-                    min="0"
-                    step="1"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label htmlFor="lawSchool">Law School</Label>
-                <Input
-                  id="lawSchool"
-                  value={formData.lawSchool}
-                  onChange={(e) => setFormData({...formData, lawSchool: e.target.value})}
-                  placeholder="Law school name"
-                />
-                
-                <Label htmlFor="graduationYear">Graduation Year</Label>
-                <Input
-                  id="graduationYear"
-                  type="number"
-                  value={formData.graduationYear}
-                  onChange={(e) => setFormData({...formData, graduationYear: e.target.value})}
-                  min="1950"
-                  max={new Date().getFullYear()}
-                />
-                
-                <Label htmlFor="barAdmissions">Bar Admissions (comma-separated)</Label>
-                <Input
-                  id="barAdmissions"
-                  value={formData.barAdmissions}
-                  onChange={(e) => setFormData({...formData, barAdmissions: e.target.value})}
-                  placeholder="e.g., California, New York, Federal"
-                />
-                
-                <Label htmlFor="specializations">Specializations (comma-separated)</Label>
-                <Input
-                  id="specializations"
-                  value={formData.specializations}
-                  onChange={(e) => setFormData({...formData, specializations: e.target.value})}
-                  placeholder="e.g., Securities Law, International Arbitration"
-                />
-                
-                <Label htmlFor="courtExperience">Court Experience (comma-separated)</Label>
-                <Input
-                  id="courtExperience"
-                  value={formData.courtExperience}
-                  onChange={(e) => setFormData({...formData, courtExperience: e.target.value})}
-                  placeholder="e.g., Federal Court, State Court, Appellate"
-                />
-                
-                <Label htmlFor="languages">Languages Spoken (comma-separated)</Label>
-                <Input
-                  id="languages"
-                  value={formData.languages}
-                  onChange={(e) => setFormData({...formData, languages: e.target.value})}
-                  placeholder="e.g., English, Spanish, French"
-                />
               </div>
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={!session}>
                   {editingLawyer ? 'Update Lawyer' : 'Add Lawyer'}
                 </Button>
               </DialogFooter>

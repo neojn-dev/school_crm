@@ -48,22 +48,13 @@ export async function PUT(
       firstName,
       lastName,
       email,
-      phone,
       employeeId,
       department,
       practiceArea,
       barNumber,
       yearsOfExperience,
       salary,
-      lawSchool,
-      graduationYear,
-      barAdmissions,
-      specializations,
-      caseSuccessRate,
-      clientSatisfaction,
-      averageCaseDuration,
-      courtExperience,
-      languages
+      isActive
     } = body
 
     // Validate required fields
@@ -125,22 +116,13 @@ export async function PUT(
         firstName,
         lastName,
         email,
-        phone,
         employeeId,
         department,
         practiceArea,
         barNumber,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
-        lawSchool,
-        graduationYear: graduationYear ? parseInt(graduationYear) : null,
-        barAdmissions,
-        specializations,
-        caseSuccessRate: caseSuccessRate ? parseFloat(caseSuccessRate) : null,
-        clientSatisfaction: clientSatisfaction ? parseFloat(clientSatisfaction) : null,
-        averageCaseDuration: averageCaseDuration ? parseInt(averageCaseDuration) : null,
-        courtExperience,
-        languages
+        isActive: isActive !== undefined ? isActive : true
       }
     })
 

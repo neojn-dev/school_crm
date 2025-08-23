@@ -48,38 +48,17 @@ export async function PUT(
       firstName,
       lastName,
       email,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
       employeeId,
       department,
       subject,
-      gradeLevel,
       yearsOfExperience,
       salary,
       hireDate,
-      highestDegree,
-      university,
-      graduationYear,
-      certifications,
-      specializations,
-      performanceRating,
-      studentSatisfaction,
-      attendanceRate,
-      bio,
-      profileImage,
-      emergencyContact,
-      emergencyPhone,
-      notes
+      isActive
     } = body
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !employeeId || !department || !subject || !gradeLevel) {
+    if (!firstName || !lastName || !email || !employeeId || !department || !subject) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -122,34 +101,13 @@ export async function PUT(
         firstName,
         lastName,
         email,
-        phone,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        gender,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
         employeeId,
         department,
         subject,
-        gradeLevel,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
         hireDate: hireDate ? new Date(hireDate) : null,
-        highestDegree,
-        university,
-        graduationYear: graduationYear ? parseInt(graduationYear) : null,
-        certifications,
-        specializations,
-        performanceRating: performanceRating ? parseFloat(performanceRating) : null,
-        studentSatisfaction: studentSatisfaction ? parseFloat(studentSatisfaction) : null,
-        attendanceRate: attendanceRate ? parseFloat(attendanceRate) : null,
-        bio,
-        profileImage,
-        emergencyContact,
-        emergencyPhone,
-        notes
+        isActive: isActive !== undefined ? isActive : true
       }
     })
 

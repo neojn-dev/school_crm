@@ -56,6 +56,7 @@ model User {
   lawyers  Lawyer[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  formLibraries FormLibrary[]
 }
 
 model VerificationToken {
@@ -96,47 +97,17 @@ model Teacher {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Personal Information
+  // Essential fields only (10 total)
   firstName       String
   lastName        String
   email           String   @unique
-  phone           String?
-  dateOfBirth     DateTime?
-  gender          String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  country         String?
-  
-  // Professional Information
   employeeId      String   @unique
   department      String
   subject         String
-  gradeLevel      String
   yearsOfExperience Int?
   salary          Decimal? @db.Decimal(10, 2)
   hireDate        DateTime?
   isActive        Boolean  @default(true)
-  
-  // Education & Certifications
-  highestDegree   String?
-  university      String?
-  graduationYear  Int?
-  certifications  String? // JSON array
-  specializations String? // JSON array
-  
-  // Performance & Ratings
-  performanceRating Float? @db.Float
-  studentSatisfaction Float? @db.Float
-  attendanceRate   Float? @db.Float
-  
-  // Additional Fields
-  bio             String? @db.Text
-  profileImage    String?
-  emergencyContact String?
-  emergencyPhone  String?
-  notes           String? @db.Text
   
   // Relations
   userId          String
@@ -148,50 +119,17 @@ model Doctor {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Personal Information
+  // Essential fields only (10 total)
   firstName       String
   lastName        String
   email           String   @unique
-  phone           String?
-  dateOfBirth     DateTime?
-  gender          String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  country         String?
-  
-  // Professional Information
   employeeId      String   @unique
   department      String
   specialization  String
   licenseNumber   String   @unique
   yearsOfExperience Int?
   salary          Decimal? @db.Decimal(10, 2)
-  hireDate        DateTime?
   isActive        Boolean  @default(true)
-  
-  // Medical Information
-  medicalSchool   String?
-  graduationYear  Int?
-  boardCertifications String? // JSON array
-  languages       String? // JSON array
-  
-  // Performance & Metrics
-  patientSatisfaction Float? @db.Float
-  successRate     Float? @db.Float
-  averageWaitTime Int? // in minutes
-  
-  // Schedule & Availability
-  workingHours   String? // JSON object
-  onCallSchedule String? // JSON object
-  
-  // Additional Fields
-  bio             String? @db.Text
-  profileImage    String?
-  emergencyContact String?
-  emergencyPhone  String?
-  notes           String? @db.Text
   
   // Relations
   userId          String
@@ -203,52 +141,17 @@ model Engineer {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Personal Information
+  // Essential fields only (10 total)
   firstName       String
   lastName        String
   email           String   @unique
-  phone           String?
-  dateOfBirth     DateTime?
-  gender          String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  country         String?
-  
-  // Professional Information
   employeeId      String   @unique
   department      String
   specialization  String
-  engineeringType String // Civil, Mechanical, Electrical, Software, etc.
+  engineeringType String
   yearsOfExperience Int?
   salary          Decimal? @db.Decimal(10, 2)
-  hireDate        DateTime?
   isActive        Boolean  @default(true)
-  
-  // Education & Certifications
-  highestDegree   String?
-  university      String?
-  graduationYear  Int?
-  certifications  String? // JSON array
-  technicalSkills String? // JSON array
-  
-  // Performance & Projects
-  projectSuccessRate Float? @db.Float
-  codeQuality      Float? @db.Float
-  innovationScore  Float? @db.Float
-  
-  // Technical Details
-  programmingLanguages String? // JSON array
-  frameworks         String? // JSON array
-  tools              String? // JSON array
-  
-  // Additional Fields
-  bio               String? @db.Text
-  profileImage      String?
-  emergencyContact  String?
-  emergencyPhone    String?
-  notes             String? @db.Text
   
   // Relations
   userId            String
@@ -260,54 +163,116 @@ model Lawyer {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Personal Information
+  // Essential fields only (10 total)
   firstName       String
   lastName        String
   email           String   @unique
-  phone           String?
-  dateOfBirth     DateTime?
-  gender          String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  country         String?
-  
-  // Professional Information
   employeeId      String   @unique
   department      String
   practiceArea    String
   barNumber       String   @unique
   yearsOfExperience Int?
   salary          Decimal? @db.Decimal(10, 2)
-  hireDate        DateTime?
   isActive        Boolean  @default(true)
-  
-  // Legal Information
-  lawSchool       String?
-  graduationYear  Int?
-  barAdmissions   String? // JSON array
-  specializations String? // JSON array
-  
-  // Performance & Cases
-  caseSuccessRate Float? @db.Float
-  clientSatisfaction Float? @db.Float
-  averageCaseDuration Int? // in days
-  
-  // Practice Details
-  courtExperience String? // JSON array
-  languages       String? // JSON array
-  
-  // Additional Fields
-  bio             String? @db.Text
-  profileImage    String?
-  emergencyContact String?
-  emergencyPhone  String?
-  notes           String? @db.Text
   
   // Relations
   userId          String
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FormLibrary {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Basic Information
+  title           String   @db.VarChar(200)
+  description     String?  @db.Text
+  category        String   @db.VarChar(100) // Basic, Advanced, Specialized
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  
+  // Text Fields
+  textField       String?  @db.VarChar(255)
+  emailField      String?  @db.VarChar(255)
+  passwordField   String?  @db.VarChar(255)
+  phoneField      String?  @db.VarChar(20)
+  urlField        String?  @db.VarChar(500)
+  searchField     String?  @db.VarChar(255)
+  textareaField   String?  @db.Text
+  richTextField   String?  @db.LongText
+  
+  // Numeric Fields
+  numberField     Decimal? @db.Decimal(10, 2)
+  integerField    Int?
+  rangeField      Int?     // 0-100
+  sliderValue     Float?   @db.Float
+  
+  // Date & Time Fields
+  dateField       DateTime?
+  timeField       String?  @db.VarChar(10) // HH:MM format
+  dateTimeField   DateTime?
+  monthField      String?  @db.VarChar(7)  // YYYY-MM format
+  weekField       String?  @db.VarChar(10) // YYYY-WNN format
+  
+  // Selection Fields
+  singleSelect    String?  @db.VarChar(100)
+  multiSelect     String?  // JSON array
+  radioSelection  String?  @db.VarChar(100)
+  checkboxGroup   String?  // JSON array
+  
+  // Boolean Fields
+  switchField     Boolean  @default(false)
+  checkboxField   Boolean  @default(false)
+  
+  // File & Media Fields
+  filePath        String?  @db.VarChar(500)
+  imagePath       String?  @db.VarChar(500)
+  documentPath    String?  @db.VarChar(500)
+  
+  // Special Fields
+  colorField      String?  @db.VarChar(7)  // Hex color
+  ratingField     Float?   @db.Float        // 0-5 rating
+  tagsField       String?  // JSON array
+  
+  // Advanced Fields
+  autocompleteField String? @db.VarChar(255)
+  comboboxField    String?  @db.VarChar(255)
+  multiInputField  String?  // JSON array for multiple inputs
+  
+  // Validation & Metadata
+  isRequired      Boolean  @default(false)
+  minLength       Int?
+  maxLength       Int?
+  minValue        Decimal? @db.Decimal(10, 2)
+  maxValue        Decimal? @db.Decimal(10, 2)
+  pattern         String?  @db.VarChar(200) // Regex pattern
+  placeholder     String?  @db.VarChar(255)
+  helpText        String?  @db.Text
+  
+  // Field Configuration
+  fieldType       String   @db.VarChar(50)  // input, select, textarea, etc.
+  inputMode       String?  @db.VarChar(20)  // text, numeric, email, etc.
+  step            Decimal? @db.Decimal(10, 2) // For number/range inputs
+  multiple        Boolean  @default(false)   // For file/select inputs
+  
+  // Conditional Logic
+  dependsOn       String?  @db.VarChar(100) // Field dependency
+  condition       String?  @db.VarChar(200) // JSON condition
+  isVisible       Boolean  @default(true)
+  isDisabled      Boolean  @default(false)
+  
+  // Styling & Layout
+  fieldSize       String?  @db.VarChar(20)  // sm, md, lg
+  fieldWidth      String?  @db.VarChar(20)  // full, half, third
+  cssClass        String?  @db.VarChar(200)
+  
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([category, isActive])
+  @@index([sortOrder])
 }
 
 

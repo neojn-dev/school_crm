@@ -59,38 +59,17 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       email,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
       employeeId,
       department,
       subject,
-      gradeLevel,
       yearsOfExperience,
       salary,
       hireDate,
-      highestDegree,
-      university,
-      graduationYear,
-      certifications,
-      specializations,
-      performanceRating,
-      studentSatisfaction,
-      attendanceRate,
-      bio,
-      profileImage,
-      emergencyContact,
-      emergencyPhone,
-      notes
+      isActive
     } = body
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !employeeId || !department || !subject || !gradeLevel) {
+    if (!firstName || !lastName || !email || !employeeId || !department || !subject) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -121,40 +100,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Log session information for debugging
+    console.log('🔍 [API DEBUG] Full session object:', JSON.stringify(session, null, 2))
+    console.log('🔍 [API DEBUG] Session user:', session.user)
+    console.log('🔍 [API DEBUG] Session user keys:', Object.keys(session.user))
+    console.log('🔍 [API DEBUG] User ID from session:', session.user.id)
+    console.log('🔍 [API DEBUG] Session user email:', session.user.email)
+    
+    // Try to get user ID from session or fallback to email lookup
+    let userId = session.user.id
+    
+    if (!userId && session.user.email) {
+      console.log('🔍 [API DEBUG] User ID not in session, trying to find user by email:', session.user.email)
+      try {
+        const user = await prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: { id: true }
+        })
+        if (user) {
+          userId = user.id
+          console.log('🔍 [API DEBUG] Found user ID by email:', userId)
+        } else {
+          console.error('❌ [API ERROR] No user found with email:', session.user.email)
+        }
+      } catch (error) {
+        console.error('❌ [API ERROR] Error looking up user by email:', error)
+      }
+    }
+    
+    if (!userId) {
+      console.error('❌ [API ERROR] No user ID available from session or email lookup')
+      console.error('❌ [API ERROR] Available session data:', {
+        hasUser: !!session.user,
+        userKeys: Object.keys(session.user || {}),
+        userEmail: session.user?.email,
+        sessionKeys: Object.keys(session)
+      })
+      return NextResponse.json(
+        { error: 'User ID not found in session', debug: { sessionKeys: Object.keys(session), userKeys: Object.keys(session.user || {}) } },
+        { status: 400 }
+      )
+    }
+
     const teacher = await prisma.teacher.create({
       data: {
         firstName,
         lastName,
         email,
-        phone,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        gender,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
         employeeId,
         department,
         subject,
-        gradeLevel,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
         hireDate: hireDate ? new Date(hireDate) : null,
-        highestDegree,
-        university,
-        graduationYear: graduationYear ? parseInt(graduationYear) : null,
-        certifications,
-        specializations,
-        performanceRating: performanceRating ? parseFloat(performanceRating) : null,
-        studentSatisfaction: studentSatisfaction ? parseFloat(studentSatisfaction) : null,
-        attendanceRate: attendanceRate ? parseFloat(attendanceRate) : null,
-        bio,
-        profileImage,
-        emergencyContact,
-        emergencyPhone,
-        notes,
-        userId: session.user.id
+        isActive: isActive !== undefined ? isActive : true,
+        userId: userId
       }
     })
 

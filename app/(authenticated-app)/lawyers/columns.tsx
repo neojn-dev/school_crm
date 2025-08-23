@@ -15,7 +15,8 @@ import {
   Clock,
   DollarSign,
   Gavel,
-  Award
+  Award,
+  Shield
 } from "lucide-react"
 import { format } from "date-fns"
 
@@ -24,22 +25,12 @@ export interface Lawyer {
   firstName: string
   lastName: string
   email: string
-  phone?: string
   employeeId: string
   department: string
   practiceArea: string
   barNumber: string
   yearsOfExperience?: number
   salary?: number
-  lawSchool?: string
-  graduationYear?: number
-  barAdmissions?: string
-  specializations?: string
-  caseSuccessRate?: number
-  clientSatisfaction?: number
-  averageCaseDuration?: number
-  courtExperience?: string
-  languages?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -59,7 +50,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "firstName", // Fixed: was "name"
+    accessorKey: "firstName",
     header: "Name",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -77,24 +68,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "phone", // Fixed: was "contact"
-    header: "Contact",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {lawyer.phone && (
-            <div className="text-sm text-gray-600 flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {lawyer.phone}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "department", // This one was correct
+    accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -112,14 +86,14 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "barNumber", // This one was correct
+    accessorKey: "barNumber",
     header: "Bar Number",
     cell: ({ row }) => {
       const lawyer = row.original
       return (
         <div className="flex flex-col gap-1">
           <Badge variant="secondary">
-            <Scale className="h-3 w-3 mr-1" />
+            <Shield className="h-3 w-3 mr-1" />
             {lawyer.barNumber}
           </Badge>
         </div>
@@ -127,7 +101,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "yearsOfExperience", // Fixed: was "experience"
+    accessorKey: "yearsOfExperience",
     header: "Experience",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -144,48 +118,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "caseSuccessRate", // Fixed: was "performance"
-    header: "Performance",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {lawyer.caseSuccessRate && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-yellow-500" />
-              <span className="text-sm font-medium">
-                {lawyer.caseSuccessRate}%
-              </span>
-            </div>
-          )}
-          {lawyer.clientSatisfaction && (
-            <div className="text-xs text-gray-500">
-              Satisfaction: {lawyer.clientSatisfaction}/10
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "averageCaseDuration", // Fixed: was "caseMetrics"
-    header: "Case Metrics",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {lawyer.averageCaseDuration && (
-            <div className="text-sm flex items-center gap-1">
-              <Gavel className="h-3 w-3 text-blue-500" />
-              {lawyer.averageCaseDuration} days
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary", // This one was correct
+    accessorKey: "salary",
     header: "Salary",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -200,7 +133,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "isActive", // Fixed: was "status"
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
       const lawyer = row.original
@@ -212,28 +145,7 @@ export const columns: ColumnDef<Lawyer>[] = [
     },
   },
   {
-    accessorKey: "lawSchool", // Fixed: was "education"
-    header: "Education",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {lawyer.lawSchool && (
-            <div className="text-sm font-medium">
-              {lawyer.lawSchool}
-            </div>
-          )}
-          {lawyer.graduationYear && (
-            <div className="text-xs text-gray-500">
-              Class of {lawyer.graduationYear}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt", // This one was correct
+    accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
       const lawyer = row.original

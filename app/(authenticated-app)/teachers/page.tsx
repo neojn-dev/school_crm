@@ -30,7 +30,9 @@ import {
   DollarSign,
   Award,
   Clock,
-  UserCheck
+  UserCheck,
+  CheckCircle,
+  Zap
 } from "lucide-react"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
@@ -51,6 +53,8 @@ interface Teacher {
   performanceRating?: number
   studentSatisfaction?: number
   createdAt: string
+  employeeId: string
+  hireDate: string
 }
 
 export default function TeachersPage() {
@@ -64,34 +68,13 @@ export default function TeachersPage() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
     employeeId: "",
     department: "",
     subject: "",
-    gradeLevel: "",
     yearsOfExperience: "",
     salary: "",
     hireDate: "",
-    highestDegree: "",
-    university: "",
-    graduationYear: "",
-    certifications: "",
-    specializations: "",
-    performanceRating: "",
-    studentSatisfaction: "",
-    attendanceRate: "",
-    bio: "",
-    profileImage: "",
-    emergencyContact: "",
-    emergencyPhone: "",
-    notes: ""
+    isActive: true
   })
 
   useEffect(() => {
@@ -138,9 +121,14 @@ export default function TeachersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('🔍 [FORM DEBUG] Submitting teacher form with data:', formData)
+    console.log('🔍 [FORM DEBUG] Current session:', session)
+    
     try {
       const url = editingTeacher ? `/api/teachers/${editingTeacher.id}` : '/api/teachers'
       const method = editingTeacher ? 'PUT' : 'POST'
+      
+      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
       
       const response = await fetch(url, {
         method,
@@ -149,14 +137,25 @@ export default function TeachersPage() {
         body: JSON.stringify(formData)
       })
       
+      console.log('🔍 [FORM DEBUG] Response status:', response.status)
+      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
+      
       if (response.ok) {
+        const result = await response.json()
+        console.log('🔍 [FORM DEBUG] Success response:', result)
         setIsAddDialogOpen(false)
         setEditingTeacher(null)
         resetForm()
         fetchTeachers()
+        alert(editingTeacher ? 'Teacher updated successfully!' : 'Teacher added successfully!')
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ [FORM ERROR] API error:', errorData)
+        alert(`Error: ${errorData.error || 'Failed to save teacher'}`)
       }
     } catch (error) {
-      console.error('Error saving teacher:', error)
+      console.error('❌ [FORM ERROR] Network error:', error)
+      alert('Network error occurred. Please try again.')
     }
   }
 
@@ -166,34 +165,13 @@ export default function TeachersPage() {
       firstName: teacher.firstName,
       lastName: teacher.lastName,
       email: teacher.email,
-      phone: teacher.phone || "",
-      dateOfBirth: "",
-      gender: "",
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "",
-      employeeId: "",
+      employeeId: teacher.employeeId,
       department: teacher.department,
       subject: teacher.subject,
-      gradeLevel: teacher.gradeLevel,
       yearsOfExperience: teacher.yearsOfExperience?.toString() || "",
       salary: teacher.salary?.toString() || "",
-      hireDate: "",
-      highestDegree: "",
-      university: "",
-      graduationYear: "",
-      certifications: "",
-      specializations: "",
-      performanceRating: teacher.performanceRating?.toString() || "",
-      studentSatisfaction: teacher.studentSatisfaction?.toString() || "",
-      attendanceRate: "",
-      bio: "",
-      profileImage: "",
-      emergencyContact: "",
-      emergencyPhone: "",
-      notes: ""
+      hireDate: teacher.hireDate || "",
+      isActive: teacher.isActive
     })
     setIsAddDialogOpen(true)
   }
@@ -203,34 +181,42 @@ export default function TeachersPage() {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
-      dateOfBirth: "",
-      gender: "",
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      country: "",
       employeeId: "",
       department: "",
       subject: "",
-      gradeLevel: "",
       yearsOfExperience: "",
       salary: "",
       hireDate: "",
-      highestDegree: "",
-      university: "",
-      graduationYear: "",
-      certifications: "",
-      specializations: "",
-      performanceRating: "",
-      studentSatisfaction: "",
-      attendanceRate: "",
-      bio: "",
-      profileImage: "",
-      emergencyContact: "",
-      emergencyPhone: "",
-      notes: ""
+      isActive: true
+    })
+  }
+
+  const fillDummyData = () => {
+    const departments = ["Mathematics", "Science", "English", "History", "Arts", "Physical Education", "Music", "Computer Science"]
+    const subjects = [
+      "Algebra & Calculus", "Physics & Chemistry", "Literature & Composition", "World History",
+      "Visual Arts & Design", "Physical Education", "Music Theory", "Programming & Web Development"
+    ]
+    const firstNames = ["Prof. Sarah", "Prof. Michael", "Prof. Emily", "Prof. David", "Prof. Jennifer", "Prof. Robert", "Prof. Lisa", "Prof. James"]
+    const lastNames = ["Johnson", "Chen", "Williams", "Brown", "Davis", "Miller", "Wilson", "Taylor"]
+    
+    // Generate a random hire date within the last 10 years
+    const hireDate = new Date()
+    hireDate.setFullYear(hireDate.getFullYear() - Math.floor(Math.random() * 10))
+    hireDate.setMonth(Math.floor(Math.random() * 12))
+    hireDate.setDate(Math.floor(Math.random() * 28) + 1)
+    
+    setFormData({
+      firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
+      lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
+      email: `prof.${Math.random().toString(36).substring(2, 8)}@university.edu`,
+      employeeId: `TCH${Math.floor(Math.random() * 9000) + 1000}`,
+      department: departments[Math.floor(Math.random() * departments.length)],
+      subject: subjects[Math.floor(Math.random() * subjects.length)],
+      yearsOfExperience: (Math.floor(Math.random() * 20) + 1).toString(),
+      salary: (Math.floor(Math.random() * 80000) + 50000).toString(),
+      hireDate: hireDate.toISOString().split('T')[0],
+      isActive: true
     })
   }
 
@@ -242,9 +228,9 @@ export default function TeachersPage() {
 
   const exportData = () => {
     const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Phone,Department,Subject,Grade Level,Years of Experience,Salary,Performance Rating,Student Satisfaction\n" +
+      "First Name,Last Name,Email,Employee ID,Department,Subject,Years of Experience,Salary,Hire Date,Status\n" +
       teachers.map(t => 
-        `${t.firstName},${t.lastName},${t.email},${t.phone || ''},${t.department},${t.subject},${t.gradeLevel},${t.yearsOfExperience || ''},${t.salary || ''},${t.performanceRating || ''},${t.studentSatisfaction || ''}`
+        `${t.firstName},${t.lastName},${t.email},${t.employeeId},${t.department},${t.subject},${t.yearsOfExperience || ''},${t.salary || ''},${t.hireDate || ''},${t.isActive ? 'Active' : 'Inactive'}`
       ).join("\n")
     
     const encodedUri = encodeURI(csvContent)
@@ -284,65 +270,39 @@ export default function TeachersPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Teachers</p>
-                  <p className="text-2xl font-bold text-gray-900">{teachers.length}</p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Teachers</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{teachers.length}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <UserCheck className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Teachers</p>
-                  <p className="text-2xl font-bold text-gray-900">{teachers.filter(t => t.isActive).length}</p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Teachers</CardTitle>
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{teachers.filter(t => t.isActive).length}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Star className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Performance</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {teachers.length > 0 
-                      ? (teachers.reduce((sum, t) => sum + (t.performanceRating || 0), 0) / teachers.length).toFixed(1)
-                      : '0'
-                    }
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Departments</CardTitle>
+              <Building className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{new Set(teachers.map(t => t.department)).size}</div>
             </CardContent>
           </Card>
-          
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <GraduationCap className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Departments</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {new Set(teachers.map(t => t.department)).size}
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Subjects</CardTitle>
+              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{new Set(teachers.map(t => t.subject)).size}</div>
             </CardContent>
           </Card>
         </div>
@@ -400,344 +360,140 @@ export default function TeachersPage() {
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <UserCheck className="h-5 w-5" />
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select value={formData.gender} onValueChange={(value) => setFormData({...formData, gender: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Authentication Status */}
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-600">
+                  <strong>Authentication Status:</strong> {session ? `✅ Authenticated as ${session.user?.email || 'User'}` : '❌ Not authenticated'}
                 </div>
-                
-                <div className="space-y-4">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    placeholder="Street address"
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Input
-                      placeholder="City"
-                      value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    />
-                    <Input
-                      placeholder="State"
-                      value={formData.state}
-                      onChange={(e) => setFormData({...formData, state: e.target.value})}
-                    />
-                    <Input
-                      placeholder="ZIP Code"
-                      value={formData.zipCode}
-                      onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
-                    />
-                    <Input
-                      placeholder="Country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({...formData, country: e.target.value})}
-                    />
+                {!session && (
+                  <div className="text-xs text-red-600 mt-1">
+                    You must be signed in to create or edit teachers.
                   </div>
-                </div>
+                )}
               </div>
-
-              {/* Professional Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  Professional Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="employeeId">Employee ID *</Label>
-                    <Input
-                      id="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="department">Department *</Label>
-                    <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Mathematics">Mathematics</SelectItem>
-                        <SelectItem value="Science">Science</SelectItem>
-                        <SelectItem value="English">English</SelectItem>
-                        <SelectItem value="History">History</SelectItem>
-                        <SelectItem value="Physical Education">Physical Education</SelectItem>
-                        <SelectItem value="Arts">Arts</SelectItem>
-                        <SelectItem value="Music">Music</SelectItem>
-                        <SelectItem value="Computer Science">Computer Science</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="subject">Subject *</Label>
-                    <Input
-                      id="subject"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gradeLevel">Grade Level *</Label>
-                    <Select value={formData.gradeLevel} onValueChange={(value) => setFormData({...formData, gradeLevel: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select grade level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Elementary">Elementary</SelectItem>
-                        <SelectItem value="Middle School">Middle School</SelectItem>
-                        <SelectItem value="High School">High School</SelectItem>
-                        <SelectItem value="College">College</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="yearsOfExperience">Years of Experience</Label>
-                    <Input
-                      id="yearsOfExperience"
-                      type="number"
-                      value={formData.yearsOfExperience}
-                      onChange={(e) => setFormData({...formData, yearsOfExperience: e.target.value})}
-                      min="0"
-                      max="50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="salary">Salary</Label>
-                    <Input
-                      id="salary"
-                      type="number"
-                      value={formData.salary}
-                      onChange={(e) => setFormData({...formData, salary: e.target.value})}
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hireDate">Hire Date</Label>
-                    <Input
-                      id="hireDate"
-                      type="date"
-                      value={formData.hireDate}
-                      onChange={(e) => setFormData({...formData, hireDate: e.target.value})}
-                    />
-                  </div>
-                </div>
+              
+              {/* Fill Dummy Data Button */}
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={fillDummyData}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <Zap className="h-4 w-4" />
+                  Fill Dummy Data
+                </Button>
               </div>
-
-              {/* Education & Performance */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
-                  Education & Performance
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="highestDegree">Highest Degree</Label>
-                    <Select value={formData.highestDegree} onValueChange={(value) => setFormData({...formData, highestDegree: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select degree" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bachelor's">Bachelor's</SelectItem>
-                        <SelectItem value="Master's">Master's</SelectItem>
-                        <SelectItem value="Doctorate">Doctorate</SelectItem>
-                        <SelectItem value="Professional">Professional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="university">University</Label>
-                    <Input
-                      id="university"
-                      value={formData.university}
-                      onChange={(e) => setFormData({...formData, university: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="graduationYear">Graduation Year</Label>
-                    <Input
-                      id="graduationYear"
-                      type="number"
-                      value={formData.graduationYear}
-                      onChange={(e) => setFormData({...formData, graduationYear: e.target.value})}
-                      min="1950"
-                      max={new Date().getFullYear()}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="performanceRating">Performance Rating</Label>
-                    <Input
-                      id="performanceRating"
-                      type="number"
-                      value={formData.performanceRating}
-                      onChange={(e) => setFormData({...formData, performanceRating: e.target.value})}
-                      min="0"
-                      max="10"
-                      step="0.1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="studentSatisfaction">Student Satisfaction</Label>
-                    <Input
-                      id="studentSatisfaction"
-                      type="number"
-                      value={formData.studentSatisfaction}
-                      onChange={(e) => setFormData({...formData, studentSatisfaction: e.target.value})}
-                      min="0"
-                      max="10"
-                      step="0.1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="attendanceRate">Attendance Rate (%)</Label>
-                    <Input
-                      id="attendanceRate"
-                      type="number"
-                      value={formData.attendanceRate}
-                      onChange={(e) => setFormData({...formData, attendanceRate: e.target.value})}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <Label htmlFor="certifications">Certifications (comma-separated)</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
                   <Input
-                    id="certifications"
-                    value={formData.certifications}
-                    onChange={(e) => setFormData({...formData, certifications: e.target.value})}
-                    placeholder="e.g., Teaching License, ESL Certification, Special Education"
-                  />
-                  
-                  <Label htmlFor="specializations">Specializations (comma-separated)</Label>
-                  <Input
-                    id="specializations"
-                    value={formData.specializations}
-                    onChange={(e) => setFormData({...formData, specializations: e.target.value})}
-                    placeholder="e.g., Advanced Mathematics, Gifted Education, ESL"
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    required
                   />
                 </div>
-              </div>
-
-              {/* Additional Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Additional Information
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="bio">Bio</Label>
-                    <Textarea
-                      id="bio"
-                      value={formData.bio}
-                      onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                      placeholder="Brief biography and teaching philosophy"
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                      <Input
-                        id="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-                        placeholder="Emergency contact name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emergencyPhone">Emergency Phone</Label>
-                      <Input
-                        id="emergencyPhone"
-                        value={formData.emergencyPhone}
-                        onChange={(e) => setFormData({...formData, emergencyPhone: e.target.value})}
-                        placeholder="Emergency contact phone"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                      placeholder="Additional notes or comments"
-                      rows={2}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="employeeId">Employee ID *</Label>
+                  <Input
+                    id="employeeId"
+                    value={formData.employeeId}
+                    onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="department">Department *</Label>
+                  <Select value={formData.department} onValueChange={(value) => setFormData({...formData, department: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mathematics">Mathematics</SelectItem>
+                      <SelectItem value="Science">Science</SelectItem>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="History">History</SelectItem>
+                      <SelectItem value="Arts">Arts</SelectItem>
+                      <SelectItem value="Physical Education">Physical Education</SelectItem>
+                      <SelectItem value="Music">Music</SelectItem>
+                      <SelectItem value="Computer Science">Computer Science</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="subject">Subject *</Label>
+                  <Input
+                    id="subject"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                    required
+                    placeholder="e.g., Algebra, Physics, Literature"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                  <Input
+                    id="yearsOfExperience"
+                    type="number"
+                    value={formData.yearsOfExperience}
+                    onChange={(e) => setFormData({...formData, yearsOfExperience: e.target.value})}
+                    min="0"
+                    max="50"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="salary">Salary</Label>
+                  <Input
+                    id="salary"
+                    type="number"
+                    value={formData.salary}
+                    onChange={(e) => setFormData({...formData, salary: e.target.value})}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hireDate">Hire Date</Label>
+                  <Input
+                    id="hireDate"
+                    type="date"
+                    value={formData.hireDate}
+                    onChange={(e) => setFormData({...formData, hireDate: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="isActive">Status</Label>
+                  <Select value={formData.isActive ? "true" : "false"} onValueChange={(value) => setFormData({...formData, isActive: value === "true"})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Active</SelectItem>
+                      <SelectItem value="false">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -745,7 +501,7 @@ export default function TeachersPage() {
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={!session}>
                   {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
                 </Button>
               </DialogFooter>

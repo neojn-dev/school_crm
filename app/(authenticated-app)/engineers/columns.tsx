@@ -16,7 +16,8 @@ import {
   Clock,
   DollarSign,
   Cpu,
-  Rocket
+  Rocket,
+  Wrench
 } from "lucide-react"
 import { format } from "date-fns"
 
@@ -25,19 +26,12 @@ export interface Engineer {
   firstName: string
   lastName: string
   email: string
-  phone?: string
   employeeId: string
   department: string
   specialization: string
   engineeringType: string
   yearsOfExperience?: number
   salary?: number
-  projectSuccessRate?: number
-  codeQuality?: number
-  innovationScore?: number
-  programmingLanguages?: string
-  frameworks?: string
-  tools?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -57,7 +51,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "firstName", // Fixed: was "name"
+    accessorKey: "firstName",
     header: "Name",
     cell: ({ row }) => {
       const engineer = row.original
@@ -75,24 +69,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "phone", // Fixed: was "contact"
-    header: "Contact",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {engineer.phone && (
-            <div className="text-sm text-gray-600 flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {engineer.phone}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "department", // This one was correct
+    accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
       const engineer = row.original
@@ -110,20 +87,22 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "engineeringType", // This one was correct
-    header: "Engineering Type",
+    accessorKey: "engineeringType",
+    header: "Type",
     cell: ({ row }) => {
       const engineer = row.original
       return (
-        <Badge variant="secondary">
-          <Zap className="h-3 w-3 mr-1" />
-          {engineer.engineeringType}
-        </Badge>
+        <div className="flex flex-col gap-1">
+          <Badge variant="secondary">
+            <Wrench className="h-3 w-3 mr-1" />
+            {engineer.engineeringType}
+          </Badge>
+        </div>
       )
     },
   },
   {
-    accessorKey: "yearsOfExperience", // Fixed: was "experience"
+    accessorKey: "yearsOfExperience",
     header: "Experience",
     cell: ({ row }) => {
       const engineer = row.original
@@ -140,48 +119,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "projectSuccessRate", // Fixed: was "performance"
-    header: "Performance",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {engineer.projectSuccessRate && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-yellow-500" />
-              <span className="text-sm font-medium">
-                {engineer.projectSuccessRate}%
-              </span>
-            </div>
-          )}
-          {engineer.codeQuality && (
-            <div className="text-xs text-gray-500">
-              Code Quality: {engineer.codeQuality}/10
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "innovationScore", // Fixed: was "innovation"
-    header: "Innovation",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {engineer.innovationScore && (
-            <div className="text-sm flex items-center gap-1">
-              <Rocket className="h-3 w-3 text-purple-500" />
-              {engineer.innovationScore}/10
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary", // This one was correct
+    accessorKey: "salary",
     header: "Salary",
     cell: ({ row }) => {
       const engineer = row.original
@@ -196,7 +134,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "isActive", // Fixed: was "status"
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
       const engineer = row.original
@@ -208,24 +146,7 @@ export const columns: ColumnDef<Engineer>[] = [
     },
   },
   {
-    accessorKey: "programmingLanguages", // Fixed: was "skills"
-    header: "Skills",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {engineer.programmingLanguages && (
-            <div className="text-xs text-gray-500">
-              {engineer.programmingLanguages.split(',').slice(0, 2).join(', ')}
-              {engineer.programmingLanguages.split(',').length > 2 && '...'}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt", // This one was correct
+    accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
       const engineer = row.original

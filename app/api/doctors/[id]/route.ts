@@ -48,35 +48,13 @@ export async function PUT(
       firstName,
       lastName,
       email,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
       employeeId,
       department,
       specialization,
       licenseNumber,
       yearsOfExperience,
       salary,
-      hireDate,
-      medicalSchool,
-      graduationYear,
-      boardCertifications,
-      languages,
-      patientSatisfaction,
-      successRate,
-      averageWaitTime,
-      workingHours,
-      onCallSchedule,
-      bio,
-      profileImage,
-      emergencyContact,
-      emergencyPhone,
-      notes
+      isActive
     } = body
 
     // Validate required fields
@@ -118,14 +96,14 @@ export async function PUT(
     }
 
     // Check if license number already exists for other doctors
-    const existingLicense = await prisma.doctor.findFirst({
+    const existingLicenseNumber = await prisma.doctor.findFirst({
       where: {
         licenseNumber,
         id: { not: params.id }
       }
     })
 
-    if (existingLicense) {
+    if (existingLicenseNumber) {
       return NextResponse.json(
         { error: 'License number already exists' },
         { status: 400 }
@@ -138,35 +116,13 @@ export async function PUT(
         firstName,
         lastName,
         email,
-        phone,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        gender,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
         employeeId,
         department,
         specialization,
         licenseNumber,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
-        hireDate: hireDate ? new Date(hireDate) : null,
-        medicalSchool,
-        graduationYear: graduationYear ? parseInt(graduationYear) : null,
-        boardCertifications,
-        languages,
-        patientSatisfaction: patientSatisfaction ? parseFloat(patientSatisfaction) : null,
-        successRate: successRate ? parseFloat(successRate) : null,
-        averageWaitTime: averageWaitTime ? parseInt(averageWaitTime) : null,
-        workingHours,
-        onCallSchedule,
-        bio,
-        profileImage,
-        emergencyContact,
-        emergencyPhone,
-        notes
+        isActive: isActive !== undefined ? isActive : true
       }
     })
 

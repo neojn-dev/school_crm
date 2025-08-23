@@ -23,34 +23,12 @@ export interface Teacher {
   firstName: string
   lastName: string
   email: string
-  phone?: string
-  dateOfBirth?: string
-  gender?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  country?: string
   employeeId: string
   department: string
   subject: string
-  gradeLevel: string
   yearsOfExperience?: number
   salary?: number
   hireDate?: string
-  highestDegree?: string
-  university?: string
-  graduationYear?: number
-  certifications?: string
-  specializations?: string
-  performanceRating?: number
-  studentSatisfaction?: number
-  attendanceRate?: number
-  bio?: string
-  profileImage?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  notes?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -70,7 +48,7 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "firstName", // Fixed: was "name"
+    accessorKey: "firstName",
     header: "Name",
     cell: ({ row }) => {
       const teacher = row.original
@@ -88,30 +66,7 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "phone", // Fixed: was "contact"
-    header: "Contact",
-    cell: ({ row }) => {
-      const teacher = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {teacher.phone && (
-            <div className="text-sm text-gray-600 flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {teacher.phone}
-            </div>
-          )}
-          {teacher.city && teacher.state && (
-            <div className="text-sm text-gray-500 flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {teacher.city}, {teacher.state}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "department", // This one was correct
+    accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
       const teacher = row.original
@@ -129,20 +84,7 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "gradeLevel", // This one was correct
-    header: "Grade Level",
-    cell: ({ row }) => {
-      const teacher = row.original
-      return (
-        <Badge variant="secondary">
-          <GraduationCap className="h-3 w-3 mr-1" />
-          {teacher.gradeLevel}
-        </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "yearsOfExperience", // Fixed: was "experience"
+    accessorKey: "yearsOfExperience",
     header: "Experience",
     cell: ({ row }) => {
       const teacher = row.original
@@ -154,41 +96,26 @@ export const columns: ColumnDef<Teacher>[] = [
               {teacher.yearsOfExperience} years
             </div>
           )}
-          {teacher.hireDate && (
-            <div className="text-xs text-gray-500">
-              Hired: {format(new Date(teacher.hireDate), 'MMM yyyy')}
-            </div>
-          )}
         </div>
       )
     },
   },
   {
-    accessorKey: "performanceRating", // Fixed: was "performance"
-    header: "Performance",
+    accessorKey: "hireDate",
+    header: "Hire Date",
     cell: ({ row }) => {
       const teacher = row.original
+      if (!teacher.hireDate) return <span className="text-gray-400">-</span>
+      
       return (
-        <div className="flex flex-col gap-1">
-          {teacher.performanceRating && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-yellow-500" />
-              <span className="text-sm font-medium">
-                {teacher.performanceRating}/10
-              </span>
-            </div>
-          )}
-          {teacher.studentSatisfaction && (
-            <div className="text-xs text-gray-500">
-              Satisfaction: {teacher.studentSatisfaction}/10
-            </div>
-          )}
+        <div className="text-sm text-gray-600">
+          {format(new Date(teacher.hireDate), 'MMM yyyy')}
         </div>
       )
     },
   },
   {
-    accessorKey: "salary", // This one was correct
+    accessorKey: "salary",
     header: "Salary",
     cell: ({ row }) => {
       const teacher = row.original
@@ -203,7 +130,7 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "isActive", // Fixed: was "status"
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
       const teacher = row.original
@@ -215,29 +142,7 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "highestDegree", // Fixed: was "education"
-    header: "Education",
-    cell: ({ row }) => {
-      const teacher = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {teacher.highestDegree && (
-            <div className="text-sm font-medium">
-              {teacher.highestDegree}
-            </div>
-          )}
-          {teacher.university && (
-            <div className="text-xs text-gray-500">
-              {teacher.university}
-              {teacher.graduationYear && `, ${teacher.graduationYear}`}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt", // This one was correct
+    accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
       const teacher = row.original

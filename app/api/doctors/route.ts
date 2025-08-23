@@ -59,35 +59,13 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       email,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      city,
-      state,
-      zipCode,
-      country,
       employeeId,
       department,
       specialization,
       licenseNumber,
       yearsOfExperience,
       salary,
-      hireDate,
-      medicalSchool,
-      graduationYear,
-      boardCertifications,
-      languages,
-      patientSatisfaction,
-      successRate,
-      averageWaitTime,
-      workingHours,
-      onCallSchedule,
-      bio,
-      profileImage,
-      emergencyContact,
-      emergencyPhone,
-      notes
+      isActive
     } = body
 
     // Validate required fields
@@ -123,13 +101,55 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if license number already exists
-    const existingLicense = await prisma.doctor.findUnique({
+    const existingLicenseNumber = await prisma.doctor.findUnique({
       where: { licenseNumber }
     })
 
-    if (existingLicense) {
+    if (existingLicenseNumber) {
       return NextResponse.json(
         { error: 'License number already exists' },
+        { status: 400 }
+      )
+    }
+
+    // Log session information for debugging
+    console.log('🔍 [API DEBUG] Full session object:', JSON.stringify(session, null, 2))
+    console.log('🔍 [API DEBUG] Session user:', session.user)
+    console.log('🔍 [API DEBUG] Session user keys:', Object.keys(session.user))
+    console.log('🔍 [API DEBUG] User ID from session:', session.user.id)
+    console.log('🔍 [API DEBUG] Session user email:', session.user.email)
+    
+    // Try to get user ID from session or fallback to email lookup
+    let userId = session.user.id
+    
+    if (!userId && session.user.email) {
+      console.log('🔍 [API DEBUG] User ID not in session, trying to find user by email:', session.user.email)
+      try {
+        const user = await prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: { id: true }
+        })
+        if (user) {
+          userId = user.id
+          console.log('🔍 [API DEBUG] Found user ID by email:', userId)
+        } else {
+          console.error('❌ [API ERROR] No user found with email:', session.user.email)
+        }
+      } catch (error) {
+        console.error('❌ [API ERROR] Error looking up user by email:', error)
+      }
+    }
+    
+    if (!userId) {
+      console.error('❌ [API ERROR] No user ID available from session or email lookup')
+      console.error('❌ [API ERROR] Available session data:', {
+        hasUser: !!session.user,
+        userKeys: Object.keys(session.user || {}),
+        userEmail: session.user?.email,
+        sessionKeys: Object.keys(session)
+      })
+      return NextResponse.json(
+        { error: 'User ID not found in session', debug: { sessionKeys: Object.keys(session), userKeys: Object.keys(session.user || {}) } },
         { status: 400 }
       )
     }
@@ -139,36 +159,14 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         email,
-        phone,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        gender,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
         employeeId,
         department,
         specialization,
         licenseNumber,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
-        hireDate: hireDate ? new Date(hireDate) : null,
-        medicalSchool,
-        graduationYear: graduationYear ? parseInt(graduationYear) : null,
-        boardCertifications,
-        languages,
-        patientSatisfaction: patientSatisfaction ? parseFloat(patientSatisfaction) : null,
-        successRate: successRate ? parseFloat(successRate) : null,
-        averageWaitTime: averageWaitTime ? parseInt(averageWaitTime) : null,
-        workingHours,
-        onCallSchedule,
-        bio,
-        profileImage,
-        emergencyContact,
-        emergencyPhone,
-        notes,
-        userId: session.user.id
+        isActive: isActive !== undefined ? isActive : true,
+        userId: userId
       }
     })
 

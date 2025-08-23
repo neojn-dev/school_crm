@@ -48,19 +48,13 @@ export async function PUT(
       firstName,
       lastName,
       email,
-      phone,
       employeeId,
       department,
       specialization,
       engineeringType,
       yearsOfExperience,
       salary,
-      projectSuccessRate,
-      codeQuality,
-      innovationScore,
-      programmingLanguages,
-      frameworks,
-      tools
+      isActive
     } = body
 
     // Validate required fields
@@ -107,19 +101,13 @@ export async function PUT(
         firstName,
         lastName,
         email,
-        phone,
         employeeId,
         department,
         specialization,
         engineeringType,
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
-        projectSuccessRate: projectSuccessRate ? parseFloat(projectSuccessRate) : null,
-        codeQuality: codeQuality ? parseFloat(codeQuality) : null,
-        innovationScore: innovationScore ? parseFloat(innovationScore) : null,
-        programmingLanguages,
-        frameworks,
-        tools
+        isActive: isActive !== undefined ? isActive : true
       }
     })
 

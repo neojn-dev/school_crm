@@ -26,35 +26,12 @@ export interface Doctor {
   firstName: string
   lastName: string
   email: string
-  phone?: string
-  dateOfBirth?: string
-  gender?: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  country?: string
   employeeId: string
   department: string
   specialization: string
   licenseNumber: string
   yearsOfExperience?: number
   salary?: number
-  hireDate?: string
-  medicalSchool?: string
-  graduationYear?: number
-  boardCertifications?: string
-  languages?: string
-  patientSatisfaction?: number
-  successRate?: number
-  averageWaitTime?: number
-  workingHours?: string
-  onCallSchedule?: string
-  bio?: string
-  profileImage?: string
-  emergencyContact?: string
-  emergencyPhone?: string
-  notes?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -74,7 +51,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "firstName", // Fixed: was "name"
+    accessorKey: "firstName",
     header: "Name",
     cell: ({ row }) => {
       const doctor = row.original
@@ -92,30 +69,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "phone", // Fixed: was "contact"
-    header: "Contact",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {doctor.phone && (
-            <div className="text-sm text-gray-600 flex items-center gap-1">
-              <Phone className="h-3 w-3" />
-              {doctor.phone}
-            </div>
-          )}
-          {doctor.city && doctor.state && (
-            <div className="text-sm text-gray-500 flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {doctor.city}, {doctor.state}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "department", // This one was correct
+    accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
       const doctor = row.original
@@ -133,7 +87,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "licenseNumber", // Fixed: was "license"
+    accessorKey: "licenseNumber",
     header: "License",
     cell: ({ row }) => {
       const doctor = row.original
@@ -148,7 +102,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "yearsOfExperience", // Fixed: was "experience"
+    accessorKey: "yearsOfExperience",
     header: "Experience",
     cell: ({ row }) => {
       const doctor = row.original
@@ -160,63 +114,12 @@ export const columns: ColumnDef<Doctor>[] = [
               {doctor.yearsOfExperience} years
             </div>
           )}
-          {doctor.hireDate && (
-            <div className="text-xs text-gray-500">
-              Hired: {format(new Date(doctor.hireDate), 'MMM yyyy')}
-            </div>
-          )}
         </div>
       )
     },
   },
   {
-    accessorKey: "patientSatisfaction", // Fixed: was "performance"
-    header: "Performance",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {doctor.patientSatisfaction && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-yellow-500" />
-              <span className="text-sm font-medium">
-                {doctor.patientSatisfaction}/10
-              </span>
-            </div>
-          )}
-          {doctor.successRate && (
-            <div className="text-xs text-gray-500">
-              Success: {doctor.successRate}%
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "averageWaitTime", // Fixed: was "metrics"
-    header: "Metrics",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {doctor.averageWaitTime && (
-            <div className="text-sm flex items-center gap-1">
-              <Clock className="h-3 w-3 text-blue-500" />
-              {doctor.averageWaitTime} min
-            </div>
-          )}
-          {doctor.workingHours && (
-            <div className="text-xs text-gray-500">
-              {doctor.workingHours}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary", // This one was correct
+    accessorKey: "salary",
     header: "Salary",
     cell: ({ row }) => {
       const doctor = row.original
@@ -231,7 +134,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "isActive", // This one was correct
+    accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
       const doctor = row.original
@@ -243,28 +146,7 @@ export const columns: ColumnDef<Doctor>[] = [
     },
   },
   {
-    accessorKey: "medicalSchool", // Fixed: was "education"
-    header: "Education",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {doctor.medicalSchool && (
-            <div className="text-sm font-medium">
-              {doctor.medicalSchool}
-            </div>
-          )}
-          {doctor.graduationYear && (
-            <div className="text-xs text-gray-500">
-              Class of {doctor.graduationYear}
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt", // This one was correct
+    accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
       const doctor = row.original

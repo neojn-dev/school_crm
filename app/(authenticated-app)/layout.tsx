@@ -32,7 +32,8 @@ import {
   LogOut,
   Globe,
   Menu,
-  X
+  X,
+  Code
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -68,6 +69,12 @@ const navigationItems = [
     href: "/lawyers",
     icon: Database,
     description: "Manage lawyer records"
+  },
+  {
+    title: "Form Library",
+    href: "/form-library",
+    icon: Code,
+    description: "Comprehensive form field library"
   }
 ]
 
