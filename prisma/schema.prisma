@@ -56,7 +56,7 @@ model User {
   lawyers  Lawyer[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
-  formLibraries FormLibrary[]
+  masterData MasterData[]
 }
 
 model VerificationToken {
@@ -180,7 +180,9 @@ model Lawyer {
   user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model FormLibrary {
+
+
+model MasterData {
   id              String   @id @default(cuid())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -195,7 +197,6 @@ model FormLibrary {
   // Text Fields
   textField       String?  @db.VarChar(255)
   emailField      String?  @db.VarChar(255)
-  passwordField   String?  @db.VarChar(255)
   phoneField      String?  @db.VarChar(20)
   urlField        String?  @db.VarChar(500)
   searchField     String?  @db.VarChar(255)

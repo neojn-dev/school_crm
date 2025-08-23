@@ -31,7 +31,7 @@ import {
   Sparkles,
   Rocket,
   Star,
-  Code
+  Layers
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -49,7 +49,7 @@ const navigationGroups = [
       { title: "Doctors", href: "/doctors", icon: Shield },
       { title: "Engineers", href: "/engineers", icon: Zap },
       { title: "Lawyers", href: "/lawyers", icon: Award },
-      { title: "Form Library", href: "/form-library", icon: FileText, badge: "New" },
+      { title: "Master Data", href: "/master-data", icon: Layers, badge: "New" },
       { title: "Profile", href: "/profile", icon: User },
       { title: "Settings", href: "/settings", icon: Settings }
     ]

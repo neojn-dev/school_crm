@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { formLibraryCreateSchema, formLibraryUpdateSchema } from "@/lib/validations/form-library"
+import { masterDataCreateSchema, masterDataUpdateSchema } from "@/lib/validations/master-data"
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = session.user?.id
+    if (!userId) {
+      return NextResponse.json({ error: "User ID not found in session" }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -21,9 +26,9 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Build where clause
+    // Build where clause for user's master data
     const where: any = {
-      userId: session.user.id,
+      userId: userId,
     }
 
     if (search) {
@@ -46,10 +51,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total count
-    const total = await prisma.formLibrary.count({ where })
+    const total = await prisma.masterData.count({ where })
 
     // Get data with pagination
-    const formLibraries = await prisma.formLibrary.findMany({
+    const masterData = await prisma.masterData.findMany({
       where,
       skip,
       take: limit,
@@ -60,7 +65,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      data: formLibraries,
+      data: masterData,
       pagination: {
         page,
         limit,
@@ -69,7 +74,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error("Error fetching form libraries:", error)
+    console.error("Error fetching master data:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -80,26 +85,38 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = session.user?.id
+    if (!userId) {
+      return NextResponse.json({ error: "User ID not found in session" }, { status: 401 })
     }
 
     const body = await request.json()
     
     // Validate input
-    const validatedData = formLibraryCreateSchema.parse(body)
+    const validatedData = masterDataCreateSchema.parse(body)
     
-    // Create form library
-    const formLibrary = await prisma.formLibrary.create({
-      data: {
-        ...validatedData,
-        userId: session.user.id,
-      }
+    // Convert array fields to JSON strings for database storage
+    const dataForDb = {
+      ...validatedData,
+      userId: userId,
+      // Convert arrays to JSON strings
+      multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : null,
+      checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : null,
+      tagsField: validatedData.tagsField ? JSON.stringify(validatedData.tagsField) : null,
+      multiInputField: validatedData.multiInputField ? JSON.stringify(validatedData.multiInputField) : null,
+    }
+    
+    const masterData = await prisma.masterData.create({
+      data: dataForDb
     })
 
-    return NextResponse.json(formLibrary, { status: 201 })
+    return NextResponse.json(masterData, { status: 201 })
   } catch (error) {
-    console.error("Error creating form library:", error)
+    console.error("Error creating master data:", error)
     
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
@@ -118,42 +135,55 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = session.user?.id
+    if (!userId) {
+      return NextResponse.json({ error: "User ID not found in session" }, { status: 401 })
     }
 
     const body = await request.json()
     
     // Validate input
-    const validatedData = formLibraryUpdateSchema.parse(body)
+    const validatedData = masterDataUpdateSchema.parse(body)
     
-    // Check if form library exists and belongs to user
-    const existingFormLibrary = await prisma.formLibrary.findFirst({
+    // Check if master data exists and belongs to user
+    const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id: validatedData.id,
-        userId: session.user.id,
+        userId: userId,
       }
     })
 
-    if (!existingFormLibrary) {
+    if (!existingMasterData) {
       return NextResponse.json(
-        { error: "Form library not found" },
+        { error: "Master data not found" },
         { status: 404 }
       )
     }
 
-    // Update form library
-    const updatedFormLibrary = await prisma.formLibrary.update({
+    // Convert array fields to JSON strings for database storage
+    const dataForDb = {
+      ...validatedData,
+      updatedAt: new Date(),
+      // Convert arrays to JSON strings
+      multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : undefined,
+      checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : undefined,
+      tagsField: validatedData.tagsField ? JSON.stringify(validatedData.tagsField) : undefined,
+      multiInputField: validatedData.multiInputField ? JSON.stringify(validatedData.multiInputField) : undefined,
+    }
+
+    // Update master data
+    const updatedMasterData = await prisma.masterData.update({
       where: { id: validatedData.id },
-      data: {
-        ...validatedData,
-        updatedAt: new Date(),
-      }
+      data: dataForDb
     })
 
-    return NextResponse.json(updatedFormLibrary)
+    return NextResponse.json(updatedMasterData)
   } catch (error) {
-    console.error("Error updating form library:", error)
+    console.error("Error updating master data:", error)
     
     if (error instanceof Error && error.message.includes("validation")) {
       return NextResponse.json(
@@ -172,8 +202,13 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = session.user?.id
+    if (!userId) {
+      return NextResponse.json({ error: "User ID not found in session" }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -181,34 +216,34 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { error: "Form library ID is required" },
+        { error: "Master data ID is required" },
         { status: 400 }
       )
     }
 
-    // Check if form library exists and belongs to user
-    const existingFormLibrary = await prisma.formLibrary.findFirst({
+    // Check if master data exists and belongs to user
+    const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id,
-        userId: session.user.id,
+        userId: userId,
       }
     })
 
-    if (!existingFormLibrary) {
+    if (!existingMasterData) {
       return NextResponse.json(
-        { error: "Form library not found" },
+        { error: "Master data not found" },
         { status: 404 }
       )
     }
 
-    // Delete form library
-    await prisma.formLibrary.delete({
+    // Delete master data
+    await prisma.masterData.delete({
       where: { id }
     })
 
-    return NextResponse.json({ message: "Form library deleted successfully" })
+    return NextResponse.json({ message: "Master data deleted successfully" })
   } catch (error) {
-    console.error("Error deleting form library:", error)
+    console.error("Error deleting master data:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

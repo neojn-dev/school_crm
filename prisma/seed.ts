@@ -8,7 +8,7 @@ async function main() {
   console.log('🌱 Starting database seed...')
 
   // Clear existing data
-  await prisma.formLibrary.deleteMany()
+  await prisma.masterData.deleteMany()
   await prisma.upload.deleteMany()
   await prisma.lawyer.deleteMany()
   await prisma.engineer.deleteMany()
@@ -189,69 +189,302 @@ async function main() {
 
   console.log(`✅ Created ${createdUploads.count} upload records`)
 
-  // Create sample Form Library entries
-  const formLibraries = []
-  for (let i = 0; i < 10; i++) {
+
+
+  // Create comprehensive Master Data entries with realistic field combinations
+  const masterDataEntries = []
+  
+  // Define realistic form field templates
+  const fieldTemplates = [
+    {
+      title: "User Registration Form - Full Name",
+      description: "Complete name input with validation for user registration",
+      category: "Basic",
+      fieldType: "input",
+      textField: "John Doe",
+      placeholder: "Enter your full name",
+      helpText: "Please enter your first and last name",
+      isRequired: true,
+      minLength: 2,
+      maxLength: 100,
+      pattern: "^[a-zA-Z\\s]+$",
+    },
+    {
+      title: "Contact Form - Email Address",
+      description: "Email input with proper validation and formatting",
+      category: "Basic", 
+      fieldType: "email",
+      emailField: "user@example.com",
+      placeholder: "your.email@domain.com",
+      helpText: "We'll never share your email with anyone else",
+      isRequired: true,
+      pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+    },
+    {
+      title: "Profile Setup - Phone Number",
+      description: "Phone number input with international format support",
+      category: "Basic",
+      fieldType: "tel",
+      phoneField: "+1-555-123-4567",
+      placeholder: "+1-XXX-XXX-XXXX",
+      helpText: "Include country code for international numbers",
+      pattern: "^\\+?[1-9]\\d{1,14}$",
+    },
+    {
+      title: "Website Settings - Homepage URL",
+      description: "URL input for website or social media links",
+      category: "Basic",
+      fieldType: "url",
+      urlField: "https://www.example.com",
+      placeholder: "https://your-website.com",
+      helpText: "Must include http:// or https://",
+    },
+    {
+      title: "Product Search - Keywords",
+      description: "Search input for product catalog filtering",
+      category: "Advanced",
+      fieldType: "search",
+      searchField: "laptop computers",
+      placeholder: "Search products...",
+      helpText: "Use keywords to find products quickly",
+    },
+    {
+      title: "Blog Post - Content Body",
+      description: "Rich text editor for blog post content creation",
+      category: "Advanced",
+      fieldType: "textarea",
+      textareaField: "Write your blog post content here...",
+      richTextField: "<p>This is a <strong>rich text</strong> editor with <em>formatting</em> options.</p>",
+      placeholder: "Start writing your post...",
+      helpText: "Use the toolbar to format your text",
+      minLength: 100,
+      maxLength: 5000,
+    },
+    {
+      title: "E-commerce - Product Price",
+      description: "Price input with currency formatting and validation",
+      category: "Basic",
+      fieldType: "number",
+      numberField: 299.99,
+      placeholder: "0.00",
+      helpText: "Enter price in USD",
+      minValue: 0.01,
+      maxValue: 99999.99,
+      step: 0.01,
+    },
+    {
+      title: "Inventory - Stock Quantity",
+      description: "Integer input for product stock management",
+      category: "Basic",
+      fieldType: "number",
+      integerField: 150,
+      placeholder: "0",
+      helpText: "Current stock count",
+      minValue: 0,
+      maxValue: 10000,
+    },
+    {
+      title: "User Preferences - Age Range",
+      description: "Slider for selecting age range in user profiles",
+      category: "Advanced",
+      fieldType: "range",
+      rangeField: 25,
+      sliderValue: 25,
+      minValue: 18,
+      maxValue: 100,
+      helpText: "Select your age range",
+    },
+    {
+      title: "Event Planning - Event Date",
+      description: "Date picker for scheduling events and appointments",
+      category: "Basic",
+      fieldType: "date",
+      dateField: new Date('2024-12-25'),
+      helpText: "Select the event date",
+      isRequired: true,
+    },
+    {
+      title: "Appointment Booking - Time Slot",
+      description: "Time picker for appointment scheduling",
+      category: "Basic",
+      fieldType: "time",
+      timeField: "14:30",
+      helpText: "Select your preferred time",
+      isRequired: true,
+    },
+    {
+      title: "Meeting Setup - Date and Time",
+      description: "Combined date and time picker for meeting scheduling",
+      category: "Advanced",
+      fieldType: "datetime-local",
+      dateTimeField: new Date('2024-12-25T14:30:00'),
+      helpText: "Choose meeting date and time",
+      isRequired: true,
+    },
+    {
+      title: "Subscription - Plan Selection",
+      description: "Radio buttons for subscription plan selection",
+      category: "Basic",
+      fieldType: "radio",
+      radioSelection: "Premium Plan",
+      helpText: "Choose your subscription plan",
+      isRequired: true,
+    },
+    {
+      title: "Survey - Multiple Interests",
+      description: "Checkbox group for selecting multiple interests",
+      category: "Advanced",
+      fieldType: "checkbox",
+      checkboxGroup: JSON.stringify(["Technology", "Sports", "Music"]),
+      helpText: "Select all that apply",
+    },
+    {
+      title: "Settings - Email Notifications",
+      description: "Toggle switch for enabling/disabling notifications",
+      category: "Basic",
+      fieldType: "switch",
+      switchField: true,
+      helpText: "Enable email notifications",
+    },
+    {
+      title: "Theme Customization - Primary Color",
+      description: "Color picker for theme customization",
+      category: "Specialized",
+      fieldType: "color",
+      colorField: "#3B82F6",
+      helpText: "Choose your primary theme color",
+    },
+    {
+      title: "Product Review - Rating",
+      description: "Star rating system for product reviews",
+      category: "Advanced",
+      fieldType: "rating",
+      ratingField: 4.5,
+      minValue: 1,
+      maxValue: 5,
+      helpText: "Rate this product",
+    },
+    {
+      title: "Content Management - Tags",
+      description: "Tag input for content categorization",
+      category: "Advanced",
+      fieldType: "tags",
+      tagsField: JSON.stringify(["javascript", "react", "frontend"]),
+      helpText: "Add relevant tags",
+    },
+    {
+      title: "Location Selector - Country",
+      description: "Dropdown for country selection with search",
+      category: "Basic",
+      fieldType: "select",
+      singleSelect: "United States",
+      helpText: "Select your country",
+      isRequired: true,
+    },
+    {
+      title: "Skills Assessment - Programming Languages",
+      description: "Multi-select for programming language skills",
+      category: "Advanced",
+      fieldType: "select",
+      multiSelect: JSON.stringify(["JavaScript", "Python", "Java", "C++"]),
+      multiple: true,
+      helpText: "Select all languages you know",
+    }
+  ]
+
+  for (let i = 0; i < 20; i++) {
     const user = faker.helpers.arrayElement(users)
-    const formLibrary = {
-      title: faker.lorem.words(3),
-      description: faker.lorem.paragraph(),
-      category: faker.helpers.arrayElement(['Basic', 'Advanced', 'Specialized']),
-      isActive: faker.datatype.boolean(),
+    const template = fieldTemplates[i] || fieldTemplates[i % fieldTemplates.length]
+    
+    const masterData = {
+      title: template.title,
+      description: template.description,
+      category: template.category,
+      isActive: faker.datatype.boolean(0.8), // 80% chance of being active
       sortOrder: i + 1,
-      fieldType: faker.helpers.arrayElement([
-        'input', 'select', 'textarea', 'checkbox', 'radio', 'file', 'date', 'time', 
-        'datetime-local', 'month', 'week', 'number', 'range', 'color', 'search', 
-        'tel', 'url', 'password', 'email', 'switch', 'slider', 'rating', 'tags'
-      ]),
-      isRequired: faker.datatype.boolean(),
-      textField: faker.lorem.words(2),
-      emailField: faker.internet.email(),
-      passwordField: faker.internet.password(),
-      phoneField: faker.phone.number().substring(0, 20),
-      urlField: faker.internet.url(),
-      searchField: faker.lorem.word(),
-      textareaField: faker.lorem.paragraph(),
-      richTextField: faker.lorem.paragraphs(2),
-      numberField: faker.number.float({ min: 1, max: 1000, multipleOf: 0.01 }),
-      integerField: faker.number.int({ min: 1, max: 1000 }),
-      rangeField: faker.number.int({ min: 0, max: 100 }),
-      sliderValue: faker.number.float({ min: 0, max: 100 }),
-      dateField: faker.date.past(),
-      timeField: faker.date.recent().toTimeString().slice(0, 5),
-      dateTimeField: faker.date.recent(),
-      monthField: faker.date.recent().toISOString().slice(0, 7),
+      fieldType: template.fieldType,
+      
+      // Text fields
+      textField: template.textField || faker.lorem.words(2),
+      emailField: template.emailField || faker.internet.email(),
+      phoneField: template.phoneField || faker.phone.number().substring(0, 20),
+      urlField: template.urlField || faker.internet.url(),
+      searchField: template.searchField || faker.lorem.word(),
+      textareaField: template.textareaField || faker.lorem.paragraph(),
+      richTextField: template.richTextField || faker.lorem.paragraphs(2),
+      
+      // Numeric fields
+      numberField: template.numberField || faker.number.float({ min: 1, max: 1000, multipleOf: 0.01 }),
+      integerField: template.integerField || faker.number.int({ min: 1, max: 1000 }),
+      rangeField: template.rangeField || faker.number.int({ min: 0, max: 100 }),
+      sliderValue: template.sliderValue || faker.number.float({ min: 0, max: 100 }),
+      
+      // Date fields
+      dateField: template.dateField || faker.date.future(),
+      timeField: template.timeField || faker.date.recent().toTimeString().slice(0, 5),
+      dateTimeField: template.dateTimeField || faker.date.future(),
+      monthField: faker.date.future().toISOString().slice(0, 7),
       weekField: `2024-W${faker.number.int({ min: 1, max: 52 }).toString().padStart(2, '0')}`,
-      singleSelect: faker.helpers.arrayElement(['Option A', 'Option B', 'Option C', 'Option D']),
-      multiSelect: JSON.stringify(faker.helpers.arrayElements(['Choice 1', 'Choice 2', 'Choice 3', 'Choice 4'], { min: 1, max: 3 })),
-      radioSelection: faker.helpers.arrayElement(['Radio A', 'Radio B', 'Radio C']),
-      checkboxGroup: JSON.stringify(faker.helpers.arrayElements(['Check 1', 'Check 2', 'Check 3'], { min: 1, max: 2 })),
-      switchField: faker.datatype.boolean(),
+      
+      // Selection fields
+      singleSelect: template.singleSelect || faker.helpers.arrayElement(['Option A', 'Option B', 'Option C']),
+      multiSelect: template.multiSelect || JSON.stringify(faker.helpers.arrayElements(['Choice 1', 'Choice 2', 'Choice 3'], { min: 1, max: 2 })),
+      radioSelection: template.radioSelection || faker.helpers.arrayElement(['Radio A', 'Radio B', 'Radio C']),
+      checkboxGroup: template.checkboxGroup || JSON.stringify(faker.helpers.arrayElements(['Check 1', 'Check 2', 'Check 3'], { min: 1, max: 2 })),
+      
+      // Boolean fields
+      switchField: template.switchField !== undefined ? template.switchField : faker.datatype.boolean(),
       checkboxField: faker.datatype.boolean(),
-      colorField: faker.internet.color(),
-      ratingField: faker.number.float({ min: 1, max: 5, multipleOf: 0.5 }),
-      tagsField: JSON.stringify(faker.helpers.arrayElements(['tag1', 'tag2', 'tag3', 'tag4', 'tag5'], { min: 1, max: 3 })),
+      
+      // File fields
+      filePath: `/uploads/files/${faker.system.fileName()}`,
+      imagePath: `/uploads/images/${faker.system.fileName({ extensionCount: 1 })}`,
+      documentPath: `/uploads/docs/${faker.system.fileName({ extensionCount: 1 })}`,
+      
+      // Special fields
+      colorField: template.colorField || faker.internet.color(),
+      ratingField: template.ratingField || faker.number.float({ min: 1, max: 5, multipleOf: 0.5 }),
+      tagsField: template.tagsField || JSON.stringify(faker.helpers.arrayElements(['tag1', 'tag2', 'tag3', 'tag4'], { min: 1, max: 3 })),
+      
+      // Advanced fields
       autocompleteField: faker.lorem.word(),
       comboboxField: faker.lorem.word(),
       multiInputField: JSON.stringify(faker.helpers.arrayElements(['input1', 'input2', 'input3'], { min: 1, max: 2 })),
+      
+      // Validation fields
+      isRequired: template.isRequired !== undefined ? template.isRequired : faker.datatype.boolean(),
+      minLength: template.minLength || faker.number.int({ min: 1, max: 10 }),
+      maxLength: template.maxLength || faker.number.int({ min: 50, max: 200 }),
+      minValue: template.minValue || faker.number.float({ min: 0, max: 10, multipleOf: 0.1 }),
+      maxValue: template.maxValue || faker.number.float({ min: 100, max: 1000, multipleOf: 1 }),
+      pattern: template.pattern || faker.helpers.arrayElement(['^[A-Za-z0-9]+$', '^\\d{3}-\\d{3}-\\d{4}$', '^[a-zA-Z\\s]+$']),
+      placeholder: template.placeholder || faker.lorem.words(2),
+      helpText: template.helpText || faker.lorem.sentence(),
+      inputMode: faker.helpers.arrayElement(['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search']),
+      step: template.step || faker.number.float({ min: 0.01, max: 10, multipleOf: 0.01 }),
+      multiple: template.multiple !== undefined ? template.multiple : faker.datatype.boolean(),
+      
+      // Conditional logic
+      dependsOn: faker.helpers.arrayElement(['field1', 'field2', 'field3']),
+      condition: faker.helpers.arrayElement(['equals:value', 'not_equals:value', 'contains:text']),
+      isVisible: faker.datatype.boolean(0.9), // 90% visible
+      isDisabled: faker.datatype.boolean(0.1), // 10% disabled
+      
+      // Styling
       fieldSize: faker.helpers.arrayElement(['sm', 'md', 'lg']),
       fieldWidth: faker.helpers.arrayElement(['full', 'half', 'third', 'quarter']),
-      inputMode: faker.helpers.arrayElement(['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search']),
-      step: faker.number.float({ min: 0.01, max: 10, multipleOf: 0.01 }),
-      multiple: faker.datatype.boolean(),
-      placeholder: faker.lorem.words(2),
-      helpText: faker.lorem.sentence(),
       cssClass: faker.helpers.arrayElement(['form-control', 'input-group', 'custom-field', 'enhanced-input']),
+      
       userId: user.id,
     }
-    formLibraries.push(formLibrary)
+    masterDataEntries.push(masterData)
   }
 
-  const createdFormLibraries = await prisma.formLibrary.createMany({
-    data: formLibraries,
+  const createdMasterData = await prisma.masterData.createMany({
+    data: masterDataEntries,
   })
 
-  console.log(`✅ Created ${createdFormLibraries.count} Form Library records`)
+  console.log(`✅ Created ${createdMasterData.count} Master Data records`)
 
   console.log('🎉 Database seeded successfully!')
   console.log('\n📋 Test accounts:')
