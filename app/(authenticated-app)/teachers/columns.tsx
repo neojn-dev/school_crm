@@ -17,11 +17,7 @@ import {
   DollarSign
 } from "lucide-react"
 import { format } from "date-fns"
-import { 
-  VisibilityRounded as VisibilityIcon,
-  EditRounded as EditIcon,
-  DeleteRounded as DeleteIcon
-} from "@mui/icons-material"
+
 
 export interface Teacher {
   id: string
@@ -173,12 +169,12 @@ export const columns: ColumnDef<Teacher>[] = [
             className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full"
             title="View Details"
             onClick={() => {
-              // View functionality - could open a details modal
-              console.log('View teacher:', teacher.id)
-              // TODO: Implement view details modal
+              if (onView) {
+                onView(teacher.id)
+              }
             }}
           >
-            <VisibilityIcon className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -191,24 +187,20 @@ export const columns: ColumnDef<Teacher>[] = [
               }
             }}
           >
-            <EditIcon className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full"
             title="Delete Teacher"
-            onClick={async () => {
-              if (onDelete && confirm(`Are you sure you want to delete Prof. ${teacher.firstName} ${teacher.lastName}?`)) {
-                try {
-                  await onDelete(teacher.id)
-                } catch (error) {
-                  console.error('Error deleting teacher:', error)
-                }
+            onClick={() => {
+              if (onDelete) {
+                onDelete(teacher.id)
               }
             }}
           >
-            <DeleteIcon className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       )

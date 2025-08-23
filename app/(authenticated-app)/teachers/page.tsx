@@ -37,6 +37,8 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
+import { toast } from "@/components/ui/toast-container"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 
 interface Teacher {
   id: string
@@ -64,6 +66,7 @@ export default function TeachersPage() {
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
+  const [viewingTeacher, setViewingTeacher] = useState<Teacher | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -76,6 +79,7 @@ export default function TeachersPage() {
     hireDate: "",
     isActive: true
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; teacher: Teacher | null }>({ open: false, teacher: null })
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -121,14 +125,13 @@ export default function TeachersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 [FORM DEBUG] Submitting teacher form with data:', formData)
-    console.log('🔍 [FORM DEBUG] Current session:', session)
+            // Submitting teacher form
     
     try {
       const url = editingTeacher ? `/api/teachers/${editingTeacher.id}` : '/api/teachers'
       const method = editingTeacher ? 'PUT' : 'POST'
       
-      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
+              // Making request to API
       
       const response = await fetch(url, {
         method,
@@ -137,43 +140,98 @@ export default function TeachersPage() {
         body: JSON.stringify(formData)
       })
       
-      console.log('🔍 [FORM DEBUG] Response status:', response.status)
-      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
+              // Response received
       
       if (response.ok) {
         const result = await response.json()
-        console.log('🔍 [FORM DEBUG] Success response:', result)
+        // Success response received
         setIsAddDialogOpen(false)
         setEditingTeacher(null)
         resetForm()
         fetchTeachers()
-        alert(editingTeacher ? 'Teacher updated successfully!' : 'Teacher added successfully!')
+        toast.success(editingTeacher ? 'Teacher updated successfully!' : 'Teacher added successfully!')
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [FORM ERROR] API error:', errorData)
-        alert(`Error: ${errorData.error || 'Failed to save teacher'}`)
+        toast.error(`Error: ${errorData.error || 'Failed to save teacher'}`)
       }
     } catch (error) {
       console.error('❌ [FORM ERROR] Network error:', error)
-      alert('Network error occurred. Please try again.')
+      toast.error('Network error occurred. Please try again.')
     }
   }
 
-  const handleEdit = (teacher: Teacher) => {
-    setEditingTeacher(teacher)
-    setFormData({
-      firstName: teacher.firstName,
-      lastName: teacher.lastName,
-      email: teacher.email,
-      employeeId: teacher.employeeId,
-      department: teacher.department,
-      subject: teacher.subject,
-      yearsOfExperience: teacher.yearsOfExperience?.toString() || "",
-      salary: teacher.salary?.toString() || "",
-      hireDate: teacher.hireDate || "",
-      isActive: teacher.isActive
-    })
-    setIsAddDialogOpen(true)
+  const handleView = (id: string) => {
+    const teacher = teachers.find(t => t.id === id)
+    if (teacher) {
+      setViewingTeacher(teacher)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const teacher = teachers.find(t => t.id === id)
+    if (teacher) {
+      setDeleteConfirmation({ open: true, teacher })
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.teacher) return
+    
+    try {
+      const response = await fetch(`/api/teachers/${deleteConfirmation.teacher.id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        fetchTeachers()
+        toast.error('Teacher deleted successfully!', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      } else {
+        toast.error('Failed to delete teacher', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting teacher:', error)
+      toast.error('Failed to delete teacher', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    const teacher = teachers.find(t => t.id === id)
+    if (teacher) {
+      setEditingTeacher(teacher)
+      setFormData({
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        email: teacher.email,
+        employeeId: teacher.employeeId,
+        department: teacher.department,
+        subject: teacher.subject,
+        yearsOfExperience: teacher.yearsOfExperience?.toString() || "",
+        salary: teacher.salary?.toString() || "",
+        hireDate: teacher.hireDate || "",
+        isActive: teacher.isActive
+      })
+      setIsAddDialogOpen(true)
+    }
   }
 
   const resetForm = () => {
@@ -329,31 +387,10 @@ export default function TeachersPage() {
                 data={teachers}
                 columns={columns}
                 isLoading={loading}
-                onEdit={handleEdit}
-                onDelete={async (id) => {
-                  try {
-                    await fetch(`/api/teachers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchTeachers()
-                  } catch (error) {
-                    console.error('Error deleting teacher:', error)
-                  }
-                }}
+
                 searchPlaceholder="Search teachers..."
                 exportData={exportData}
-                meta={{ onEdit: handleEdit, onDelete: async (id) => {
-                  try {
-                    await fetch(`/api/teachers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchTeachers()
-                  } catch (error) {
-                    console.error('Error deleting teacher:', error)
-                  }
-                }}}
+                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
               />
             )}
           </CardContent>
@@ -520,6 +557,19 @@ export default function TeachersPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirmation.open}
+        onOpenChange={(open) => setDeleteConfirmation({ open, teacher: null })}
+        title="Delete Teacher"
+        description="Are you sure you want to delete this teacher? This action cannot be undone."
+        confirmText="Delete Teacher"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        type="danger"
+        itemName={deleteConfirmation.teacher ? `Prof. ${deleteConfirmation.teacher.firstName} ${deleteConfirmation.teacher.lastName}` : undefined}
+      />
     </ErrorBoundary>
   )
 }

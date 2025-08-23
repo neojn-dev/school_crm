@@ -20,11 +20,7 @@ import {
   Heart
 } from "lucide-react"
 import { format } from "date-fns"
-import { 
-  VisibilityRounded as VisibilityIcon,
-  EditRounded as EditIcon,
-  DeleteRounded as DeleteIcon
-} from "@mui/icons-material"
+
 
 export interface Doctor {
   id: string
@@ -167,27 +163,27 @@ export const columns: ColumnDef<Doctor>[] = [
     header: "Actions",
     cell: ({ row, table }) => {
       const doctor = row.original
-      const { onEdit, onDelete } = table.options.meta as { onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
+      const { onView, onEdit, onDelete } = table.options.meta as { onView?: (id: string) => void; onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
       
       return (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full transition-colors duration-200"
             title="View Details"
             onClick={() => {
-              // View functionality - could open a details modal
-              console.log('View doctor:', doctor.id)
-              // TODO: Implement view details modal
+              if (onView) {
+                onView(doctor.id)
+              }
             }}
           >
-            <VisibilityIcon className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 text-green-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 text-green-600 rounded-full transition-colors duration-200"
             title="Edit Doctor"
             onClick={() => {
               if (onEdit) {
@@ -195,24 +191,20 @@ export const columns: ColumnDef<Doctor>[] = [
               }
             }}
           >
-            <EditIcon className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full transition-colors duration-200"
             title="Delete Doctor"
-            onClick={async () => {
-              if (onDelete && confirm(`Are you sure you want to delete Dr. ${doctor.firstName} ${doctor.lastName}?`)) {
-                try {
-                  await onDelete(doctor.id)
-                } catch (error) {
-                  console.error('Error deleting doctor:', error)
-                }
+            onClick={() => {
+              if (onDelete) {
+                onDelete(doctor.id)
               }
             }}
           >
-            <DeleteIcon className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       )

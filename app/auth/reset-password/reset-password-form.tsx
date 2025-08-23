@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PasswordInput } from "@/components/forms/password-input"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast-container"
 import { Loader2, CheckCircle } from "lucide-react"
 import { motion } from "framer-motion"
 

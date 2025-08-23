@@ -15,7 +15,7 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast-container"
 import { formatFileSize } from "@/lib/utils"
 
 interface FileInputProps {

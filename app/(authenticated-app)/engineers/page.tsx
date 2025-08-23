@@ -24,6 +24,8 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
+import { toast } from "@/components/ui/toast-container"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 
 interface Engineer {
   id: string
@@ -51,6 +53,7 @@ export default function EngineersPage() {
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEngineer, setEditingEngineer] = useState<Engineer | null>(null)
+  const [viewingEngineer, setViewingEngineer] = useState<Engineer | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -63,6 +66,7 @@ export default function EngineersPage() {
     salary: "",
     isActive: true
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; engineer: Engineer | null }>({ open: false, engineer: null })
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -106,59 +110,123 @@ export default function EngineersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 [FORM DEBUG] Submitting engineer form with data:', formData)
-    console.log('🔍 [FORM DEBUG] Current session:', session)
-    
+    if (!session) {
+      toast.error('You must be signed in to create or edit engineers.')
+      return
+    }
+
     try {
-      const url = editingEngineer ? `/api/engineers/${editingEngineer.id}` : '/api/engineers'
-      const method = editingEngineer ? 'PUT' : 'POST'
+      const url = editingEngineer 
+        ? `/api/engineers/${editingEngineer.id}` 
+        : '/api/engineers'
       
-      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
+      const method = editingEngineer ? 'PUT' : 'POST'
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: 'include'
       })
-      
-      console.log('🔍 [FORM DEBUG] Response status:', response.status)
-      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
-      
+
       if (response.ok) {
         const result = await response.json()
-        console.log('🔍 [FORM DEBUG] Success response:', result)
+        // Engineer saved successfully
+        
+        // Reset form and close dialog
         setIsAddDialogOpen(false)
         setEditingEngineer(null)
         resetForm()
+        
+        // Refresh the engineers list
         fetchEngineers()
-        alert(editingEngineer ? 'Engineer updated successfully!' : 'Engineer added successfully!')
+        
+        // Show success message
+        toast.success(editingEngineer ? 'Engineer updated successfully!' : 'Engineer added successfully!')
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const errorData = await response.json()
         console.error('❌ [FORM ERROR] API error:', errorData)
-        alert(`Error: ${errorData.error || 'Failed to save engineer'}`)
+        toast.error(`Error: ${errorData.error || 'Failed to save engineer'}`)
       }
     } catch (error) {
       console.error('❌ [FORM ERROR] Network error:', error)
-      alert('Network error occurred. Please try again.')
+      toast.error('Network error occurred. Please try again.')
     }
   }
 
-  const handleEdit = (engineer: Engineer) => {
-    setEditingEngineer(engineer)
-    setFormData({
-      firstName: engineer.firstName,
-      lastName: engineer.lastName,
-      email: engineer.email,
-      employeeId: engineer.employeeId,
-      department: engineer.department,
-      specialization: engineer.specialization,
-      engineeringType: engineer.engineeringType,
-      yearsOfExperience: engineer.yearsOfExperience?.toString() || "",
-      salary: engineer.salary?.toString() || "",
-      isActive: engineer.isActive
-    })
-    setIsAddDialogOpen(true)
+  const handleView = (id: string) => {
+    const engineer = engineers.find(e => e.id === id)
+    if (engineer) {
+      setViewingEngineer(engineer)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const engineer = engineers.find(e => e.id === id)
+    if (engineer) {
+      setDeleteConfirmation({ open: true, engineer })
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.engineer) return
+    
+    try {
+      const response = await fetch(`/api/engineers/${deleteConfirmation.engineer.id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        fetchEngineers()
+        toast.error('Engineer deleted successfully!', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      } else {
+        toast.error('Failed to delete engineer', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting engineer:', error)
+      toast.error('Failed to delete engineer', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    const engineer = engineers.find(e => e.id === id)
+    if (engineer) {
+      setEditingEngineer(engineer)
+      setFormData({
+        firstName: engineer.firstName,
+        lastName: engineer.lastName,
+        email: engineer.email,
+        employeeId: engineer.employeeId,
+        department: engineer.department,
+        specialization: engineer.specialization,
+        engineeringType: engineer.engineeringType,
+        yearsOfExperience: engineer.yearsOfExperience?.toString() || "",
+        salary: engineer.salary?.toString() || "",
+        isActive: engineer.isActive
+      })
+      setIsAddDialogOpen(true)
+    }
   }
 
   const resetForm = () => {
@@ -236,104 +304,121 @@ export default function EngineersPage() {
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Engineers Management</h1>
-            <p className="text-gray-600">Manage your engineering staff and their information</p>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Cpu className="h-8 w-8 text-blue-600" />
+              Engineers Management
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage your engineering team, track performance, and maintain professional records
+            </p>
           </div>
-          <Button onClick={handleAddNew} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Engineer
-          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={handleAddNew}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Plus className="h-5 w-5" />
+              Add Engineer
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Engineers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{engineers.length}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm font-medium">Total Engineers</p>
+                  <p className="text-3xl font-bold">{engineers.length}</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-200" />
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Engineers</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{engineers.filter(e => e.isActive).length}</div>
+
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm font-medium">Active Engineers</p>
+                  <p className="text-3xl font-bold">
+                    {engineers.filter(e => e.isActive).length}
+                  </p>
+                </div>
+                <UserCheck className="h-8 w-8 text-green-200" />
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Departments</CardTitle>
-              <Building className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{new Set(engineers.map(e => e.department)).size}</div>
+
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm font-medium">Departments</p>
+                  <p className="text-3xl font-bold">
+                    {new Set(engineers.map(e => e.department)).size}
+                  </p>
+                </div>
+                <Building className="h-8 w-8 text-purple-200" />
+              </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engineering Types</CardTitle>
-              <Cpu className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{new Set(engineers.map(e => e.engineeringType)).size}</div>
+
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm font-medium">Avg Experience</p>
+                  <p className="text-3xl font-bold">
+                    {engineers.length > 0 
+                      ? Math.round(engineers.reduce((sum, e) => sum + (e.yearsOfExperience || 0), 0) / engineers.length)
+                      : 0
+                    }y
+                  </p>
+                </div>
+                <Star className="h-8 w-8 text-orange-200" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Data Table */}
+        {/* Engineers Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Engineers Directory</CardTitle>
-            <CardDescription>A comprehensive list of all engineering staff</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-blue-600" />
+              Engineers Directory
+            </CardTitle>
+            <CardDescription>
+              Comprehensive list of all engineers with search, filter, and export capabilities
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {error ? (
-              <div className="text-center py-8">
-                <div className="text-red-600 mb-4">
-                  <h3 className="text-lg font-semibold">Error Loading Data</h3>
-                  <p>{error}</p>
+            {loading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-2">Loading engineers...</p>
                 </div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 mb-4">{error}</p>
                 <Button onClick={fetchEngineers} variant="outline">
-                  Retry
+                  Try Again
                 </Button>
               </div>
             ) : (
               <DataTable
-                data={engineers}
                 columns={columns}
-                isLoading={loading}
-                onEdit={handleEdit}
-                onDelete={async (id) => {
-                  try {
-                    await fetch(`/api/engineers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchEngineers()
-                  } catch (error) {
-                    console.error('Error deleting engineer:', error)
-                  }
-                }}
-                                searchPlaceholder="Search engineers..."
+                data={engineers}
+                searchPlaceholder="Search engineers..."
                 exportData={exportData}
-                meta={{ onEdit: handleEdit, onDelete: async (id) => {
-                  try {
-                    await fetch(`/api/engineers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchEngineers()
-                  } catch (error) {
-                    console.error('Error deleting engineer:', error)
-                  }
-                }}}
+                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
               />
             )}
           </CardContent>
@@ -447,7 +532,7 @@ export default function EngineersPage() {
                   <Label htmlFor="engineeringType">Engineering Type *</Label>
                   <Select value={formData.engineeringType} onValueChange={(value) => setFormData({...formData, engineeringType: value})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Select engineering type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Software">Software</SelectItem>
@@ -508,7 +593,172 @@ export default function EngineersPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* View Engineer Dialog */}
+        <Dialog open={!!viewingEngineer} onOpenChange={(open) => !open && setViewingEngineer(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Engineer Details</DialogTitle>
+              <DialogDescription>
+                View complete information for {viewingEngineer?.firstName} {viewingEngineer?.lastName}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {viewingEngineer && (
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                        <p className="text-gray-900">{viewingEngineer.firstName} {viewingEngineer.lastName}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Email</Label>
+                        <p className="text-gray-900">{viewingEngineer.email}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
+                        <p className="text-gray-900 font-mono">{viewingEngineer.employeeId}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Status</Label>
+                        <Badge variant={viewingEngineer.isActive ? "default" : "secondary"}>
+                          {viewingEngineer.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Professional Details</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Department</Label>
+                        <p className="text-gray-900">{viewingEngineer.department}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Specialization</Label>
+                        <p className="text-gray-900">{viewingEngineer.specialization}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Engineering Type</Label>
+                        <p className="text-gray-900">{viewingEngineer.engineeringType}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Years of Experience</Label>
+                        <p className="text-gray-900">{viewingEngineer.yearsOfExperience || 'Not specified'}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Salary</Label>
+                        <p className="text-gray-900">
+                          {viewingEngineer.salary ? `$${viewingEngineer.salary.toLocaleString()}` : 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Additional Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Project Success Rate</Label>
+                      <p className="text-gray-900">{viewingEngineer.projectSuccessRate || 'Not specified'}</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Code Quality</Label>
+                      <p className="text-gray-900">{viewingEngineer.codeQuality || 'Not specified'}</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Innovation Score</Label>
+                      <p className="text-gray-900">{viewingEngineer.innovationScore || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* System Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">System Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Created</Label>
+                      <p className="text-gray-900">
+                        {new Date(viewingEngineer.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Last Updated</Label>
+                      <p className="text-gray-900">
+                        {new Date(viewingEngineer.updatedAt || viewingEngineer.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setViewingEngineer(null)}
+              >
+                Close
+              </Button>
+              <Button 
+                onClick={() => {
+                  setViewingEngineer(null)
+                  handleEdit(viewingEngineer!.id)
+                }}
+              >
+                Edit Engineer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirmation.open}
+        onOpenChange={(open) => setDeleteConfirmation({ open, engineer: null })}
+        title="Delete Engineer"
+        description="Are you sure you want to delete this engineer? This action cannot be undone."
+        confirmText="Delete Engineer"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        type="danger"
+        itemName={deleteConfirmation.engineer ? `${deleteConfirmation.engineer.firstName} ${deleteConfirmation.engineer.lastName}` : undefined}
+      />
     </ErrorBoundary>
   )
 }

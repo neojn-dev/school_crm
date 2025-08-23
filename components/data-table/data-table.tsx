@@ -158,13 +158,18 @@ export function DataTable<TData, TValue>({
       rowSelection,
       globalFilter,
       pagination: pagination ? {
-        pageIndex: pagination.pageIndex,
-        pageSize: pagination?.pageSize || 10,
-      } : undefined,
+        pageIndex: pagination.pageIndex || 0,
+        pageSize: pagination.pageSize || 10,
+      } : {
+        pageIndex: 0,
+        pageSize: 10,
+      },
     },
     pageCount: pagination?.pageCount ?? -1,
     manualPagination: !!pagination,
   })
+  
+
 
   // Ensure table is ready before using its methods
   useEffect(() => {
@@ -717,31 +722,17 @@ export function DataTable<TData, TValue>({
                 }
               }
               
+
+              
               // Fallback for when table is not ready but we have data
               if (data && data.length > 0) {
                 return data.map((item: any, index: number) => (
                   <TableRow key={item.id || index}>
-                    {columns.map((column, colIndex) => {
-                      // Handle actions column specially
-                      if (column.id === 'actions') {
-                        return (
-                          <TableCell key={colIndex} className={densityClasses[density]}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-600 text-lg bg-blue-100 p-1 rounded-full">👁️</span>
-                              <span className="text-green-600 text-lg bg-green-100 p-1 rounded-full">✏️</span>
-                              <span className="text-red-600 text-lg bg-red-100 p-1 rounded-full">🗑️</span>
-                            </div>
-                          </TableCell>
-                        )
-                      }
-                      
-                      // Regular columns
-                      return (
-                        <TableCell key={colIndex} className={densityClasses[density]}>
-                          <span>{item[(column as any).accessorKey] || ''}</span>
-                        </TableCell>
-                      )
-                    })}
+                    {columns.map((column, colIndex) => (
+                      <TableCell key={colIndex} className={densityClasses[density]}>
+                        <span>{item[(column as any).accessorKey] || ''}</span>
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               }

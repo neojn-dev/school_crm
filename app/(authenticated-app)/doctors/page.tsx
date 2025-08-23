@@ -39,6 +39,8 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
+import { toast } from "@/components/ui/toast-container"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 
 interface Doctor {
   id: string
@@ -65,6 +67,7 @@ export default function DoctorsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
+  const [viewingDoctor, setViewingDoctor] = useState<Doctor | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -77,6 +80,7 @@ export default function DoctorsPage() {
     salary: "",
     isActive: true
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; doctor: Doctor | null }>({ open: false, doctor: null })
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -120,14 +124,13 @@ export default function DoctorsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 [FORM DEBUG] Submitting doctor form with data:', formData)
-    console.log('🔍 [FORM DEBUG] Current session:', session)
+            // Submitting doctor form
     
     try {
       const url = editingDoctor ? `/api/doctors/${editingDoctor.id}` : '/api/doctors'
       const method = editingDoctor ? 'PUT' : 'POST'
       
-      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
+              // Making request to API
       
       const response = await fetch(url, {
         method,
@@ -136,43 +139,98 @@ export default function DoctorsPage() {
         body: JSON.stringify(formData)
       })
       
-      console.log('🔍 [FORM DEBUG] Response status:', response.status)
-      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
+              // Response received
       
       if (response.ok) {
         const result = await response.json()
-        console.log('🔍 [FORM DEBUG] Success response:', result)
+        // Success response received
         setIsAddDialogOpen(false)
         setEditingDoctor(null)
         resetForm()
         fetchDoctors()
-        alert(editingDoctor ? 'Doctor updated successfully!' : 'Doctor added successfully!')
+        toast.success(editingDoctor ? 'Doctor updated successfully!' : 'Doctor added successfully!')
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [FORM ERROR] API error:', errorData)
-        alert(`Error: ${errorData.error || 'Failed to save doctor'}`)
+        toast.error(`Error: ${errorData.error || 'Failed to save doctor'}`)
       }
     } catch (error) {
       console.error('❌ [FORM ERROR] Network error:', error)
-      alert('Network error occurred. Please try again.')
+      toast.error('Network error occurred. Please try again.')
     }
   }
 
-  const handleEdit = (doctor: Doctor) => {
-    setEditingDoctor(doctor)
-    setFormData({
-      firstName: doctor.firstName,
-      lastName: doctor.lastName,
-      email: doctor.email,
-      employeeId: doctor.employeeId,
-      department: doctor.department,
-      specialization: doctor.specialization,
-      licenseNumber: doctor.licenseNumber,
-      yearsOfExperience: doctor.yearsOfExperience?.toString() || "",
-      salary: doctor.salary?.toString() || "",
-      isActive: doctor.isActive
-    })
-    setIsAddDialogOpen(true)
+  const handleView = (id: string) => {
+    const doctor = doctors.find(d => d.id === id)
+    if (doctor) {
+      setViewingDoctor(doctor)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const doctor = doctors.find(d => d.id === id)
+    if (doctor) {
+      setDeleteConfirmation({ open: true, doctor })
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.doctor) return
+    
+    try {
+      const response = await fetch(`/api/doctors/${deleteConfirmation.doctor.id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        fetchDoctors()
+        toast.error('Doctor deleted successfully!', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      } else {
+        toast.error('Failed to delete doctor', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting doctor:', error)
+      toast.error('Failed to delete doctor', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    const doctor = doctors.find(d => d.id === id)
+    if (doctor) {
+      setEditingDoctor(doctor)
+      setFormData({
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        email: doctor.email,
+        employeeId: doctor.employeeId,
+        department: doctor.department,
+        specialization: doctor.specialization,
+        licenseNumber: doctor.licenseNumber,
+        yearsOfExperience: doctor.yearsOfExperience?.toString() || "",
+        salary: doctor.salary?.toString() || "",
+        isActive: doctor.isActive
+      })
+      setIsAddDialogOpen(true)
+    }
   }
 
   const resetForm = () => {
@@ -322,31 +380,9 @@ export default function DoctorsPage() {
                 data={doctors}
                 columns={columns}
                 isLoading={loading}
-                onEdit={handleEdit}
-                onDelete={async (id) => {
-                  try {
-                    await fetch(`/api/doctors/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchDoctors()
-                  } catch (error) {
-                    console.error('Error deleting doctor:', error)
-                  }
-                }}
                 searchPlaceholder="Search doctors..."
                 exportData={exportData}
-                meta={{ onEdit: handleEdit, onDelete: async (id) => {
-                  try {
-                    await fetch(`/api/doctors/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchDoctors()
-                  } catch (error) {
-                    console.error('Error deleting doctor:', error)
-                  }
-                }}}
+                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
               />
             )}
           </CardContent>
@@ -512,7 +548,150 @@ export default function DoctorsPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* View Doctor Dialog */}
+        <Dialog open={!!viewingDoctor} onOpenChange={(open) => !open && setViewingDoctor(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Doctor Details</DialogTitle>
+              <DialogDescription>
+                View complete information for Dr. {viewingDoctor?.firstName} {viewingDoctor?.lastName}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {viewingDoctor && (
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                        <p className="text-gray-900">Dr. {viewingDoctor.firstName} {viewingDoctor.lastName}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Email</Label>
+                        <p className="text-gray-900">{viewingDoctor.email}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
+                        <p className="text-gray-900 font-mono">{viewingDoctor.employeeId}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Status</Label>
+                        <Badge variant={viewingDoctor.isActive ? "default" : "secondary"}>
+                          {viewingDoctor.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Professional Details</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Department</Label>
+                        <p className="text-gray-900">{viewingDoctor.department}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Specialization</Label>
+                        <p className="text-gray-900">{viewingDoctor.specialization}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">License Number</Label>
+                        <p className="text-gray-900 font-mono">{viewingDoctor.licenseNumber}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Years of Experience</Label>
+                        <p className="text-gray-900">{viewingDoctor.yearsOfExperience || 'Not specified'}</p>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Salary</Label>
+                        <p className="text-gray-900">
+                          {viewingDoctor.salary ? `$${viewingDoctor.salary.toLocaleString()}` : 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* System Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">System Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Created</Label>
+                      <p className="text-gray-900">
+                        {new Date(viewingDoctor.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Last Updated</Label>
+                      <p className="text-gray-900">
+                        {new Date(viewingDoctor.updatedAt || viewingDoctor.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setViewingDoctor(null)}
+              >
+                Close
+              </Button>
+              <Button 
+                onClick={() => {
+                  setViewingDoctor(null)
+                  handleEdit(viewingDoctor!.id)
+                }}
+              >
+                Edit Doctor
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirmation.open}
+        onOpenChange={(open) => setDeleteConfirmation({ open, doctor: null })}
+        title="Delete Doctor"
+        description="Are you sure you want to delete this doctor? This action cannot be undone."
+        confirmText="Delete Doctor"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        type="danger"
+        itemName={deleteConfirmation.doctor ? `Dr. ${deleteConfirmation.doctor.firstName} ${deleteConfirmation.doctor.lastName}` : undefined}
+      />
     </ErrorBoundary>
   )
 }

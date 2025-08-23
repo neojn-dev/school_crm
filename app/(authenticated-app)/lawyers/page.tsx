@@ -25,6 +25,8 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
+import { toast } from "@/components/ui/toast-container"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 
 interface Lawyer {
   id: string
@@ -52,6 +54,7 @@ export default function LawyersPage() {
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingLawyer, setEditingLawyer] = useState<Lawyer | null>(null)
+  const [viewingLawyer, setViewingLawyer] = useState<Lawyer | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -64,6 +67,7 @@ export default function LawyersPage() {
     salary: "",
     isActive: true
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; lawyer: Lawyer | null }>({ open: false, lawyer: null })
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -109,14 +113,13 @@ export default function LawyersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 [FORM DEBUG] Submitting lawyer form with data:', formData)
-    console.log('🔍 [FORM DEBUG] Current session:', session)
+            // Submitting lawyer form
     
     try {
       const url = editingLawyer ? `/api/lawyers/${editingLawyer.id}` : '/api/lawyers'
       const method = editingLawyer ? 'PUT' : 'POST'
       
-      console.log('🔍 [FORM DEBUG] Making request to:', url, 'with method:', method)
+              // Making request to API
       
       const response = await fetch(url, {
         method,
@@ -125,43 +128,98 @@ export default function LawyersPage() {
         body: JSON.stringify(formData)
       })
       
-      console.log('🔍 [FORM DEBUG] Response status:', response.status)
-      console.log('🔍 [FORM DEBUG] Response headers:', response.headers)
+              // Response received
       
       if (response.ok) {
         const result = await response.json()
-        console.log('🔍 [FORM DEBUG] Success response:', result)
+        // Success response received
         setIsAddDialogOpen(false)
         setEditingLawyer(null)
         resetForm()
         fetchLawyers()
-        alert(editingLawyer ? 'Lawyer updated successfully!' : 'Lawyer added successfully!')
+        toast.success(editingLawyer ? 'Lawyer updated successfully!' : 'Lawyer added successfully!')
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [FORM ERROR] API error:', errorData)
-        alert(`Error: ${errorData.error || 'Failed to save lawyer'}`)
+        toast.error(`Error: ${errorData.error || 'Failed to save lawyer'}`)
       }
     } catch (error) {
       console.error('❌ [FORM ERROR] Network error:', error)
-      alert('Network error occurred. Please try again.')
+      toast.error('Network error occurred. Please try again.')
     }
   }
 
-  const handleEdit = (lawyer: Lawyer) => {
-    setEditingLawyer(lawyer)
-    setFormData({
-      firstName: lawyer.firstName,
-      lastName: lawyer.lastName,
-      email: lawyer.email,
-      employeeId: lawyer.employeeId,
-      department: lawyer.department,
-      practiceArea: lawyer.practiceArea,
-      barNumber: lawyer.barNumber,
-      yearsOfExperience: lawyer.yearsOfExperience?.toString() || "",
-      salary: lawyer.salary?.toString() || "",
-      isActive: lawyer.isActive
-    })
-    setIsAddDialogOpen(true)
+  const handleView = (id: string) => {
+    const lawyer = lawyers.find(l => l.id === id)
+    if (lawyer) {
+      setViewingLawyer(lawyer)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const lawyer = lawyers.find(l => l.id === id)
+    if (lawyer) {
+      setDeleteConfirmation({ open: true, lawyer })
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.lawyer) return
+    
+    try {
+      const response = await fetch(`/api/lawyers/${deleteConfirmation.lawyer.id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        fetchLawyers()
+        toast.error('Lawyer deleted successfully!', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      } else {
+        toast.error('Failed to delete lawyer', {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting lawyer:', error)
+      toast.error('Failed to delete lawyer', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    const lawyer = lawyers.find(l => l.id === id)
+    if (lawyer) {
+      setEditingLawyer(lawyer)
+      setFormData({
+        firstName: lawyer.firstName,
+        lastName: lawyer.lastName,
+        email: lawyer.email,
+        employeeId: lawyer.employeeId,
+        department: lawyer.department,
+        practiceArea: lawyer.practiceArea,
+        barNumber: lawyer.barNumber,
+        yearsOfExperience: lawyer.yearsOfExperience?.toString() || "",
+        salary: lawyer.salary?.toString() || "",
+        isActive: lawyer.isActive
+      })
+      setIsAddDialogOpen(true)
+    }
   }
 
   const resetForm = () => {
@@ -311,31 +369,10 @@ export default function LawyersPage() {
                 data={lawyers}
                 columns={columns}
                 isLoading={loading}
-                onEdit={handleEdit}
-                onDelete={async (id) => {
-                  try {
-                    await fetch(`/api/lawyers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchLawyers()
-                  } catch (error) {
-                    console.error('Error deleting lawyer:', error)
-                  }
-                }}
+
                 searchPlaceholder="Search lawyers..."
                 exportData={exportData}
-                meta={{ onEdit: handleEdit, onDelete: async (id) => {
-                  try {
-                    await fetch(`/api/lawyers/${id}`, { 
-                      method: 'DELETE',
-                      credentials: 'include'
-                    })
-                    fetchLawyers()
-                  } catch (error) {
-                    console.error('Error deleting lawyer:', error)
-                  }
-                }}}
+                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
               />
             )}
           </CardContent>
@@ -502,6 +539,19 @@ export default function LawyersPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirmation.open}
+        onOpenChange={(open) => setDeleteConfirmation({ open, lawyer: null })}
+        title="Delete Lawyer"
+        description="Are you sure you want to delete this lawyer? This action cannot be undone."
+        confirmText="Delete Lawyer"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        type="danger"
+        itemName={deleteConfirmation.lawyer ? `Atty. ${deleteConfirmation.lawyer.firstName} ${deleteConfirmation.lawyer.lastName}` : undefined}
+      />
     </ErrorBoundary>
   )
 }

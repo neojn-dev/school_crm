@@ -3,14 +3,16 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 
 import { DataTable } from "@/components/data-table/data-table"
 import { columns, type FormLibrary } from "./columns"
 import { Plus, FileText, Table, Settings, Database, Code, Palette, Calendar, Hash, Type, CheckSquare, CircleDot, Upload, Star, Eye, Zap } from "lucide-react"
 import { motion } from "framer-motion"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast-container"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -131,6 +133,8 @@ export default function FormLibraryPage() {
   const [data, setData] = useState<FormLibrary[]>(mockFormLibraryData)
   const [isLoading, setIsLoading] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [editingForm, setEditingForm] = useState<FormLibrary | null>(null)
+  const [viewingForm, setViewingForm] = useState<FormLibrary | null>(null)
   const [formData, setFormData] = useState({
     // Basic Information
     title: "",
@@ -210,12 +214,134 @@ export default function FormLibraryPage() {
     performance: "",
     security: ""
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; form: FormLibrary | null }>({ open: false, form: null })
 
 
+
+  const handleView = (id: string) => {
+    const form = data.find(f => f.id === id)
+    if (form) {
+      setViewingForm(form)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const form = data.find(f => f.id === id)
+    if (form) {
+      setDeleteConfirmation({ open: true, form })
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.form) return
+    
+    try {
+      // Remove from local state
+      setData(prev => prev.filter(form => form.id !== deleteConfirmation.form!.id))
+      toast.error('Form template deleted successfully!', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    } catch (error) {
+      console.error('Error deleting form template:', error)
+      toast.error('Failed to delete form template', {
+        style: {
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#dc2626'
+        }
+      })
+    }
+  }
 
   const handleEditForm = (id: string) => {
-    // TODO: Implement edit functionality
-    toast.info("Edit functionality coming soon!")
+    const form = data.find(f => f.id === id)
+    if (form) {
+      setEditingForm(form)
+      // Populate form data with existing values
+      setFormData({
+        title: form.title,
+        description: form.description || "",
+        category: form.category,
+        fieldType: form.fieldType,
+        isRequired: form.isRequired,
+        isActive: form.isActive,
+        sortOrder: form.sortOrder,
+        
+        // Text Fields
+        textField: form.textField || "",
+        emailField: form.emailField || "",
+        passwordField: "",
+        textareaField: "",
+        urlField: "",
+        searchField: "",
+        telField: "",
+        
+        // Numeric Fields
+        numberField: form.numberField?.toString() || "",
+        rangeField: "",
+        progressField: "",
+        meterField: "",
+        
+        // Date & Time Fields
+        dateField: form.dateField ? (typeof form.dateField === 'string' ? form.dateField.split('T')[0] : new Date(form.dateField).toISOString().split('T')[0]) : "",
+        timeField: "",
+        datetimeField: "",
+        monthField: "",
+        weekField: "",
+        
+        // Selection Fields
+        singleSelect: form.singleSelect || "",
+        multiSelect: "",
+        radioGroup: "",
+        checkboxGroup: "",
+        
+        // File & Media Fields
+        fileField: "",
+        imageField: "",
+        videoField: "",
+        audioField: "",
+        
+        // Special Input Fields
+        colorField: form.colorField || "",
+        ratingField: form.ratingField?.toString() || "",
+        tagsField: form.tagsField ? (typeof form.tagsField === 'string' ? form.tagsField : JSON.parse(form.tagsField).join(', ')) : "",
+        switchField: form.switchField || false,
+        checkboxField: form.checkboxField || false,
+        sliderField: "",
+        
+        // Advanced Fields
+        richTextField: "",
+        codeField: "",
+        jsonField: "",
+        xmlField: "",
+        
+        // Validation Fields
+        minLength: "",
+        maxLength: "",
+        pattern: "",
+        minValue: "",
+        maxValue: "",
+        stepValue: "",
+        
+        // Metadata Fields
+        author: "",
+        version: "",
+        tags: "",
+        notes: "",
+        documentation: "",
+        examples: "",
+        dependencies: "",
+        browserSupport: "",
+        accessibility: "",
+        performance: "",
+        security: ""
+      })
+      setIsAddDialogOpen(true)
+    }
   }
 
   const handleDeleteForm = async (id: string) => {
@@ -223,7 +349,7 @@ export default function FormLibraryPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500))
       setData(prev => prev.filter(item => item.id !== id))
-      toast.success("Form deleted successfully!")
+      toast.error("Form deleted successfully!")
     } catch (error) {
       toast.error("Failed to delete form")
       console.error(error)
@@ -405,6 +531,7 @@ export default function FormLibraryPage() {
   }
 
   const handleAddNew = () => {
+    setEditingForm(null)
     resetForm()
     setIsAddDialogOpen(true)
   }
@@ -412,14 +539,14 @@ export default function FormLibraryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('🔍 [FORM DEBUG] Submitting form library form with data:', formData)
+    // Submitting form library form
     
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      const newForm: FormLibrary = {
-        id: Date.now().toString(),
+      const formToSave: FormLibrary = {
+        id: editingForm ? editingForm.id : Date.now().toString(),
         title: formData.title,
         description: formData.description,
         category: formData.category,
@@ -427,7 +554,7 @@ export default function FormLibraryPage() {
         sortOrder: formData.sortOrder || data.length + 1,
         fieldType: formData.fieldType,
         isRequired: formData.isRequired,
-        createdAt: new Date().toISOString(),
+        createdAt: editingForm ? editingForm.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         
         // Text Fields
@@ -500,10 +627,31 @@ export default function FormLibraryPage() {
         security: formData.security || undefined
       }
       
-      setData(prev => [newForm, ...prev])
+      if (editingForm) {
+        // Update existing form
+        setData(prev => prev.map(form => form.id === editingForm.id ? formToSave : form))
+        toast.success("Form template updated successfully!", {
+          style: {
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#16a34a'
+          }
+        })
+      } else {
+        // Add new form
+        setData(prev => [formToSave, ...prev])
+        toast.success("Form template added successfully!", {
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626'
+          }
+        })
+      }
+      
       setIsAddDialogOpen(false)
+      setEditingForm(null)
       resetForm()
-      toast.success("Form template added successfully!")
     } catch (error) {
       toast.error("Failed to add form template")
       console.error(error)
@@ -601,12 +749,9 @@ export default function FormLibraryPage() {
             columns={columns}
             data={data}
             searchKey="title"
-            onEdit={handleEditForm}
-            onDelete={handleDeleteForm}
-            onExport={handleExport}
             searchPlaceholder="Search forms..."
             exportData={() => handleExport('csv')}
-            meta={{ onEdit: handleEditForm, onDelete: handleDeleteForm }}
+            meta={{ onView: handleView, onEdit: handleEditForm, onDelete: handleDelete }}
           />
         </CardContent>
       </Card>
@@ -676,9 +821,11 @@ export default function FormLibraryPage() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Form Library Data</DialogTitle>
+            <DialogTitle>
+              {editingForm ? 'Edit Form Library Data' : 'Add Form Library Data'}
+            </DialogTitle>
             <DialogDescription>
-              Create comprehensive form library entries with all HTML input field types, validation rules, and metadata
+              {editingForm ? 'Update form library entry with all HTML input field types, validation rules, and metadata' : 'Create comprehensive form library entries with all HTML input field types, validation rules, and metadata'}
             </DialogDescription>
           </DialogHeader>
           
@@ -1353,12 +1500,254 @@ export default function FormLibraryPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={!formData.title || !formData.fieldType}>
-                Create Form Template
+                {editingForm ? 'Update Form Template' : 'Create Form Template'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* View Form Library Dialog */}
+      <Dialog open={!!viewingForm} onOpenChange={(open) => !open && setViewingForm(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Form Library Details</DialogTitle>
+            <DialogDescription>
+              View complete information for {viewingForm?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewingForm && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Title</Label>
+                      <p className="text-gray-900 font-medium">{viewingForm.title}</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Description</Label>
+                      <p className="text-gray-900">{viewingForm.description || 'No description provided'}</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Category</Label>
+                      <Badge className={
+                        viewingForm.category === "Basic" ? "bg-blue-100 text-blue-800" :
+                        viewingForm.category === "Advanced" ? "bg-purple-100 text-purple-800" :
+                        "bg-orange-100 text-orange-800"
+                      }>
+                        {viewingForm.category}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Field Type</Label>
+                      <p className="text-gray-900 capitalize">{viewingForm.fieldType}</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Status</Label>
+                      <Badge variant={viewingForm.isActive ? "default" : "secondary"}>
+                        {viewingForm.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Required Field</Label>
+                      <Badge variant={viewingForm.isRequired ? "default" : "outline"}>
+                        {viewingForm.isRequired ? "Required" : "Optional"}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Sort Order</Label>
+                      <p className="text-gray-900">{viewingForm.sortOrder}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Sample Field Values</h3>
+                  
+                  <div className="space-y-3">
+                    {viewingForm.textField && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Text Field</Label>
+                        <p className="text-gray-900">{viewingForm.textField}</p>
+                      </div>
+                    )}
+                    
+                    {viewingForm.emailField && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Email Field</Label>
+                        <p className="text-gray-900">{viewingForm.emailField}</p>
+                      </div>
+                    )}
+                    
+                    {viewingForm.numberField !== undefined && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Number Field</Label>
+                        <p className="text-gray-900">{viewingForm.numberField}</p>
+                      </div>
+                    )}
+                    
+                    {viewingForm.dateField && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Date Field</Label>
+                        <p className="text-gray-900">
+                          {new Date(viewingForm.dateField).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {viewingForm.colorField && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Color Field</Label>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-6 h-6 rounded border border-gray-300"
+                            style={{ backgroundColor: viewingForm.colorField }}
+                          ></div>
+                          <p className="text-gray-900">{viewingForm.colorField}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {viewingForm.ratingField !== undefined && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Rating Field</Label>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star 
+                              key={star}
+                              className={`h-4 w-4 ${star <= viewingForm.ratingField! ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                            />
+                          ))}
+                          <span className="ml-2 text-gray-900">{viewingForm.ratingField}/5</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {viewingForm.singleSelect && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Single Select</Label>
+                        <p className="text-gray-900">{viewingForm.singleSelect}</p>
+                      </div>
+                    )}
+                    
+                    {viewingForm.switchField !== undefined && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Switch Field</Label>
+                        <Badge variant={viewingForm.switchField ? "default" : "outline"}>
+                          {viewingForm.switchField ? "ON" : "OFF"}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {viewingForm.checkboxField !== undefined && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Checkbox Field</Label>
+                        <Badge variant={viewingForm.checkboxField ? "default" : "outline"}>
+                          {viewingForm.checkboxField ? "Checked" : "Unchecked"}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {viewingForm.tagsField && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Tags Field</Label>
+                        <div className="flex flex-wrap gap-1">
+                          {(typeof viewingForm.tagsField === 'string' ? 
+                            JSON.parse(viewingForm.tagsField) : 
+                            viewingForm.tagsField
+                          ).map((tag: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* System Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">System Information</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Created</Label>
+                    <p className="text-gray-900">
+                      {new Date(viewingForm.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Last Updated</Label>
+                    <p className="text-gray-900">
+                      {new Date(viewingForm.updatedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setViewingForm(null)}
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setViewingForm(null)
+                handleEditForm(viewingForm!.id)
+              }}
+            >
+              Edit Form
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={deleteConfirmation.open}
+        onOpenChange={(open) => setDeleteConfirmation({ open, form: null })}
+        title="Delete Form Template"
+        description="Are you sure you want to delete this form template? This action cannot be undone."
+        confirmText="Delete Template"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        type="danger"
+        itemName={deleteConfirmation.form?.title}
+      />
     </div>
   )
 }

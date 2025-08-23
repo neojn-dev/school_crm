@@ -14,7 +14,7 @@
 
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { Toaster } from "sonner"
+
 import { SessionProviderWrapper } from "@/components/providers/session-provider"
 import "@/styles/globals.css"
 
@@ -63,7 +63,6 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <SessionProviderWrapper>
           {children}
-          <Toaster richColors position="top-right" />
         </SessionProviderWrapper>
       </body>
     </html>

@@ -42,7 +42,7 @@ app/
 - Global CSS imports
 - Font configuration (Inter)
 - Session provider for authentication
-- Toast notifications (Sonner)
+- Toast notifications (React-Toastify)
 - Global metadata and SEO
 
 ### 2. 📱 APP LAYOUT (`app/(authenticated-app)/layout.tsx`)

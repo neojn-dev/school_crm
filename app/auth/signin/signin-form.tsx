@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PasswordInput } from "@/components/forms/password-input"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast-container"
 import { Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 

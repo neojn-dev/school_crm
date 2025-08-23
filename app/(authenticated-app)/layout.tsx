@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { AppHeader, AppFooter } from "@/components/website-components"
+import { ToastContainerWrapper } from "@/components/ui/toast-container"
 
 const navigationItems = [
   {
@@ -402,6 +403,9 @@ export default function AppLayout({
         {/* App Footer */}
         <AppFooter />
       </div>
+      
+      {/* Toast Notifications */}
+      <ToastContainerWrapper />
     </ErrorBoundary>
   )
 }
