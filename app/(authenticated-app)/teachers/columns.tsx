@@ -54,14 +54,19 @@ export const columns: ColumnDef<Teacher>[] = [
     cell: ({ row }) => {
       const teacher = row.original
       return (
-        <div className="flex flex-col">
-          <div className="font-medium">
-            {teacher.firstName} {teacher.lastName}
-          </div>
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            {teacher.email}
-          </div>
+        <div className="font-medium">
+          {teacher.firstName} {teacher.lastName}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm">
+          {row.getValue("email")}
         </div>
       )
     },
@@ -70,62 +75,20 @@ export const columns: ColumnDef<Teacher>[] = [
     accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
-      const teacher = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="outline" className="w-fit">
-            <Building className="h-3 w-3 mr-1" />
-            {teacher.department}
-          </Badge>
-          <div className="text-sm text-gray-600">
-            {teacher.subject}
-          </div>
-        </div>
+        <Badge variant="outline" className="w-fit">
+          {row.getValue("department")}
+        </Badge>
       )
     },
   },
   {
-    accessorKey: "yearsOfExperience",
-    header: "Experience",
+    accessorKey: "subject",
+    header: "Subject",
     cell: ({ row }) => {
-      const teacher = row.original
       return (
-        <div className="flex flex-col gap-1">
-          {teacher.yearsOfExperience && (
-            <div className="text-sm flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {teacher.yearsOfExperience} years
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "hireDate",
-    header: "Hire Date",
-    cell: ({ row }) => {
-      const teacher = row.original
-      if (!teacher.hireDate) return <span className="text-gray-400">-</span>
-      
-      return (
-        <div className="text-sm text-gray-600">
-          {format(new Date(teacher.hireDate), 'MMM yyyy')}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary",
-    header: "Salary",
-    cell: ({ row }) => {
-      const teacher = row.original
-      if (!teacher.salary) return <span className="text-gray-400">-</span>
-      
-      return (
-        <div className="flex items-center gap-1 text-sm">
-          <DollarSign className="h-3 w-3 text-green-600" />
-          {teacher.salary.toLocaleString()}
+        <div className="text-sm">
+          {row.getValue("subject")}
         </div>
       )
     },
@@ -134,23 +97,11 @@ export const columns: ColumnDef<Teacher>[] = [
     accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
-      const teacher = row.original
+      const isActive = row.getValue("isActive")
       return (
-        <Badge variant={teacher.isActive ? "default" : "secondary"}>
-          {teacher.isActive ? "Active" : "Inactive"}
+        <Badge variant={isActive ? "default" : "secondary"}>
+          {isActive ? "Active" : "Inactive"}
         </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created",
-    cell: ({ row }) => {
-      const teacher = row.original
-      return (
-        <div className="text-sm text-gray-500">
-          {format(new Date(teacher.createdAt), 'MMM dd, yyyy')}
-        </div>
       )
     },
   },

@@ -57,14 +57,19 @@ export const columns: ColumnDef<Doctor>[] = [
     cell: ({ row }) => {
       const doctor = row.original
       return (
-        <div className="flex flex-col">
-          <div className="font-medium">
-            {doctor.firstName} {doctor.lastName}
-          </div>
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            {doctor.email}
-          </div>
+        <div className="font-medium">
+          {doctor.firstName} {doctor.lastName}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm">
+          {row.getValue("email")}
         </div>
       )
     },
@@ -73,88 +78,34 @@ export const columns: ColumnDef<Doctor>[] = [
     accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
-      const doctor = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="outline" className="w-fit">
-            <Building className="h-3 w-3 mr-1" />
-            {doctor.department}
-          </Badge>
-          <div className="text-sm text-gray-600">
-            {doctor.specialization}
-          </div>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "licenseNumber",
-    header: "License",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="secondary">
-            <Shield className="h-3 w-3 mr-1" />
-            {doctor.licenseNumber}
-          </Badge>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "yearsOfExperience",
-    header: "Experience",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {doctor.yearsOfExperience && (
-            <div className="text-sm flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {doctor.yearsOfExperience} years
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary",
-    header: "Salary",
-    cell: ({ row }) => {
-      const doctor = row.original
-      if (!doctor.salary) return <span className="text-gray-400">-</span>
-      
-      return (
-        <div className="flex items-center gap-1 text-sm">
-          <DollarSign className="h-3 w-3 text-green-600" />
-          {doctor.salary.toLocaleString()}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "isActive",
-    header: "Status",
-    cell: ({ row }) => {
-      const doctor = row.original
-      return (
-        <Badge variant={doctor.isActive ? "default" : "secondary"}>
-          {doctor.isActive ? "Active" : "Inactive"}
+        <Badge variant="outline" className="w-fit">
+          {row.getValue("department")}
         </Badge>
       )
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Created",
+    accessorKey: "specialization",
+    header: "Specialization",
     cell: ({ row }) => {
-      const doctor = row.original
       return (
-        <div className="text-sm text-gray-500">
-          {format(new Date(doctor.createdAt), 'MMM dd, yyyy')}
+        <div className="text-sm">
+          {row.getValue("specialization")}
         </div>
+      )
+    },
+  },
+
+  {
+    accessorKey: "isActive",
+    header: "Status",
+    cell: ({ row }) => {
+      const isActive = row.getValue("isActive")
+      return (
+        <Badge variant={isActive ? "default" : "secondary"}>
+          {isActive ? "Active" : "Inactive"}
+        </Badge>
       )
     },
   },

@@ -6,21 +6,8 @@ import { Button } from "@/components/ui/button"
 import { 
   Edit, 
   Trash2, 
-  Eye,
-  Mail,
-  Phone,
-  MapPin,
-  Building,
-  Zap,
-  Star,
-  Clock,
-  DollarSign,
-  Cpu,
-  Rocket,
-  Wrench
+  Eye
 } from "lucide-react"
-
-import { format } from "date-fns"
 
 export interface Engineer {
   id: string
@@ -57,14 +44,19 @@ export const columns: ColumnDef<Engineer>[] = [
     cell: ({ row }) => {
       const engineer = row.original
       return (
-        <div className="flex flex-col">
-          <div className="font-medium">
-            {engineer.firstName} {engineer.lastName}
-          </div>
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            {engineer.email}
-          </div>
+        <div className="font-medium">
+          {engineer.firstName} {engineer.lastName}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm">
+          {row.getValue("email")}
         </div>
       )
     },
@@ -73,63 +65,20 @@ export const columns: ColumnDef<Engineer>[] = [
     accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
-      const engineer = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="outline" className="w-fit">
-            <Building className="h-3 w-3 mr-1" />
-            {engineer.department}
-          </Badge>
-          <div className="text-sm text-gray-600">
-            {engineer.specialization}
-          </div>
-        </div>
+        <Badge variant="outline" className="w-fit">
+          {row.getValue("department")}
+        </Badge>
       )
     },
   },
   {
-    accessorKey: "engineeringType",
-    header: "Type",
+    accessorKey: "specialization",
+    header: "Specialization",
     cell: ({ row }) => {
-      const engineer = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="secondary">
-            <Wrench className="h-3 w-3 mr-1" />
-            {engineer.engineeringType}
-          </Badge>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "yearsOfExperience",
-    header: "Experience",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {engineer.yearsOfExperience && (
-            <div className="text-sm flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {engineer.yearsOfExperience} years
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary",
-    header: "Salary",
-    cell: ({ row }) => {
-      const engineer = row.original
-      if (!engineer.salary) return <span className="text-gray-400">-</span>
-      
-      return (
-        <div className="flex items-center gap-1 text-sm">
-          <DollarSign className="h-3 w-3 text-green-600" />
-          {engineer.salary.toLocaleString()}
+        <div className="text-sm">
+          {row.getValue("specialization")}
         </div>
       )
     },
@@ -138,23 +87,11 @@ export const columns: ColumnDef<Engineer>[] = [
     accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
-      const engineer = row.original
+      const isActive = row.getValue("isActive")
       return (
-        <Badge variant={engineer.isActive ? "default" : "secondary"}>
-          {engineer.isActive ? "Active" : "Inactive"}
+        <Badge variant={isActive ? "default" : "secondary"}>
+          {isActive ? "Active" : "Inactive"}
         </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created",
-    cell: ({ row }) => {
-      const engineer = row.original
-      return (
-        <div className="text-sm text-gray-500">
-          {format(new Date(engineer.createdAt), 'MMM dd, yyyy')}
-        </div>
       )
     },
   },

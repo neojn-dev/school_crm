@@ -6,20 +6,8 @@ import { Button } from "@/components/ui/button"
 import { 
   Edit, 
   Trash2, 
-  Eye,
-  Mail,
-  Phone,
-  Building,
-  Scale,
-  Star,
-  Clock,
-  DollarSign,
-  Gavel,
-  Award,
-  Shield
+  Eye
 } from "lucide-react"
-import { format } from "date-fns"
-
 
 export interface Lawyer {
   id: string
@@ -56,14 +44,19 @@ export const columns: ColumnDef<Lawyer>[] = [
     cell: ({ row }) => {
       const lawyer = row.original
       return (
-        <div className="flex flex-col">
-          <div className="font-medium">
-            {lawyer.firstName} {lawyer.lastName}
-          </div>
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Mail className="h-3 w-3" />
-            {lawyer.email}
-          </div>
+        <div className="font-medium">
+          {lawyer.firstName} {lawyer.lastName}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      return (
+        <div className="text-sm">
+          {row.getValue("email")}
         </div>
       )
     },
@@ -72,63 +65,20 @@ export const columns: ColumnDef<Lawyer>[] = [
     accessorKey: "department",
     header: "Department",
     cell: ({ row }) => {
-      const lawyer = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="outline" className="w-fit">
-            <Building className="h-3 w-3 mr-1" />
-            {lawyer.department}
-          </Badge>
-          <div className="text-sm text-gray-600">
-            {lawyer.practiceArea}
-          </div>
-        </div>
+        <Badge variant="outline" className="w-fit">
+          {row.getValue("department")}
+        </Badge>
       )
     },
   },
   {
-    accessorKey: "barNumber",
-    header: "Bar Number",
+    accessorKey: "practiceArea",
+    header: "Practice Area",
     cell: ({ row }) => {
-      const lawyer = row.original
       return (
-        <div className="flex flex-col gap-1">
-          <Badge variant="secondary">
-            <Shield className="h-3 w-3 mr-1" />
-            {lawyer.barNumber}
-          </Badge>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "yearsOfExperience",
-    header: "Experience",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="flex flex-col gap-1">
-          {lawyer.yearsOfExperience && (
-            <div className="text-sm flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {lawyer.yearsOfExperience} years
-            </div>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "salary",
-    header: "Salary",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      if (!lawyer.salary) return <span className="text-gray-400">-</span>
-      
-      return (
-        <div className="flex items-center gap-1 text-sm">
-          <DollarSign className="h-3 w-3 text-green-600" />
-          {lawyer.salary.toLocaleString()}
+        <div className="text-sm">
+          {row.getValue("practiceArea")}
         </div>
       )
     },
@@ -137,23 +87,11 @@ export const columns: ColumnDef<Lawyer>[] = [
     accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => {
-      const lawyer = row.original
+      const isActive = row.getValue("isActive")
       return (
-        <Badge variant={lawyer.isActive ? "default" : "secondary"}>
-          {lawyer.isActive ? "Active" : "Inactive"}
+        <Badge variant={isActive ? "default" : "secondary"}>
+          {isActive ? "Active" : "Inactive"}
         </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Created",
-    cell: ({ row }) => {
-      const lawyer = row.original
-      return (
-        <div className="text-sm text-gray-500">
-          {format(new Date(lawyer.createdAt), 'MMM dd, yyyy')}
-        </div>
       )
     },
   },
@@ -162,14 +100,14 @@ export const columns: ColumnDef<Lawyer>[] = [
     header: "Actions",
     cell: ({ row, table }) => {
       const lawyer = row.original
-      const { onEdit, onDelete } = table.options.meta as { onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
+      const { onView, onEdit, onDelete } = table.options.meta as { onView?: (id: string) => void; onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
       
       return (
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700 text-blue-600 rounded-full transition-colors duration-200"
             title="View Details"
             onClick={() => {
               if (onView) {
@@ -182,7 +120,7 @@ export const columns: ColumnDef<Lawyer>[] = [
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 text-green-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 text-green-600 rounded-full transition-colors duration-200"
             title="Edit Lawyer"
             onClick={() => {
               if (onEdit) {
@@ -195,7 +133,7 @@ export const columns: ColumnDef<Lawyer>[] = [
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full"
+            className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 text-red-600 rounded-full transition-colors duration-200"
             title="Delete Lawyer"
             onClick={() => {
               if (onDelete) {
