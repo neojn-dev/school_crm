@@ -24,7 +24,7 @@ export async function GET(
     const masterData = await prisma.masterData.findFirst({
       where: {
         id,
-        userId: userId,
+
       }
     })
 
@@ -73,7 +73,7 @@ export async function PUT(
     const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id,
-        userId: userId,
+
       }
     })
 
@@ -140,7 +140,7 @@ export async function DELETE(
     const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id,
-        userId: userId,
+
       }
     })
 

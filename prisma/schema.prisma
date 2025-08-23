@@ -50,13 +50,8 @@ model User {
   accounts Account[]
   sessions Session[]
   uploads  Upload[]
-  teachers Teacher[]
-  doctors  Doctor[]
-  engineers Engineer[]
-  lawyers  Lawyer[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
-  masterData MasterData[]
 }
 
 model VerificationToken {
@@ -109,15 +104,13 @@ model Teacher {
   hireDate        DateTime?
   isActive        Boolean  @default(true)
   
-  // Relations
-  userId          String
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No user relations - global data
   
   // Indexes for 5M+ records performance
-  @@index([userId, isActive])
+  @@index([isActive])
   @@index([createdAt])
   @@index([department])
-  @@index([userId, department, isActive])
+  @@index([department, isActive])
   @@index([firstName, lastName])
   @@index([email])
 }
@@ -139,16 +132,14 @@ model Doctor {
   salary          Decimal? @db.Decimal(10, 2)
   isActive        Boolean  @default(true)
   
-  // Relations
-  userId          String
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No user relations - global data
   
   // Indexes for 5M+ records performance
-  @@index([userId, isActive])
+  @@index([isActive])
   @@index([createdAt])
   @@index([department])
   @@index([specialization])
-  @@index([userId, department, isActive])
+  @@index([department, isActive])
   @@index([firstName, lastName])
   @@index([email])
 }
@@ -170,17 +161,15 @@ model Engineer {
   salary          Decimal? @db.Decimal(10, 2)
   isActive        Boolean  @default(true)
   
-  // Relations
-  userId            String
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No user relations - global data
   
   // Indexes for 5M+ records performance
-  @@index([userId, isActive])
+  @@index([isActive])
   @@index([createdAt])
   @@index([department])
   @@index([specialization])
   @@index([engineeringType])
-  @@index([userId, department, isActive])
+  @@index([department, isActive])
   @@index([firstName, lastName])
   @@index([email])
 }
@@ -202,16 +191,14 @@ model Lawyer {
   salary          Decimal? @db.Decimal(10, 2)
   isActive        Boolean  @default(true)
   
-  // Relations
-  userId          String
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No user relations - global data
   
   // Indexes for 5M+ records performance
-  @@index([userId, isActive])
+  @@index([isActive])
   @@index([createdAt])
   @@index([department])
   @@index([practiceArea])
-  @@index([userId, department, isActive])
+  @@index([department, isActive])
   @@index([firstName, lastName])
   @@index([email])
 }
@@ -270,9 +257,7 @@ model MasterData {
   // Field Configuration
   fieldType       String   @db.VarChar(50)  // input, select, textarea, etc.
   
-  // Relations
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No user relations - global data
   
   @@index([category, isActive])
   @@index([sortOrder])

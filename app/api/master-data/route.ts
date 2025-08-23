@@ -26,10 +26,8 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Build where clause for user's master data
-    const where: any = {
-      userId: userId,
-    }
+    // Build where clause for all master data (global data)
+    const where: any = {}
 
     if (search) {
       where.OR = [
@@ -115,7 +113,6 @@ export async function POST(request: NextRequest) {
     // Convert array fields to JSON strings for database storage
     const dataForDb = {
       ...validatedData,
-      userId: userId,
       // Convert arrays to JSON strings
       multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : null,
       checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : null,
@@ -165,7 +162,6 @@ export async function PUT(request: NextRequest) {
     const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id: validatedData.id,
-        userId: userId,
       }
     })
 
@@ -236,7 +232,6 @@ export async function DELETE(request: NextRequest) {
     const existingMasterData = await prisma.masterData.findFirst({
       where: {
         id,
-        userId: userId,
       }
     })
 

@@ -59,7 +59,7 @@ export default function LawyersPage() {
   // Pagination state
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 50,
+    pageSize: 10,
     total: 0,
     pages: 0
   })

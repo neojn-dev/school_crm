@@ -52,13 +52,17 @@ export function SigninForm() {
       const result = await signIn("credentials", {
         username: data.username,
         password: data.password,
+        rememberMe: data.rememberMe,
         redirect: false,
       })
 
       if (result?.error) {
         toast.error("Invalid credentials or account not verified")
       } else {
-        toast.success("Signed in successfully")
+        const successMessage = data.rememberMe 
+          ? "Signed in successfully (Remember me enabled - 30 days)" 
+          : "Signed in successfully (Session expires when browser closes)"
+        toast.success(successMessage)
         router.push(callbackUrl)
         router.refresh()
       }
@@ -133,9 +137,13 @@ export function SigninForm() {
                   <Label
                     htmlFor="rememberMe"
                     className="text-sm font-normal cursor-pointer"
+                    title={rememberMe ? "Keep me signed in for 30 days" : "Sign me out when browser closes"}
                   >
                     Remember me
                   </Label>
+                  <span className="text-xs text-gray-500 ml-1">
+                    {rememberMe ? "(30 days)" : "(session only)"}
+                  </span>
                 </div>
                 <Link
                   href="/auth/forgot-password"

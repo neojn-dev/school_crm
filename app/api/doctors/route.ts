@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Parse query parameters for pagination and filtering
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100) // Cap at 100 for performance
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Cap at 100 for performance
     const search = searchParams.get('search') || ''
     const department = searchParams.get('department') || ''
     const specialization = searchParams.get('specialization') || ''
@@ -34,10 +34,8 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Build where clause for user's doctors with filters
-    const where: any = {
-      userId: userId,
-    }
+    // Build where clause for all doctors with filters (no user restriction)
+    const where: any = {}
 
     if (search) {
       where.OR = [
@@ -270,7 +268,7 @@ export async function POST(request: NextRequest) {
         yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : null,
         salary: salary ? parseFloat(salary) : null,
         isActive: isActive !== undefined ? isActive : true,
-        userId: userId
+
       }
     })
 

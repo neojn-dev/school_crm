@@ -12,7 +12,8 @@ export const authOptions: NextAuthOptions = {
       name: "credentials",
       credentials: {
         identifier: { label: "Username or Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) {
@@ -47,6 +48,7 @@ export const authOptions: NextAuthOptions = {
           username: user.username,
           email: user.email,
           role: user.role,
+          rememberMe: credentials.rememberMe === "true",
         }
       }
     })
@@ -60,12 +62,22 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       try {
         if (user) {
           token.id = user.id
           token.role = user.role
           token.username = user.username
+          token.rememberMe = user.rememberMe
+          
+          // Set token expiration based on rememberMe preference
+          if (user.rememberMe) {
+            // Remember me: 30 days
+            token.exp = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60)
+          } else {
+            // Session only: 8 hours (browser session)
+            token.exp = Math.floor(Date.now() / 1000) + (8 * 60 * 60)
+          }
         }
         return token
       } catch (error) {
@@ -79,6 +91,7 @@ export const authOptions: NextAuthOptions = {
           session.user.id = token.id as string
           session.user.role = token.role as string
           session.user.username = token.username as string
+          session.rememberMe = token.rememberMe as boolean
         }
         return session
       } catch (error) {
@@ -118,7 +131,8 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        // Dynamic maxAge will be set based on rememberMe preference
+        // Default to session cookie (no maxAge) - will be overridden by JWT exp
       },
     },
     callbackUrl: {

@@ -55,10 +55,9 @@ async function main() {
 
   console.log(`✅ Created ${users.length} test users`)
 
-  // Create sample Teachers
+  // Create sample Teachers (all assigned to admin user for testing)
   const teachers = []
   for (let i = 0; i < 100; i++) {
-    const user = faker.helpers.arrayElement(users)
     const teacher = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -70,7 +69,7 @@ async function main() {
       salary: faker.number.float({ min: 30000, max: 80000, multipleOf: 1000 }),
       hireDate: faker.date.past({ years: 10 }),
       isActive: faker.datatype.boolean(),
-      userId: user.id,
+// No user assignment - global data
     }
     teachers.push(teacher)
   }
@@ -80,10 +79,9 @@ async function main() {
   })
   console.log(`✅ Created ${createdTeachers.count} Teacher records`)
 
-  // Create sample Doctors
+  // Create sample Doctors (all assigned to admin user for testing)
   const doctors = []
   for (let i = 0; i < 100; i++) {
-    const user = faker.helpers.arrayElement(users)
     const doctor = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -95,7 +93,7 @@ async function main() {
       yearsOfExperience: faker.number.int({ min: 2, max: 30 }),
       salary: faker.number.float({ min: 80000, max: 300000, multipleOf: 1000 }),
       isActive: faker.datatype.boolean(),
-      userId: user.id,
+// No user assignment - global data
     }
     doctors.push(doctor)
   }
@@ -105,10 +103,9 @@ async function main() {
   })
   console.log(`✅ Created ${createdDoctors.count} Doctor records`)
 
-  // Create sample Engineers
+  // Create sample Engineers (all assigned to admin user for testing)
   const engineers = []
   for (let i = 0; i < 100; i++) {
-    const user = faker.helpers.arrayElement(users)
     const engineer = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -120,7 +117,7 @@ async function main() {
       yearsOfExperience: faker.number.int({ min: 1, max: 20 }),
       salary: faker.number.float({ min: 60000, max: 150000, multipleOf: 1000 }),
       isActive: faker.datatype.boolean(),
-      userId: user.id,
+// No user assignment - global data
     }
     engineers.push(engineer)
   }
@@ -130,10 +127,9 @@ async function main() {
   })
   console.log(`✅ Created ${createdEngineers.count} Engineer records`)
 
-  // Create sample Lawyers
+  // Create sample Lawyers (all assigned to admin user for testing)
   const lawyers = []
   for (let i = 0; i < 100; i++) {
-    const user = faker.helpers.arrayElement(users)
     const lawyer = {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -145,7 +141,7 @@ async function main() {
       yearsOfExperience: faker.number.int({ min: 3, max: 25 }),
       salary: faker.number.float({ min: 70000, max: 200000, multipleOf: 1000 }),
       isActive: faker.datatype.boolean(),
-      userId: user.id,
+// No user assignment - global data
     }
     lawyers.push(lawyer)
   }
@@ -358,7 +354,6 @@ async function main() {
   ]
 
   for (let i = 0; i < 100; i++) {
-    const user = faker.helpers.arrayElement(users)
     const template = fieldTemplates[i] || fieldTemplates[i % fieldTemplates.length]
     
     const masterData = {
@@ -406,7 +401,7 @@ async function main() {
       ratingField: template.ratingField || faker.number.float({ min: 1, max: 5, multipleOf: 0.5 }),
       tagsField: template.tagsField || JSON.stringify(faker.helpers.arrayElements(['tag1', 'tag2', 'tag3', 'tag4'], { min: 1, max: 3 })),
       
-      userId: user.id,
+// No user assignment - global data
     }
     masterDataEntries.push(masterData)
   }

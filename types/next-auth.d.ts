@@ -8,11 +8,13 @@ declare module "next-auth" {
       username: string
       role: string
     } & DefaultSession["user"]
+    rememberMe?: boolean
   }
 
   interface User extends DefaultUser {
     username: string
     role: string
+    rememberMe?: boolean
   }
 }
 
@@ -21,5 +23,6 @@ declare module "next-auth/jwt" {
     id: string
     username: string
     role: string
+    rememberMe?: boolean
   }
 }
