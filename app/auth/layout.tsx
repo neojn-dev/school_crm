@@ -13,7 +13,7 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
       <WebsiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 pt-20 lg:pt-24 pb-8">
         {children}
       </main>
       <WebsiteFooter />

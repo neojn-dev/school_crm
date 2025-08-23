@@ -9,13 +9,12 @@ const signupSchema = z.object({
   username: z.string().min(3).max(20),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(["ROLE1", "ROLE2", "ROLE3"]),
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, email, password, role } = signupSchema.parse(body)
+    const { username, email, password } = signupSchema.parse(body)
 
     // Check if user already exists
     const existingUser = await db.user.findFirst({
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
         username,
         email,
         passwordHash,
-        role,
+        role: "user", // Default role for all new users
       },
     })
 

@@ -42,7 +42,7 @@ model User {
   username      String    @unique
   email         String    @unique
   passwordHash  String
-  role          String    @default("ROLE1")
+  role          String    @default("user")
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

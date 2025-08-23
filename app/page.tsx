@@ -142,7 +142,7 @@ export default function HomePage() {
       <WebsiteHeader />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden section-padding">
+      <section className="relative overflow-hidden section-padding pt-20 lg:pt-24">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
         <div className="container-custom relative z-10">
           <motion.div

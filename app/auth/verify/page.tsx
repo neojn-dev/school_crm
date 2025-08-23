@@ -119,7 +119,7 @@ function VerifyPageContent() {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+      <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
           <div className="container-custom text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -143,7 +143,7 @@ function VerifyPageContent() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+      <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -257,7 +257,7 @@ function VerifyPageContent() {
 
   if (isVerified) {
     return (
-      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+      <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -364,7 +364,7 @@ function VerifyPageContent() {
 export default function VerifyPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+      <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
               <div className="w-8 h-8 bg-white rounded-lg"></div>

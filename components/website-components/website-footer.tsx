@@ -4,8 +4,7 @@ import Link from "next/link"
 import { 
   Twitter, 
   Linkedin, 
-  Github,
-  Heart
+  Github
 } from "lucide-react"
 
 const quickLinks = [
@@ -79,33 +78,6 @@ export function WebsiteFooter() {
                 className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
                 Sign Up Free
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Footer */}
-        <div className="py-6 border-t border-gray-800">
-          <div className="flex flex-col sm:flex-row items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <span>© 2024 NextJS Template. All rights reserved.</span>
-              <span className="hidden sm:inline">•</span>
-              <span className="hidden sm:inline-flex items-center gap-1">
-                Made with <Heart className="h-4 w-4 text-red-500" />
-              </span>
-            </div>
-            <div className="mt-4 sm:mt-0">
-              <Link 
-                href="/legal/privacy" 
-                className="text-gray-400 hover:text-white text-sm mr-4 transition-colors"
-              >
-                Privacy
-              </Link>
-              <Link 
-                href="/legal/terms" 
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-              >
-                Terms
               </Link>
             </div>
           </div>

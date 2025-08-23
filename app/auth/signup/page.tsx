@@ -25,16 +25,22 @@ import {
   Heart,
   CheckCircle,
   Star,
-  AlertCircle
+  AlertCircle,
+  Check,
+  X
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must be less than 20 characters"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
   confirmPassword: z.string(),
-  role: z.enum(["ROLE1", "ROLE2", "ROLE3"]),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and conditions"),
   marketingEmails: z.boolean().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -106,7 +112,6 @@ export default function SignUpPage() {
     resolver: zodResolver(signupSchema),
     mode: "onChange",
     defaultValues: {
-      role: "ROLE1",
       agreeToTerms: false,
       marketingEmails: false
     }
@@ -115,7 +120,7 @@ export default function SignUpPage() {
   const watchedFields = watch()
 
   // Check if all required fields for step 2 are valid
-  const isStep2Valid = watchedFields.role && watchedFields.agreeToTerms
+  const isStep2Valid = watchedFields.agreeToTerms
 
   const onSubmit = async (data: SignupForm) => {
     setIsLoading(true)
@@ -132,7 +137,6 @@ export default function SignUpPage() {
           username: data.username,
           email: data.email,
           password: data.password,
-          role: data.role,
         }),
       })
 
@@ -176,23 +180,19 @@ export default function SignUpPage() {
     setCurrentStep(1)
   }
 
-  const handleRoleChange = (roleValue: string) => {
-    setValue("role", roleValue as "ROLE1" | "ROLE2" | "ROLE3")
-    // Trigger validation after role change
-    trigger("role")
-  }
+
 
   return (
-    <div className="flex items-center justify-center p-4 py-12">
+    <div className="flex items-center justify-center p-4 py-6">
         <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
             
-            {/* Left Side - Form */}
+            {/* Right Side - Form */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-2 lg:order-1"
+              className="order-2 lg:order-2"
             >
               <div className="max-w-md mx-auto lg:mx-0">
                 {/* Header */}
@@ -200,23 +200,11 @@ export default function SignUpPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-center lg:text-left mb-8"
+                  className="text-center lg:text-left mb-4"
                 >
-                  <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-                        <Sparkles className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="absolute -inset-1 bg-gradient-primary rounded-2xl opacity-20 blur"></div>
-                    </div>
-                    <span className="font-bold text-2xl text-gray-900">Join Us</span>
-                  </div>
-                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-                    Create your account
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                    Sign Up
                   </h1>
-                  <p className="text-gray-600 text-lg">
-                    Start your journey with us today
-                  </p>
                 </motion.div>
 
                 {/* Error Message */}
@@ -224,7 +212,7 @@ export default function SignUpPage() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
+                    className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
                   >
                     <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                     <p className="text-red-700 text-sm">{error}</p>
@@ -236,7 +224,7 @@ export default function SignUpPage() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3"
+                    className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3"
                   >
                     <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                     <p className="text-green-700 text-sm">{success}</p>
@@ -248,7 +236,7 @@ export default function SignUpPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="flex items-center gap-2 mb-8"
+                  className="flex items-center gap-2 mb-6"
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                     currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
@@ -271,7 +259,7 @@ export default function SignUpPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
                   onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-6"
+                  className="space-y-4"
                 >
                   <AnimatePresence mode="wait">
                     {currentStep === 1 ? (
@@ -281,10 +269,10 @@ export default function SignUpPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-6"
+                        className="space-y-4"
                       >
                         {/* Username Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Label htmlFor="username" className="text-sm font-semibold text-gray-700">
                             Username
                           </Label>
@@ -310,7 +298,7 @@ export default function SignUpPage() {
                         </div>
 
                         {/* Email Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
                             Email Address
                           </Label>
@@ -337,7 +325,7 @@ export default function SignUpPage() {
                         </div>
 
                         {/* Password Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
                             Password
                           </Label>
@@ -368,10 +356,73 @@ export default function SignUpPage() {
                               {errors.password.message}
                             </motion.p>
                           )}
+                          
+                          {/* Password Requirements */}
+                          {watchedFields.password && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                            >
+                              <p className="text-xs font-semibold text-gray-700 mb-2">Password Requirements:</p>
+                              <div className="grid grid-cols-2 gap-1 text-xs">
+                                <div className={`flex items-center gap-1.5 ${
+                                  watchedFields.password.length >= 8 ? 'text-green-600' : 'text-gray-500'
+                                }`}>
+                                  {watchedFields.password.length >= 8 ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  <span>At least 8 characters</span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 ${
+                                  /[a-z]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
+                                }`}>
+                                  {/[a-z]/.test(watchedFields.password) ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  <span>One lowercase letter</span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 ${
+                                  /[A-Z]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
+                                }`}>
+                                  {/[A-Z]/.test(watchedFields.password) ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  <span>One uppercase letter</span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 ${
+                                  /\d/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
+                                }`}>
+                                  {/\d/.test(watchedFields.password) ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  <span>One number</span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 ${
+                                  /[^a-zA-Z0-9]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
+                                }`}>
+                                  {/[^a-zA-Z0-9]/.test(watchedFields.password) ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <X className="h-3 w-3" />
+                                  )}
+                                  <span>One special character</span>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
 
                         {/* Confirm Password Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
                             Confirm Password
                           </Label>
@@ -421,54 +472,10 @@ export default function SignUpPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-6"
+                        className="space-y-4"
                       >
-                        {/* Role Selection */}
-                        <div className="space-y-3">
-                          <Label className="text-sm font-semibold text-gray-700">
-                            Choose Your Role
-                          </Label>
-                          <div className="grid grid-cols-1 gap-3">
-                            {[
-                              { value: "ROLE1", label: "Developer", description: "Full access to development tools" },
-                              { value: "ROLE2", label: "Designer", description: "Access to design and prototyping tools" },
-                              { value: "ROLE3", label: "Manager", description: "Team management and analytics" }
-                            ].map((role) => (
-                              <label
-                                key={role.value}
-                                className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                                  watchedFields.role === role.value
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
-                                <input
-                                  type="radio"
-                                  value={role.value}
-                                  checked={watchedFields.role === role.value}
-                                  onChange={() => handleRoleChange(role.value)}
-                                  className="sr-only"
-                                />
-                                <div className="flex-1">
-                                  <div className="font-semibold text-gray-900">{role.label}</div>
-                                  <div className="text-sm text-gray-600">{role.description}</div>
-                                </div>
-                                <div className={`w-5 h-5 rounded-full border-2 ${
-                                  watchedFields.role === role.value
-                                    ? 'border-blue-500 bg-blue-500'
-                                    : 'border-gray-300'
-                                }`}>
-                                  {watchedFields.role === role.value && (
-                                    <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                                  )}
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-
                         {/* Terms and Marketing */}
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <div className="flex items-start space-x-3">
                             <Checkbox
                               id="agreeToTerms"
@@ -624,96 +631,10 @@ export default function SignUpPage() {
               </div>
             </motion.div>
 
-            {/* Right Side - Benefits & Visual */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-1 lg:order-2"
-            >
-              <div className="relative">
-                {/* Background Elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-blue-600/10 rounded-3xl"></div>
-                
-                {/* Content */}
-                <div className="relative p-8 lg:p-12">
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-8"
-                  >
-                    {/* Main Visual */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="text-center mb-12"
-                    >
-                      <div className="w-32 h-32 bg-gradient-to-r from-green-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                        <Star className="h-16 w-16 text-white" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                        Join the Future
-                      </h2>
-                      <p className="text-gray-600 text-lg">
-                        Be part of something amazing
-                      </p>
-                    </motion.div>
-
-                    {/* Benefits List */}
-                    {benefits.map((benefit, index) => (
-                      <motion.div
-                        key={index}
-                        variants={itemVariants}
-                        className="flex items-start gap-4 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <benefit.icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-1">
-                            {benefit.title}
-                          </h3>
-                          <p className="text-gray-600 text-sm">
-                            {benefit.description}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-
-                    {/* Stats */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="grid grid-cols-3 gap-4 pt-6"
-                    >
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">Free</div>
-                        <div className="text-xs text-gray-500">Forever</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">Unlimited</div>
-                        <div className="text-xs text-gray-500">Projects</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">24/7</div>
-                        <div className="text-xs text-gray-500">Support</div>
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                </div>
-
-                {/* Floating Elements */}
-                <motion.div
-                  animate={{ y: [-10, 10, -10] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-4 -right-4 w-8 h-8 bg-green-400 rounded-full opacity-60"
-                />
-                <motion.div
-                  animate={{ y: [10, -10, 10] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-4 -left-4 w-6 h-6 bg-blue-400 rounded-full opacity-60"
-                />
-              </div>
-            </motion.div>
+            {/* Left Side - Gradient Background */}
+            <div className="order-1 lg:order-1 hidden lg:block">
+              <div className="h-full min-h-[600px] bg-gradient-to-b from-green-500 via-emerald-600 to-blue-600 rounded-2xl"></div>
+            </div>
           </div>
         </div>
     </div>

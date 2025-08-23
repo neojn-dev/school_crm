@@ -29,7 +29,7 @@ async function main() {
         username: 'admin',
         email: 'admin@example.com',
         passwordHash,
-        role: 'ROLE1',
+        role: 'admin', // Special admin role
         emailVerified: new Date(),
       },
     }),
@@ -38,7 +38,7 @@ async function main() {
         username: 'manager',
         email: 'manager@example.com',
         passwordHash,
-        role: 'ROLE2',
+        role: 'user', // Default user role
         emailVerified: new Date(),
       },
     }),
@@ -47,7 +47,7 @@ async function main() {
         username: 'analyst',
         email: 'analyst@example.com',
         passwordHash,
-        role: 'ROLE3',
+        role: 'user', // Default user role
         emailVerified: new Date(),
       },
     }),
@@ -488,9 +488,9 @@ async function main() {
 
   console.log('🎉 Database seeded successfully!')
   console.log('\n📋 Test accounts:')
-  console.log('  Admin: admin / password123 (ROLE1)')
-  console.log('  Manager: manager / password123 (ROLE2)')
-  console.log('  Analyst: analyst / password123 (ROLE3)')
+  console.log('  Admin: admin / password123 (admin role)')
+  console.log('  Manager: manager / password123 (user role)')
+  console.log('  Analyst: analyst / password123 (user role)')
 }
 
 main()

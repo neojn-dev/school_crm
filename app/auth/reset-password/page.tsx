@@ -161,7 +161,7 @@ function ResetPasswordPageContent() {
 
   if (isSubmitted) {
     return (
-      <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+      <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
           <div className="container-custom">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -262,16 +262,16 @@ function ResetPasswordPageContent() {
   }
 
   return (
-    <div className="flex items-center justify-center p-4 py-12"><div className="w-full">
+    <div className="flex items-center justify-center p-4 py-6"><div className="w-full">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             
-            {/* Left Side - Form */}
+            {/* Right Side - Form */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-2 lg:order-1"
+              className="order-2 lg:order-2"
             >
               <div className="max-w-md mx-auto lg:mx-0">
                 {/* Header */}
@@ -281,21 +281,9 @@ function ResetPasswordPageContent() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="text-center lg:text-left mb-8"
                 >
-                  <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-                        <Sparkles className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="absolute -inset-1 bg-gradient-primary rounded-2xl opacity-20 blur"></div>
-                    </div>
-                    <span className="font-bold text-2xl text-gray-900">New Password</span>
-                  </div>
-                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-                    Create a new password
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                    New Password
                   </h1>
-                  <p className="text-gray-600 text-lg">
-                    Choose a strong password to secure your account
-                  </p>
                 </motion.div>
 
                 {/* Token Validation */}
@@ -493,129 +481,13 @@ function ResetPasswordPageContent() {
                     </Link>
                   </motion.div>
                 </motion.form>
-
-                {/* Security Tips */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                  className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200"
-                >
-                  <h3 className="font-semibold text-blue-900 mb-2">🔒 Password Security Tips</h3>
-                  <ul className="text-blue-800 text-sm space-y-1">
-                    <li>• Use a unique password for each account</li>
-                    <li>• Consider using a password manager</li>
-                    <li>• Enable two-factor authentication</li>
-                    <li>• Never share your password with anyone</li>
-                  </ul>
-                </motion.div>
               </div>
             </motion.div>
 
-            {/* Right Side - Features & Visual */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="order-1 lg:order-2"
-            >
-              <div className="relative">
-                {/* Background Elements */}
-                <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-blue-600/10 rounded-3xl"></div>
-                
-                {/* Content */}
-                <div className="relative p-8 lg:p-12">
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-8"
-                  >
-                    {/* Main Visual */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="text-center mb-12"
-                    >
-                      <div className="w-32 h-32 bg-gradient-to-r from-green-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                        <Key className="h-16 w-16 text-white" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                        Secure & Strong
-                      </h2>
-                      <p className="text-gray-600 text-lg">
-                        Your security is our priority
-                      </p>
-                    </motion.div>
-
-                    {/* Features List */}
-                    {features.map((feature, index) => (
-                      <motion.div
-                        key={index}
-                        variants={itemVariants}
-                        className="flex items-start gap-4 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <feature.icon className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-1">
-                            {feature.title}
-                          </h3>
-                          <p className="text-gray-600 text-sm">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-
-                    {/* Security Info */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200"
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <Shield className="h-5 w-5 text-blue-600" />
-                        <span className="font-semibold text-blue-800">Enterprise Security</span>
-                      </div>
-                      <p className="text-blue-700 text-sm">
-                        Your new password will be encrypted using industry-standard algorithms and stored securely.
-                      </p>
-                    </motion.div>
-
-                    {/* Stats */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="grid grid-cols-3 gap-4 pt-6"
-                    >
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">256-bit</div>
-                        <div className="text-xs text-gray-500">Encryption</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">Instant</div>
-                        <div className="text-xs text-gray-500">Activation</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">100%</div>
-                        <div className="text-xs text-gray-500">Secure</div>
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                </div>
-
-                {/* Floating Elements */}
-                <motion.div
-                  animate={{ y: [-10, 10, -10] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-4 -right-4 w-8 h-8 bg-green-400 rounded-full opacity-60"
-                />
-                <motion.div
-                  animate={{ y: [10, -10, 10] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-4 -left-4 w-6 h-6 bg-blue-400 rounded-full opacity-60"
-                />
-              </div>
-            </motion.div>
+            {/* Left Side - Gradient Background */}
+            <div className="order-1 lg:order-1 hidden lg:block">
+              <div className="h-full min-h-[500px] bg-gradient-to-b from-emerald-500 via-teal-600 to-blue-600 rounded-2xl"></div>
+            </div>
           </div>
         </div>
       </div></div>
