@@ -57,6 +57,7 @@ interface Teacher {
   performanceRating?: number
   studentSatisfaction?: number
   createdAt: string
+  updatedAt: string
   employeeId: string
   hireDate: string
 }
@@ -64,9 +65,24 @@ interface Teacher {
 export default function TeachersPage() {
   const { data: session, status } = useSession()
   const [teachers, setTeachers] = useState<Teacher[]>([])
-  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 50,
+    total: 0,
+    pages: 0
+  })
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [subjectFilter, setSubjectFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
   const [viewingTeacher, setViewingTeacher] = useState<Teacher | null>(null)
@@ -137,96 +153,70 @@ export default function TeachersPage() {
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
-  }, [status])
+  }, [status, pagination.pageIndex, pagination.pageSize, searchQuery, departmentFilter, subjectFilter, statusFilter, sortBy, sortOrder])
 
   const fetchTeachers = async () => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch('/api/teachers', {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString(),
+        sortBy,
+        sortOrder,
+      })
+      
+      if (searchQuery) params.set('search', searchQuery)
+      if (departmentFilter) params.set('department', departmentFilter)
+      if (subjectFilter) params.set('subject', subjectFilter)
+      if (statusFilter) params.set('isActive', statusFilter)
+      
+      const response = await fetch(`/api/teachers?${params.toString()}`, {
         credentials: 'include'
       })
       
       if (response.ok) {
-        const data = await response.json()
-        if (Array.isArray(data)) {
-          setTeachers(data)
-          setFilteredTeachers(data)
+        const result = await response.json()
+        
+        if (result.data && Array.isArray(result.data)) {
+          setTeachers(result.data)
+          setPagination(prev => ({
+            ...prev,
+            total: result.pagination.total,
+            pages: result.pagination.pages
+          }))
         } else {
-          console.error('❌ [ERROR] Teachers - API returned non-array data:', data)
           setError('Invalid data format received from API')
           setTeachers([])
-          setFilteredTeachers([])
         }
       } else {
         const errorText = await response.text()
-        console.error('❌ [ERROR] Teachers - API request failed:', response.status, errorText)
         setError(`API request failed: ${response.status} - ${errorText}`)
         setTeachers([])
-        setFilteredTeachers([])
       }
     } catch (error) {
-      console.error('❌ [ERROR] Teachers - Error fetching teachers:', error)
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setTeachers([])
-      setFilteredTeachers([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Apply filters to teachers data
-  const applyFilters = (filtersToApply: FilterValue[]) => {
-    if (filtersToApply.length === 0) {
-      setFilteredTeachers(teachers)
-      return
-    }
-
-    const filtered = teachers.filter(teacher => {
-      return filtersToApply.every(filter => {
-        const value = teacher[filter.field as keyof Teacher]
-        
-        switch (filter.operator) {
-          case 'contains':
-            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
-          case 'equals':
-            return String(value) === String(filter.value)
-          case 'startsWith':
-            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
-          case 'endsWith':
-            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
-          case 'greaterThan':
-            return Number(value) > Number(filter.value)
-          case 'lessThan':
-            return Number(value) < Number(filter.value)
-          case 'between':
-            const [min, max] = filter.value
-            return Number(value) >= Number(min) && Number(value) <= Number(max)
-          case 'after':
-            return new Date(String(value)) > new Date(String(filter.value))
-          case 'before':
-            return new Date(String(value)) < new Date(String(filter.value))
-          case 'notEquals':
-            return String(value) !== String(filter.value)
-          default:
-            return true
-        }
-      })
-    })
-    
-    setFilteredTeachers(filtered)
+  const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: newPagination.pageIndex,
+      pageSize: newPagination.pageSize
+    }))
   }
 
+  // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    applyFilters(newFilters)
+    // Server-side filtering will be triggered by useEffect
   }
-
-  // Re-apply filters when teachers data changes
-  useEffect(() => {
-    applyFilters(filters)
-  }, [teachers, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -483,18 +473,25 @@ export default function TeachersPage() {
                     onFiltersChange={handleFiltersChange}
                     className="flex-1"
                   />
-                  <ExportButton 
-                    data={filteredTeachers}
+                                    <ExportButton
+                    data={teachers}
                     filename="teachers-export"
                     className="shrink-0"
                   />
                 </div>
 
                 <DataTable
-                  data={filteredTeachers}
+                  data={teachers}
                   columns={columns}
                   isLoading={loading}
                   searchPlaceholder="Search teachers..."
+                  pagination={{
+                    pageIndex: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    pageCount: pagination.pages
+                  }}
+                  onPaginationChange={handlePaginationChange}
                   meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
                 />
               </>

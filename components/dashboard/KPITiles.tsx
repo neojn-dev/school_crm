@@ -28,6 +28,7 @@ interface KPITileProps {
   }
   color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'indigo'
   className?: string
+  style?: React.CSSProperties
 }
 
 interface KPITilesProps {
@@ -81,11 +82,11 @@ const colorVariants = {
   }
 }
 
-function KPITile({ title, value, subtitle, icon: Icon, trend, color, className }: KPITileProps) {
+function KPITile({ title, value, subtitle, icon: Icon, trend, color, className, style }: KPITileProps) {
   const colors = colorVariants[color]
   
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-200 hover:-translate-y-1", className)}>
+    <Card className={cn("hover:shadow-lg transition-all duration-200 hover:-translate-y-1", className)} style={style}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">

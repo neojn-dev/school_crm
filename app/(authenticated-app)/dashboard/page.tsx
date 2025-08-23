@@ -62,6 +62,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterType>({
     dateRange: '6months',
     department: null,
@@ -78,6 +79,7 @@ export default function DashboardPage() {
   const fetchDashboardData = async (currentFilters: FilterType) => {
     try {
       setLoading(true)
+      setError(null)
       const params = new URLSearchParams()
       
       if (currentFilters.dateRange) params.set('dateRange', currentFilters.dateRange)
@@ -85,16 +87,21 @@ export default function DashboardPage() {
       if (currentFilters.status) params.set('status', currentFilters.status)
       if (currentFilters.role) params.set('role', currentFilters.role)
 
-      const response = await fetch(`/api/dashboard/analytics?${params.toString()}`)
+      const response = await fetch(`/api/dashboard/analytics?${params.toString()}`, {
+        credentials: 'include'
+      })
       
       if (response.ok) {
         const dashboardData = await response.json()
         setData(dashboardData)
       } else {
-        console.error('Failed to fetch dashboard data')
+        const errorText = await response.text()
+        console.error('Failed to fetch dashboard data:', response.status, errorText)
+        setError(`Failed to fetch dashboard data: ${response.status} - ${errorText}`)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -121,6 +128,28 @@ export default function DashboardPage() {
 
   if (loading || !data) {
     return <DashboardSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Analytics Dashboard
+          </h1>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-2xl mx-auto">
+            <h3 className="text-red-800 font-semibold mb-2">Error Loading Dashboard</h3>
+            <p className="text-red-600">{error}</p>
+            <button 
+              onClick={() => fetchDashboardData(filters)}
+              className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Prepare chart data

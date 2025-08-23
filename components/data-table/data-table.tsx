@@ -108,10 +108,12 @@ export function DataTable<TData, TValue>({
     meta,
     initialState: {
       pagination: {
-        pageSize: 10,
-        pageIndex: 0,
+        pageSize: pagination?.pageSize || 10,
+        pageIndex: pagination?.pageIndex || 0,
       },
     },
+    manualPagination: !!pagination, // Enable server-side pagination when pagination prop is provided
+    pageCount: pagination ? Math.ceil(pagination.total / (pagination.pageSize || 10)) : -1,
     state: {
       sorting,
       columnFilters,
@@ -126,8 +128,14 @@ export function DataTable<TData, TValue>({
         pageSize: 10,
       },
     },
-    pageCount: pagination?.pageCount ?? -1,
-    manualPagination: !!pagination,
+    onPaginationChange: (updater) => {
+      if (onPaginationChange && pagination) {
+        const newPagination = typeof updater === 'function' 
+          ? updater({ pageIndex: pagination.pageIndex, pageSize: pagination.pageSize })
+          : updater
+        onPaginationChange(newPagination)
+      }
+    },
   })
   
 

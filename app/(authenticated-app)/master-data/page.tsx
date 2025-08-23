@@ -48,9 +48,24 @@ import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advan
 export default function MasterDataPage() {
   const { data: session, status } = useSession()
   const [masterData, setMasterData] = useState<MasterData[]>([])
-  const [filteredMasterData, setFilteredMasterData] = useState<MasterData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 50,
+    total: 0,
+    pages: 0
+  })
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [fieldTypeFilter, setFieldTypeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingMasterData, setEditingMasterData] = useState<MasterData | null>(null)
   const [viewingMasterData, setViewingMasterData] = useState<MasterData | null>(null)
@@ -152,91 +167,70 @@ export default function MasterDataPage() {
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
-  }, [status])
+  }, [status, pagination.pageIndex, pagination.pageSize, searchQuery, categoryFilter, fieldTypeFilter, statusFilter, sortBy, sortOrder])
 
   const fetchMasterData = async () => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch('/api/master-data', {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString(),
+        sortBy,
+        sortOrder,
+      })
+      
+      if (searchQuery) params.set('search', searchQuery)
+      if (categoryFilter) params.set('category', categoryFilter)
+      if (fieldTypeFilter) params.set('fieldType', fieldTypeFilter)
+      if (statusFilter) params.set('isActive', statusFilter)
+      
+      const response = await fetch(`/api/master-data?${params.toString()}`, {
         credentials: 'include'
       })
       
       if (response.ok) {
-        const responseData = await response.json()
-        const data: MasterData[] = responseData.data || responseData
+        const result = await response.json()
         
-        if (Array.isArray(data)) {
-          setMasterData(data)
-          setFilteredMasterData(data)
+        if (result.data && Array.isArray(result.data)) {
+          setMasterData(result.data)
+          setPagination(prev => ({
+            ...prev,
+            total: result.pagination.total,
+            pages: result.pagination.pages
+          }))
         } else {
           setError('Invalid data format received from API')
           setMasterData([])
-          setFilteredMasterData([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setMasterData([])
-        setFilteredMasterData([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setMasterData([])
-      setFilteredMasterData([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Apply filters to master data
-  const applyFilters = (filtersToApply: FilterValue[]) => {
-    if (filtersToApply.length === 0) {
-      setFilteredMasterData(masterData)
-      return
-    }
-
-    const filtered = masterData.filter(item => {
-      return filtersToApply.every(filter => {
-        const value = item[filter.field as keyof MasterData]
-        
-        switch (filter.operator) {
-          case 'contains':
-            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
-          case 'equals':
-            return String(value) === String(filter.value)
-          case 'startsWith':
-            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
-          case 'endsWith':
-            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
-          case 'greaterThan':
-            return Number(value) > Number(filter.value)
-          case 'lessThan':
-            return Number(value) < Number(filter.value)
-          case 'between':
-            const [min, max] = filter.value
-            return Number(value) >= Number(min) && Number(value) <= Number(max)
-          case 'notEquals':
-            return String(value) !== String(filter.value)
-          default:
-            return true
-        }
-      })
-    })
-    
-    setFilteredMasterData(filtered)
+  const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: newPagination.pageIndex,
+      pageSize: newPagination.pageSize
+    }))
   }
 
+  // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    applyFilters(newFilters)
+    // Server-side filtering will be triggered by useEffect
   }
-
-  // Re-apply filters when master data changes
-  useEffect(() => {
-    applyFilters(filters)
-  }, [masterData, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -535,7 +529,7 @@ export default function MasterDataPage() {
               <Database className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{masterData.length}</div>
+              <div className="text-2xl font-bold">{pagination.total}</div>
             </CardContent>
           </Card>
           <Card>
@@ -594,17 +588,24 @@ export default function MasterDataPage() {
                     className="flex-1"
                   />
                   <ExportButton 
-                    data={filteredMasterData}
+                    data={masterData}
                     filename="master-data-export"
                     className="shrink-0"
                   />
                 </div>
 
                 <DataTable
-                  data={filteredMasterData}
+                  data={masterData}
                   columns={columns}
                   isLoading={loading}
                   searchPlaceholder="Search master data..."
+                  pagination={{
+                    pageIndex: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    pageCount: pagination.pages
+                  }}
+                  onPaginationChange={handlePaginationChange}
                   meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
                 />
               </>

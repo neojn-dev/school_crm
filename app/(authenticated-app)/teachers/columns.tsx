@@ -110,7 +110,7 @@ export const columns: ColumnDef<Teacher>[] = [
     header: "Actions",
     cell: ({ row, table }) => {
       const teacher = row.original
-      const { onEdit, onDelete } = table.options.meta as { onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
+      const { onView, onEdit, onDelete } = table.options.meta as { onView?: (id: string) => void; onEdit?: (id: string) => void; onDelete?: (id: string) => Promise<void> }
       
       return (
         <div className="flex items-center gap-2">

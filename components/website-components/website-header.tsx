@@ -61,12 +61,7 @@ export function WebsiteHeader() {
   const [sessionError, setSessionError] = useState(false)
   
   const { data: session, status } = useSession({
-    required: false,
-    onError: (error) => {
-      console.warn('Session error in website header:', error)
-      setSessionError(true)
-      // Don't throw error, just continue without session
-    }
+    required: false
   })
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

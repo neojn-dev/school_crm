@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,8 +14,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const doctor = await prisma.doctor.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!doctor) {
@@ -34,7 +35,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -43,6 +44,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const {
       firstName,
@@ -69,7 +71,7 @@ export async function PUT(
     const existingEmail = await prisma.doctor.findFirst({
       where: {
         email,
-        id: { not: params.id }
+        id: { not: id }
       }
     })
 
@@ -84,7 +86,7 @@ export async function PUT(
     const existingEmployeeId = await prisma.doctor.findFirst({
       where: {
         employeeId,
-        id: { not: params.id }
+        id: { not: id }
       }
     })
 
@@ -99,7 +101,7 @@ export async function PUT(
     const existingLicenseNumber = await prisma.doctor.findFirst({
       where: {
         licenseNumber,
-        id: { not: params.id }
+        id: { not: id }
       }
     })
 
@@ -111,7 +113,7 @@ export async function PUT(
     }
 
     const doctor = await prisma.doctor.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         firstName,
         lastName,
@@ -138,7 +140,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -147,8 +149,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const doctor = await prisma.doctor.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!doctor) {
@@ -156,7 +159,7 @@ export async function DELETE(
     }
 
     await prisma.doctor.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'Doctor deleted successfully' })

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function GET(
     }
 
     const lawyer = await prisma.lawyer.findUnique({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     if (!lawyer) {
@@ -34,7 +34,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -69,7 +69,7 @@ export async function PUT(
     const existingEmail = await prisma.lawyer.findFirst({
       where: {
         email,
-        id: { not: params.id }
+        id: { not: (await params).id }
       }
     })
 
@@ -84,7 +84,7 @@ export async function PUT(
     const existingEmployeeId = await prisma.lawyer.findFirst({
       where: {
         employeeId,
-        id: { not: params.id }
+        id: { not: (await params).id }
       }
     })
 
@@ -99,7 +99,7 @@ export async function PUT(
     const existingBarNumber = await prisma.lawyer.findFirst({
       where: {
         barNumber,
-        id: { not: params.id }
+        id: { not: (await params).id }
       }
     })
 
@@ -111,7 +111,7 @@ export async function PUT(
     }
 
     const lawyer = await prisma.lawyer.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         firstName,
         lastName,
@@ -138,7 +138,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -148,7 +148,7 @@ export async function DELETE(
     }
 
     const lawyer = await prisma.lawyer.findUnique({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     if (!lawyer) {
@@ -156,7 +156,7 @@ export async function DELETE(
     }
 
     await prisma.lawyer.delete({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     return NextResponse.json({ message: 'Lawyer deleted successfully' })

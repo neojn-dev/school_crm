@@ -59,19 +59,36 @@ interface Doctor {
   patientSatisfaction?: number
   successRate?: number
   createdAt: string
+  updatedAt: string
   employeeId: string
 }
 
 export default function DoctorsPage() {
   const { data: session, status } = useSession()
   const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [viewingDoctor, setViewingDoctor] = useState<Doctor | null>(null)
   const [filters, setFilters] = useState<FilterValue[]>([])
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 50,
+    total: 0,
+    pages: 0
+  })
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [specializationFilter, setSpecializationFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -138,90 +155,106 @@ export default function DoctorsPage() {
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
-  }, [status])
+  }, [status, pagination.pageIndex, pagination.pageSize, searchQuery, departmentFilter, specializationFilter, statusFilter, sortBy, sortOrder])
 
   const fetchDoctors = async () => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch('/api/doctors', {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString(),
+        sortBy,
+        sortOrder,
+      })
+      
+      if (searchQuery) params.set('search', searchQuery)
+      if (departmentFilter) params.set('department', departmentFilter)
+      if (specializationFilter) params.set('specialization', specializationFilter)
+      if (statusFilter) params.set('isActive', statusFilter)
+      
+      const response = await fetch(`/api/doctors?${params.toString()}`, {
         credentials: 'include'
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
         
-        if (Array.isArray(data)) {
-          setDoctors(data)
-          setFilteredDoctors(data)
+        if (result.data && Array.isArray(result.data)) {
+          setDoctors(result.data)
+          setPagination(prev => ({
+            ...prev,
+            total: result.pagination.total,
+            pages: result.pagination.pages
+          }))
         } else {
           setError('Invalid data format received from API')
           setDoctors([])
-          setFilteredDoctors([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setDoctors([])
-        setFilteredDoctors([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setDoctors([])
-      setFilteredDoctors([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Apply filters to doctors data
-  const applyFilters = (filtersToApply: FilterValue[]) => {
-    if (filtersToApply.length === 0) {
-      setFilteredDoctors(doctors)
-      return
-    }
-
-    const filtered = doctors.filter(doctor => {
-      return filtersToApply.every(filter => {
-        const value = doctor[filter.field as keyof Doctor]
-        
-        switch (filter.operator) {
-          case 'contains':
-            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
-          case 'equals':
-            return String(value) === String(filter.value)
-          case 'startsWith':
-            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
-          case 'endsWith':
-            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
-          case 'greaterThan':
-            return Number(value) > Number(filter.value)
-          case 'lessThan':
-            return Number(value) < Number(filter.value)
-          case 'between':
-            const [min, max] = filter.value
-            return Number(value) >= Number(min) && Number(value) <= Number(max)
-          case 'notEquals':
-            return String(value) !== String(filter.value)
-          default:
-            return true
-        }
-      })
-    })
-    
-    setFilteredDoctors(filtered)
+  // Pagination handlers
+  const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: newPagination.pageIndex,
+      pageSize: newPagination.pageSize
+    }))
   }
 
+  // Search and filter handlers
+  const handleSearchChange = (search: string) => {
+    setSearchQuery(search)
+    setPagination(prev => ({ ...prev, pageIndex: 0 })) // Reset to first page
+  }
+
+  const handleDepartmentChange = (department: string) => {
+    setDepartmentFilter(department)
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }
+
+  const handleSpecializationChange = (specialization: string) => {
+    setSpecializationFilter(specialization)
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }
+
+  const handleStatusChange = (status: string) => {
+    setStatusFilter(status)
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
+  }
+
+  // Legacy filter handler for compatibility
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    applyFilters(newFilters)
+    // Convert filters to individual state variables
+    newFilters.forEach(filter => {
+      switch (filter.field) {
+        case 'department':
+          setDepartmentFilter(String(filter.value))
+          break
+        case 'specialization':
+          setSpecializationFilter(String(filter.value))
+          break
+        case 'isActive':
+          setStatusFilter(filter.value === true ? 'true' : filter.value === false ? 'false' : '')
+          break
+      }
+    })
+    setPagination(prev => ({ ...prev, pageIndex: 0 }))
   }
-
-  // Re-apply filters when doctors data changes
-  useEffect(() => {
-    applyFilters(filters)
-  }, [doctors, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -473,17 +506,24 @@ export default function DoctorsPage() {
                     className="flex-1"
                   />
                   <ExportButton 
-                    data={filteredDoctors}
+                    data={doctors}
                     filename="doctors-export"
                     className="shrink-0"
                   />
                 </div>
 
                 <DataTable
-                  data={filteredDoctors}
+                  data={doctors}
                   columns={columns}
                   isLoading={loading}
                   searchPlaceholder="Search doctors..."
+                  pagination={{
+                    pageIndex: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    pageCount: pagination.pages
+                  }}
+                  onPaginationChange={handlePaginationChange}
                   meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
                 />
               </>

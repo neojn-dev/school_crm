@@ -6,7 +6,7 @@ import { db } from "@/lib/db"
 import { config } from "@/lib/config"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(db) as any,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -88,7 +88,6 @@ export const authOptions: NextAuthOptions = {
   },
   secret: config.auth.secret,
   debug: false, // Disable debug logging to reduce console noise
-  trustHost: true,
   logger: {
     error: () => {
       // Completely suppress all NextAuth errors to prevent console noise

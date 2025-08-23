@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   console.log('🔍 [API DEBUG] GET /api/doctors called')
   
   try {
@@ -16,26 +16,118 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const userId = session.user?.id
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found in session' }, { status: 401 })
+    }
+
+    // Parse query parameters for pagination and filtering
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100) // Cap at 100 for performance
+    const search = searchParams.get('search') || ''
+    const department = searchParams.get('department') || ''
+    const specialization = searchParams.get('specialization') || ''
+    const isActive = searchParams.get('isActive') || ''
+    const sortBy = searchParams.get('sortBy') || 'createdAt'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
+
+    const skip = (page - 1) * limit
+
+    // Build where clause for user's doctors with filters
+    const where: any = {
+      userId: userId,
+    }
+
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { employeeId: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    if (department) {
+      where.department = { contains: department, mode: 'insensitive' }
+    }
+
+    if (specialization) {
+      where.specialization = { contains: specialization, mode: 'insensitive' }
+    }
+
+    if (isActive !== '') {
+      where.isActive = isActive === 'true'
+    }
+
+    // Build orderBy clause
+    const orderBy: any = {}
+    if (sortBy === 'name') {
+      orderBy.firstName = sortOrder
+    } else if (sortBy === 'email') {
+      orderBy.email = sortOrder
+    } else if (sortBy === 'department') {
+      orderBy.department = sortOrder
+    } else if (sortBy === 'specialization') {
+      orderBy.specialization = sortOrder
+    } else {
+      orderBy.createdAt = sortOrder
+    }
+
     console.log('🔍 [API DEBUG] User authenticated:', session.user?.email)
-    console.log('🔍 [API DEBUG] Querying database for doctors...')
+    console.log('🔍 [API DEBUG] Querying database for doctors with pagination...')
+    console.log('🔍 [API DEBUG] Query params:', { page, limit, search, department, specialization, isActive })
     
+    // Get total count for pagination
+    const total = await prisma.doctor.count({ where })
+
+    // Get paginated data
     const doctors = await prisma.doctor.findMany({
-      orderBy: { createdAt: 'desc' }
+      where,
+      skip,
+      take: limit,
+      orderBy,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        employeeId: true,
+        department: true,
+        specialization: true,
+        licenseNumber: true,
+        yearsOfExperience: true,
+        salary: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      }
     })
 
     console.log('🔍 [API DEBUG] Database query completed')
-    console.log('🔍 [API DEBUG] Found doctors count:', doctors.length)
-    console.log('🔍 [API DEBUG] First doctor sample:', doctors[0] ? {
-      id: doctors[0].id,
-      firstName: doctors[0].firstName,
-      lastName: doctors[0].lastName,
-      email: doctors[0].email
-    } : 'No doctors found')
+    console.log('🔍 [API DEBUG] Found doctors count:', doctors.length, 'of', total, 'total')
     
-    // Log the full response for debugging
-    console.log('🔍 [API DEBUG] Full response data:', JSON.stringify(doctors, null, 2))
+    const response = {
+      data: doctors,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      },
+      filters: {
+        search,
+        department,
+        specialization,
+        isActive,
+        sortBy,
+        sortOrder
+      }
+    }
 
-    return NextResponse.json(doctors)
+    return NextResponse.json(response)
   } catch (error) {
     console.error('❌ [API ERROR] Error fetching doctors:', error)
     console.error('❌ [API ERROR] Error stack:', error instanceof Error ? error.stack : 'No stack trace')

@@ -45,15 +45,32 @@ interface Engineer {
   codeQuality?: number
   innovationScore?: number
   createdAt: string
+  updatedAt: string
   employeeId: string
 }
 
 export default function EngineersPage() {
   const { data: session, status } = useSession()
   const [engineers, setEngineers] = useState<Engineer[]>([])
-  const [filteredEngineers, setFilteredEngineers] = useState<Engineer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 50,
+    total: 0,
+    pages: 0
+  })
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [specializationFilter, setSpecializationFilter] = useState('')
+  const [engineeringTypeFilter, setEngineeringTypeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState('desc')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEngineer, setEditingEngineer] = useState<Engineer | null>(null)
   const [viewingEngineer, setViewingEngineer] = useState<Engineer | null>(null)
@@ -136,90 +153,71 @@ export default function EngineersPage() {
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
-  }, [status])
+  }, [status, pagination.pageIndex, pagination.pageSize, searchQuery, departmentFilter, specializationFilter, engineeringTypeFilter, statusFilter, sortBy, sortOrder])
 
   const fetchEngineers = async () => {
     setLoading(true)
     setError(null)
     
     try {
-      const response = await fetch('/api/engineers', {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        limit: pagination.pageSize.toString(),
+        sortBy,
+        sortOrder,
+      })
+      
+      if (searchQuery) params.set('search', searchQuery)
+      if (departmentFilter) params.set('department', departmentFilter)
+      if (specializationFilter) params.set('specialization', specializationFilter)
+      if (engineeringTypeFilter) params.set('engineeringType', engineeringTypeFilter)
+      if (statusFilter) params.set('isActive', statusFilter)
+      
+      const response = await fetch(`/api/engineers?${params.toString()}`, {
         credentials: 'include'
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
         
-        if (Array.isArray(data)) {
-          setEngineers(data)
-          setFilteredEngineers(data)
+        if (result.data && Array.isArray(result.data)) {
+          setEngineers(result.data)
+          setPagination(prev => ({
+            ...prev,
+            total: result.pagination.total,
+            pages: result.pagination.pages
+          }))
         } else {
           setError('Invalid data format received from API')
           setEngineers([])
-          setFilteredEngineers([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setEngineers([])
-        setFilteredEngineers([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setEngineers([])
-      setFilteredEngineers([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Apply filters to engineers data
-  const applyFilters = (filtersToApply: FilterValue[]) => {
-    if (filtersToApply.length === 0) {
-      setFilteredEngineers(engineers)
-      return
-    }
-
-    const filtered = engineers.filter(engineer => {
-      return filtersToApply.every(filter => {
-        const value = engineer[filter.field as keyof Engineer]
-        
-        switch (filter.operator) {
-          case 'contains':
-            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
-          case 'equals':
-            return String(value) === String(filter.value)
-          case 'startsWith':
-            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
-          case 'endsWith':
-            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
-          case 'greaterThan':
-            return Number(value) > Number(filter.value)
-          case 'lessThan':
-            return Number(value) < Number(filter.value)
-          case 'between':
-            const [min, max] = filter.value
-            return Number(value) >= Number(min) && Number(value) <= Number(max)
-          case 'notEquals':
-            return String(value) !== String(filter.value)
-          default:
-            return true
-        }
-      })
-    })
-    
-    setFilteredEngineers(filtered)
+  const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: newPagination.pageIndex,
+      pageSize: newPagination.pageSize
+    }))
   }
 
+  // Handle filter changes (now triggers server-side filtering)
   const handleFiltersChange = (newFilters: FilterValue[]) => {
     setFilters(newFilters)
-    applyFilters(newFilters)
+    // Server-side filtering will be triggered by useEffect
   }
-
-  // Re-apply filters when engineers data changes
-  useEffect(() => {
-    applyFilters(filters)
-  }, [engineers, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -521,8 +519,8 @@ export default function EngineersPage() {
                     onFiltersChange={handleFiltersChange}
                     className="flex-1"
                   />
-                  <ExportButton 
-                    data={filteredEngineers}
+                                    <ExportButton
+                    data={engineers}
                     filename="engineers-export"
                     className="shrink-0"
                   />
@@ -530,8 +528,15 @@ export default function EngineersPage() {
 
                 <DataTable
                   columns={columns}
-                  data={filteredEngineers}
+                  data={engineers}
                   searchPlaceholder="Search engineers..."
+                  pagination={{
+                    pageIndex: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    pageCount: pagination.pages
+                  }}
+                  onPaginationChange={handlePaginationChange}
                   meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
                 />
               </>

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function GET(
     }
 
     const engineer = await prisma.engineer.findUnique({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     if (!engineer) {
@@ -34,7 +34,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -69,7 +69,7 @@ export async function PUT(
     const existingEmail = await prisma.engineer.findFirst({
       where: {
         email,
-        id: { not: params.id }
+        id: { not: (await params).id }
       }
     })
 
@@ -84,7 +84,7 @@ export async function PUT(
     const existingEmployeeId = await prisma.engineer.findFirst({
       where: {
         employeeId,
-        id: { not: params.id }
+        id: { not: (await params).id }
       }
     })
 
@@ -96,7 +96,7 @@ export async function PUT(
     }
 
     const engineer = await prisma.engineer.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         firstName,
         lastName,
@@ -123,7 +123,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -133,7 +133,7 @@ export async function DELETE(
     }
 
     const engineer = await prisma.engineer.findUnique({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     if (!engineer) {
@@ -141,7 +141,7 @@ export async function DELETE(
     }
 
     await prisma.engineer.delete({
-      where: { id: params.id }
+      where: { id: (await params).id }
     })
 
     return NextResponse.json({ message: 'Engineer deleted successfully' })
