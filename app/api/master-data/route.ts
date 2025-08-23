@@ -75,8 +75,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching master data:", error)
+    console.error("Error details:", error instanceof Error ? error.message : error)
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     )
   }
@@ -107,7 +108,6 @@ export async function POST(request: NextRequest) {
       multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : null,
       checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : null,
       tagsField: validatedData.tagsField ? JSON.stringify(validatedData.tagsField) : null,
-      multiInputField: validatedData.multiInputField ? JSON.stringify(validatedData.multiInputField) : null,
     }
     
     const masterData = await prisma.masterData.create({
@@ -172,7 +172,6 @@ export async function PUT(request: NextRequest) {
       multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : undefined,
       checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : undefined,
       tagsField: validatedData.tagsField ? JSON.stringify(validatedData.tagsField) : undefined,
-      multiInputField: validatedData.multiInputField ? JSON.stringify(validatedData.multiInputField) : undefined,
     }
 
     // Update master data

@@ -95,43 +95,13 @@ export default function MasterDataPage() {
     switchField: false,
     checkboxField: false,
     
-    // File & Media Fields
-    filePath: "",
-    imagePath: "",
-    documentPath: "",
-    
     // Special Fields
     colorField: "#3B82F6",
     ratingField: 3,
     tagsField: [] as string[],
     
-    // Advanced Fields
-    autocompleteField: "",
-    comboboxField: "",
-    multiInputField: [] as string[],
-    
     // Required Fields
     fieldType: "input",
-    
-    // Additional fields
-    isRequired: false,
-    minLength: "",
-    maxLength: "",
-    minValue: "",
-    maxValue: "",
-    pattern: "",
-    placeholder: "",
-    helpText: "",
-    inputMode: "",
-    step: "",
-    multiple: false,
-    dependsOn: "",
-    condition: "",
-    isVisible: true,
-    isDisabled: false,
-    fieldSize: "",
-    fieldWidth: "",
-    cssClass: "",
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; masterData: MasterData | null }>({ open: false, masterData: null })
 
@@ -170,17 +140,11 @@ export default function MasterDataPage() {
       key: 'isActive', 
       label: 'Status', 
       type: 'boolean'
-    },
-    { 
-      key: 'isRequired', 
-      label: 'Required', 
-      type: 'boolean'
     }
   ]
 
   // Tag management
   const [currentTag, setCurrentTag] = useState("")
-  const [currentMultiInput, setCurrentMultiInput] = useState("")
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -290,21 +254,15 @@ export default function MasterDataPage() {
         ratingField: formData.ratingField,
         sliderValue: formData.sliderValue,
         rangeField: formData.rangeField,
-        // Convert string numbers for validation fields
-        minLength: formData.minLength ? parseInt(formData.minLength) : undefined,
-        maxLength: formData.maxLength ? parseInt(formData.maxLength) : undefined,
-        minValue: formData.minValue ? parseFloat(formData.minValue) : undefined,
-        maxValue: formData.maxValue ? parseFloat(formData.maxValue) : undefined,
-        step: formData.step ? parseFloat(formData.step) : undefined,
+
         // Convert date strings to Date objects
         dateField: formData.dateField ? new Date(formData.dateField) : undefined,
         dateTimeField: formData.dateTimeField ? new Date(formData.dateTimeField) : undefined,
-        // Remove empty strings
+        // Remove empty strings and undefined values
         ...Object.fromEntries(
-          Object.entries(formData).map(([key, value]) => [
-            key, 
-            value === "" ? undefined : value
-          ])
+          Object.entries(formData)
+            .filter(([key, value]) => value !== "" && value !== undefined && value !== null)
+            .map(([key, value]) => [key, value])
         )
       }
       
@@ -407,34 +365,11 @@ export default function MasterDataPage() {
         checkboxGroup: data.checkboxGroup ? (typeof data.checkboxGroup === 'string' ? JSON.parse(data.checkboxGroup) : data.checkboxGroup) : [],
         switchField: data.switchField || false,
         checkboxField: data.checkboxField || false,
-        filePath: data.filePath || "",
-        imagePath: data.imagePath || "",
-        documentPath: data.documentPath || "",
+
         colorField: data.colorField || "#3B82F6",
         ratingField: data.ratingField || 3,
         tagsField: data.tagsField ? (typeof data.tagsField === 'string' ? JSON.parse(data.tagsField) : data.tagsField) : [],
-        autocompleteField: data.autocompleteField || "",
-        comboboxField: data.comboboxField || "",
-        multiInputField: data.multiInputField ? (typeof data.multiInputField === 'string' ? JSON.parse(data.multiInputField) : data.multiInputField) : [],
         fieldType: data.fieldType,
-        isRequired: data.isRequired || false,
-        minLength: data.minLength?.toString() || "",
-        maxLength: data.maxLength?.toString() || "",
-        minValue: data.minValue?.toString() || "",
-        maxValue: data.maxValue?.toString() || "",
-        pattern: data.pattern || "",
-        placeholder: data.placeholder || "",
-        helpText: data.helpText || "",
-        inputMode: data.inputMode || "",
-        step: data.step?.toString() || "",
-        multiple: data.multiple || false,
-        dependsOn: data.dependsOn || "",
-        condition: data.condition || "",
-        isVisible: data.isVisible !== false,
-        isDisabled: data.isDisabled || false,
-        fieldSize: data.fieldSize || "",
-        fieldWidth: data.fieldWidth || "",
-        cssClass: data.cssClass || "",
       })
       setIsAddDialogOpen(true)
     }
@@ -469,37 +404,13 @@ export default function MasterDataPage() {
       checkboxGroup: [],
       switchField: false,
       checkboxField: false,
-      filePath: "",
-      imagePath: "",
-      documentPath: "",
+
       colorField: "#3B82F6",
       ratingField: 3,
       tagsField: [],
-      autocompleteField: "",
-      comboboxField: "",
-      multiInputField: [],
       fieldType: "input",
-      isRequired: false,
-      minLength: "",
-      maxLength: "",
-      minValue: "",
-      maxValue: "",
-      pattern: "",
-      placeholder: "",
-      helpText: "",
-      inputMode: "",
-      step: "",
-      multiple: false,
-      dependsOn: "",
-      condition: "",
-      isVisible: true,
-      isDisabled: false,
-      fieldSize: "",
-      fieldWidth: "",
-      cssClass: "",
     })
     setCurrentTag("")
-    setCurrentMultiInput("")
   }
 
   const fillDummyData = () => {
@@ -535,34 +446,11 @@ export default function MasterDataPage() {
       checkboxGroup: ["item1", "item3"],
       switchField: Math.random() > 0.5,
       checkboxField: Math.random() > 0.5,
-      filePath: "/uploads/sample-file.pdf",
-      imagePath: "/uploads/sample-image.jpg",
-      documentPath: "/uploads/sample-document.docx",
+
       colorField: colors[Math.floor(Math.random() * colors.length)],
       ratingField: Math.floor(Math.random() * 5) + 1,
       tagsField: ["tag1", "tag2", "sample"],
-      autocompleteField: "autocomplete value",
-      comboboxField: "combobox selection",
-      multiInputField: ["input1", "input2"],
       fieldType: fieldTypes[Math.floor(Math.random() * fieldTypes.length)],
-      isRequired: Math.random() > 0.5,
-      minLength: "5",
-      maxLength: "100",
-      minValue: "0",
-      maxValue: "1000",
-      pattern: "^[A-Za-z0-9]+$",
-      placeholder: "Enter your value here...",
-      helpText: "This field helps you understand what to enter.",
-      inputMode: "text",
-      step: "0.01",
-      multiple: Math.random() > 0.5,
-      dependsOn: "otherField",
-      condition: "equals:value",
-      isVisible: true,
-      isDisabled: false,
-      fieldSize: "md",
-      fieldWidth: "full",
-      cssClass: "custom-field-class",
     })
   }
 
@@ -589,23 +477,6 @@ export default function MasterDataPage() {
     setFormData({
       ...formData,
       tagsField: formData.tagsField.filter(tag => tag !== tagToRemove)
-    })
-  }
-
-  const addMultiInput = () => {
-    if (currentMultiInput.trim() && !formData.multiInputField.includes(currentMultiInput.trim())) {
-      setFormData({
-        ...formData,
-        multiInputField: [...formData.multiInputField, currentMultiInput.trim()]
-      })
-      setCurrentMultiInput("")
-    }
-  }
-
-  const removeMultiInput = (inputToRemove: string) => {
-    setFormData({
-      ...formData,
-      multiInputField: formData.multiInputField.filter(input => input !== inputToRemove)
     })
   }
 
@@ -754,12 +625,7 @@ export default function MasterDataPage() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Authentication Status */}
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">
-                  <strong>Authentication Status:</strong> {session ? `✅ Authenticated as ${session.user?.email || 'User'}` : '❌ Not authenticated'}
-                </div>
-              </div>
+
               
               {/* Fill Dummy Data Button */}
               <div className="flex justify-end">
@@ -900,15 +766,7 @@ export default function MasterDataPage() {
                       placeholder="Search query..."
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="autocompleteField">Autocomplete Field</Label>
-                    <Input
-                      id="autocompleteField"
-                      value={formData.autocompleteField}
-                      onChange={(e) => setFormData({...formData, autocompleteField: e.target.value})}
-                      placeholder="Autocomplete value"
-                    />
-                  </div>
+
                   <div className="md:col-span-2">
                     <Label htmlFor="textareaField">Textarea Field</Label>
                     <Textarea
@@ -1194,283 +1052,13 @@ export default function MasterDataPage() {
                 </div>
               </div>
 
-              {/* File Fields */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  File & Media Fields
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="filePath">File Path</Label>
-                    <Input
-                      id="filePath"
-                      value={formData.filePath}
-                      onChange={(e) => setFormData({...formData, filePath: e.target.value})}
-                      placeholder="/uploads/file.pdf"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="imagePath">Image Path</Label>
-                    <Input
-                      id="imagePath"
-                      value={formData.imagePath}
-                      onChange={(e) => setFormData({...formData, imagePath: e.target.value})}
-                      placeholder="/uploads/image.jpg"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="documentPath">Document Path</Label>
-                    <Input
-                      id="documentPath"
-                      value={formData.documentPath}
-                      onChange={(e) => setFormData({...formData, documentPath: e.target.value})}
-                      placeholder="/uploads/document.docx"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* Advanced Fields */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Advanced Fields</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="comboboxField">Combobox Field</Label>
-                    <Input
-                      id="comboboxField"
-                      value={formData.comboboxField}
-                      onChange={(e) => setFormData({...formData, comboboxField: e.target.value})}
-                      placeholder="Combobox selection"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="multiInputField">Multi Input Field</Label>
-                    <div className="space-y-2">
-                      <div className="flex space-x-2">
-                        <Input
-                          value={currentMultiInput}
-                          onChange={(e) => setCurrentMultiInput(e.target.value)}
-                          placeholder="Add input..."
-                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMultiInput())}
-                        />
-                        <Button type="button" onClick={addMultiInput} variant="outline">Add</Button>
-                      </div>
-                      <div className="space-y-1">
-                        {formData.multiInputField.map((input, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <Input value={input} readOnly className="flex-1" />
-                            <Button
-                              type="button"
-                              onClick={() => removeMultiInput(input)}
-                              variant="outline"
-                              size="sm"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Validation & Configuration */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Validation & Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="isRequired"
-                      checked={formData.isRequired}
-                      onCheckedChange={(checked) => setFormData({...formData, isRequired: checked === true})}
-                    />
-                    <Label htmlFor="isRequired">Is Required</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="multiple"
-                      checked={formData.multiple}
-                      onCheckedChange={(checked) => setFormData({...formData, multiple: checked === true})}
-                    />
-                    <Label htmlFor="multiple">Multiple</Label>
-                  </div>
-                  <div>
-                    <Label htmlFor="minLength">Min Length</Label>
-                    <Input
-                      id="minLength"
-                      type="number"
-                      value={formData.minLength}
-                      onChange={(e) => setFormData({...formData, minLength: e.target.value})}
-                      placeholder="5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="maxLength">Max Length</Label>
-                    <Input
-                      id="maxLength"
-                      type="number"
-                      value={formData.maxLength}
-                      onChange={(e) => setFormData({...formData, maxLength: e.target.value})}
-                      placeholder="100"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="minValue">Min Value</Label>
-                    <Input
-                      id="minValue"
-                      type="number"
-                      step="0.01"
-                      value={formData.minValue}
-                      onChange={(e) => setFormData({...formData, minValue: e.target.value})}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="maxValue">Max Value</Label>
-                    <Input
-                      id="maxValue"
-                      type="number"
-                      step="0.01"
-                      value={formData.maxValue}
-                      onChange={(e) => setFormData({...formData, maxValue: e.target.value})}
-                      placeholder="1000"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="pattern">Pattern (Regex)</Label>
-                    <Input
-                      id="pattern"
-                      value={formData.pattern}
-                      onChange={(e) => setFormData({...formData, pattern: e.target.value})}
-                      placeholder="^[A-Za-z0-9]+$"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="step">Step</Label>
-                    <Input
-                      id="step"
-                      type="number"
-                      step="0.01"
-                      value={formData.step}
-                      onChange={(e) => setFormData({...formData, step: e.target.value})}
-                      placeholder="0.01"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="placeholder">Placeholder</Label>
-                    <Input
-                      id="placeholder"
-                      value={formData.placeholder}
-                      onChange={(e) => setFormData({...formData, placeholder: e.target.value})}
-                      placeholder="Enter your value..."
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="inputMode">Input Mode</Label>
-                    <Select value={formData.inputMode} onValueChange={(value) => setFormData({...formData, inputMode: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select input mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="numeric">Numeric</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="tel">Tel</SelectItem>
-                        <SelectItem value="url">URL</SelectItem>
-                        <SelectItem value="search">Search</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="helpText">Help Text</Label>
-                    <Textarea
-                      id="helpText"
-                      value={formData.helpText}
-                      onChange={(e) => setFormData({...formData, helpText: e.target.value})}
-                      placeholder="Help text for this field..."
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* Conditional Logic & Styling */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Conditional Logic & Styling</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="isVisible"
-                      checked={formData.isVisible}
-                      onCheckedChange={(checked) => setFormData({...formData, isVisible: checked})}
-                    />
-                    <Label htmlFor="isVisible">Is Visible</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="isDisabled"
-                      checked={formData.isDisabled}
-                      onCheckedChange={(checked) => setFormData({...formData, isDisabled: checked})}
-                    />
-                    <Label htmlFor="isDisabled">Is Disabled</Label>
-                  </div>
-                  <div>
-                    <Label htmlFor="dependsOn">Depends On</Label>
-                    <Input
-                      id="dependsOn"
-                      value={formData.dependsOn}
-                      onChange={(e) => setFormData({...formData, dependsOn: e.target.value})}
-                      placeholder="otherField"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="condition">Condition</Label>
-                    <Input
-                      id="condition"
-                      value={formData.condition}
-                      onChange={(e) => setFormData({...formData, condition: e.target.value})}
-                      placeholder="equals:value"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="fieldSize">Field Size</Label>
-                    <Select value={formData.fieldSize} onValueChange={(value) => setFormData({...formData, fieldSize: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sm">Small</SelectItem>
-                        <SelectItem value="md">Medium</SelectItem>
-                        <SelectItem value="lg">Large</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="fieldWidth">Field Width</Label>
-                    <Select value={formData.fieldWidth} onValueChange={(value) => setFormData({...formData, fieldWidth: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select width" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full">Full</SelectItem>
-                        <SelectItem value="half">Half</SelectItem>
-                        <SelectItem value="third">Third</SelectItem>
-                        <SelectItem value="quarter">Quarter</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="cssClass">CSS Class</Label>
-                    <Input
-                      id="cssClass"
-                      value={formData.cssClass}
-                      onChange={(e) => setFormData({...formData, cssClass: e.target.value})}
-                      placeholder="custom-field-class"
-                    />
-                  </div>
-                </div>
-              </div>
+
+
+
+
 
               {/* Status */}
               <div className="space-y-4">
@@ -1510,10 +1098,10 @@ export default function MasterDataPage() {
             {viewingMasterData && (
               <div className="space-y-6">
                 {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
-                    
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Title</Label>
@@ -1522,17 +1110,24 @@ export default function MasterDataPage() {
                       
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Description</Label>
-                        <p className="text-gray-900">{viewingMasterData.description || 'No description'}</p>
+                        <div className="text-gray-900" dangerouslySetInnerHTML={{ __html: viewingMasterData.description || 'No description' }} />
                       </div>
                       
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Category</Label>
                         <Badge variant="outline">{viewingMasterData.category}</Badge>
                       </div>
-                      
+                    </div>
+                    
+                    <div className="space-y-3">
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Field Type</Label>
                         <Badge variant="secondary">{viewingMasterData.fieldType}</Badge>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Sort Order</Label>
+                        <p className="text-gray-900">{viewingMasterData.sortOrder}</p>
                       </div>
                       
                       <div>
@@ -1543,11 +1138,16 @@ export default function MasterDataPage() {
                       </div>
                     </div>
                   </div>
-                  
+                </div>
+
+                {/* Text Fields */}
+                {(viewingMasterData.textField || viewingMasterData.emailField || viewingMasterData.phoneField || 
+                  viewingMasterData.urlField || viewingMasterData.searchField || viewingMasterData.textareaField || 
+                  viewingMasterData.richTextField) && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Sample Data</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Text Fields</h3>
                     
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {viewingMasterData.textField && (
                         <div>
                           <Label className="text-sm font-medium text-gray-700">Text Field</Label>
@@ -1562,6 +1162,210 @@ export default function MasterDataPage() {
                         </div>
                       )}
                       
+                      {viewingMasterData.phoneField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Phone Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.phoneField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.urlField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">URL Field</Label>
+                          <p className="text-gray-900 break-all">{viewingMasterData.urlField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.searchField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Search Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.searchField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.textareaField && (
+                        <div className="md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-700">Textarea Field</Label>
+                          <p className="text-gray-900 whitespace-pre-wrap">{viewingMasterData.textareaField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.richTextField && (
+                        <div className="md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-700">Rich Text Field</Label>
+                          <div className="text-gray-900 prose max-w-none" dangerouslySetInnerHTML={{ __html: viewingMasterData.richTextField }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Numeric Fields */}
+                {(viewingMasterData.numberField || viewingMasterData.integerField || 
+                  viewingMasterData.rangeField || viewingMasterData.sliderValue) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Numeric Fields</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingMasterData.numberField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Number Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.numberField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.integerField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Integer Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.integerField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.rangeField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Range Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.rangeField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.sliderValue && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Slider Value</Label>
+                          <p className="text-gray-900">{viewingMasterData.sliderValue}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Date & Time Fields */}
+                {(viewingMasterData.dateField || viewingMasterData.timeField || viewingMasterData.dateTimeField || 
+                  viewingMasterData.monthField || viewingMasterData.weekField) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Date & Time Fields</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingMasterData.dateField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Date Field</Label>
+                          <p className="text-gray-900">{new Date(viewingMasterData.dateField).toLocaleDateString()}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.timeField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Time Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.timeField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.dateTimeField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">DateTime Field</Label>
+                          <p className="text-gray-900">{new Date(viewingMasterData.dateTimeField).toLocaleString()}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.monthField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Month Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.monthField}</p>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.weekField && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Week Field</Label>
+                          <p className="text-gray-900">{viewingMasterData.weekField}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selection Fields */}
+                {(viewingMasterData.singleSelect || viewingMasterData.multiSelect || 
+                  viewingMasterData.radioSelection || viewingMasterData.checkboxGroup) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Selection Fields</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingMasterData.singleSelect && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Single Select</Label>
+                          <Badge variant="outline">{viewingMasterData.singleSelect}</Badge>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.multiSelect && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Multi Select</Label>
+                          <div className="flex flex-wrap gap-1">
+                            {(typeof viewingMasterData.multiSelect === 'string' 
+                              ? JSON.parse(viewingMasterData.multiSelect) 
+                              : viewingMasterData.multiSelect).map((item: string, index: number) => (
+                              <Badge key={index} variant="secondary">{item}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.radioSelection && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Radio Selection</Label>
+                          <Badge variant="outline">{viewingMasterData.radioSelection}</Badge>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.checkboxGroup && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Checkbox Group</Label>
+                          <div className="flex flex-wrap gap-1">
+                            {(typeof viewingMasterData.checkboxGroup === 'string' 
+                              ? JSON.parse(viewingMasterData.checkboxGroup) 
+                              : viewingMasterData.checkboxGroup).map((item: string, index: number) => (
+                              <Badge key={index} variant="secondary">{item}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Boolean Fields */}
+                {(viewingMasterData.switchField !== undefined || viewingMasterData.checkboxField !== undefined) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Boolean Fields</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingMasterData.switchField !== undefined && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Switch Field</Label>
+                          <Badge variant={viewingMasterData.switchField ? "default" : "secondary"}>
+                            {viewingMasterData.switchField ? "On" : "Off"}
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      {viewingMasterData.checkboxField !== undefined && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Checkbox Field</Label>
+                          <Badge variant={viewingMasterData.checkboxField ? "default" : "secondary"}>
+                            {viewingMasterData.checkboxField ? "Checked" : "Unchecked"}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Special Fields */}
+                {(viewingMasterData.colorField || viewingMasterData.ratingField || viewingMasterData.tagsField) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Special Fields</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {viewingMasterData.colorField && (
                         <div>
                           <Label className="text-sm font-medium text-gray-700">Color Field</Label>
@@ -1577,7 +1381,7 @@ export default function MasterDataPage() {
                       
                       {viewingMasterData.ratingField && (
                         <div>
-                          <Label className="text-sm font-medium text-gray-700">Rating</Label>
+                          <Label className="text-sm font-medium text-gray-700">Rating Field</Label>
                           <div className="flex items-center space-x-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
@@ -1593,9 +1397,22 @@ export default function MasterDataPage() {
                           </div>
                         </div>
                       )}
+                      
+                      {viewingMasterData.tagsField && (
+                        <div className="md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-700">Tags Field</Label>
+                          <div className="flex flex-wrap gap-1">
+                            {(typeof viewingMasterData.tagsField === 'string' 
+                              ? JSON.parse(viewingMasterData.tagsField) 
+                              : viewingMasterData.tagsField).map((tag: string, index: number) => (
+                              <Badge key={index} variant="outline">{tag}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                )}
                 
                 {/* System Information */}
                 <div className="space-y-4">

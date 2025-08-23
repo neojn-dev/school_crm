@@ -226,47 +226,13 @@ model MasterData {
   switchField     Boolean  @default(false)
   checkboxField   Boolean  @default(false)
   
-  // File & Media Fields
-  filePath        String?  @db.VarChar(500)
-  imagePath       String?  @db.VarChar(500)
-  documentPath    String?  @db.VarChar(500)
-  
   // Special Fields
   colorField      String?  @db.VarChar(7)  // Hex color
   ratingField     Float?   @db.Float        // 0-5 rating
   tagsField       String?  // JSON array
   
-  // Advanced Fields
-  autocompleteField String? @db.VarChar(255)
-  comboboxField    String?  @db.VarChar(255)
-  multiInputField  String?  // JSON array for multiple inputs
-  
-  // Validation & Metadata
-  isRequired      Boolean  @default(false)
-  minLength       Int?
-  maxLength       Int?
-  minValue        Decimal? @db.Decimal(10, 2)
-  maxValue        Decimal? @db.Decimal(10, 2)
-  pattern         String?  @db.VarChar(200) // Regex pattern
-  placeholder     String?  @db.VarChar(255)
-  helpText        String?  @db.Text
-  
   // Field Configuration
   fieldType       String   @db.VarChar(50)  // input, select, textarea, etc.
-  inputMode       String?  @db.VarChar(20)  // text, numeric, email, etc.
-  step            Decimal? @db.Decimal(10, 2) // For number/range inputs
-  multiple        Boolean  @default(false)   // For file/select inputs
-  
-  // Conditional Logic
-  dependsOn       String?  @db.VarChar(100) // Field dependency
-  condition       String?  @db.VarChar(200) // JSON condition
-  isVisible       Boolean  @default(true)
-  isDisabled      Boolean  @default(false)
-  
-  // Styling & Layout
-  fieldSize       String?  @db.VarChar(20)  // sm, md, lg
-  fieldWidth      String?  @db.VarChar(20)  // full, half, third
-  cssClass        String?  @db.VarChar(200)
   
   // Relations
   userId          String

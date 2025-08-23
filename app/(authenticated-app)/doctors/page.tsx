@@ -504,17 +504,7 @@ export default function DoctorsPage() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Authentication Status */}
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-600">
-                  <strong>Authentication Status:</strong> {session ? `✅ Authenticated as ${session.user?.email || 'User'}` : '❌ Not authenticated'}
-                </div>
-                {!session && (
-                  <div className="text-xs text-red-600 mt-1">
-                    You must be signed in to create or edit doctors.
-                  </div>
-                )}
-              </div>
+
               
               {/* Fill Dummy Data Button */}
               <div className="flex justify-end">

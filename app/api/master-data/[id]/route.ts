@@ -92,7 +92,7 @@ export async function PUT(
       multiSelect: validatedData.multiSelect ? JSON.stringify(validatedData.multiSelect) : undefined,
       checkboxGroup: validatedData.checkboxGroup ? JSON.stringify(validatedData.checkboxGroup) : undefined,
       tagsField: validatedData.tagsField ? JSON.stringify(validatedData.tagsField) : undefined,
-      multiInputField: validatedData.multiInputField ? JSON.stringify(validatedData.multiInputField) : undefined,
+
     }
 
     // Update master data

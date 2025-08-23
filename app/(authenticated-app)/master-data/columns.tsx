@@ -35,30 +35,9 @@ export interface MasterData {
   checkboxGroup?: string
   switchField?: boolean
   checkboxField?: boolean
-  filePath?: string
-  imagePath?: string
-  documentPath?: string
   colorField?: string
   ratingField?: number
   tagsField?: string
-  autocompleteField?: string
-  comboboxField?: string
-  multiInputField?: string
-  isRequired?: boolean
-  minLength?: number
-  maxLength?: number
-  minValue?: number
-  maxValue?: number
-  stepValue?: number
-  placeholderText?: string
-  helpText?: string
-  validationRegex?: string
-  errorMessage?: string
-  defaultValue?: string
-  isDisabled?: boolean
-  fieldSize?: string
-  fieldWidth?: string
-  cssClass?: string
   createdAt: string
   updatedAt: string
 }
@@ -112,18 +91,7 @@ export const columns: ColumnDef<MasterData>[] = [
       )
     },
   },
-  {
-    accessorKey: "isRequired",
-    header: "Required",
-    cell: ({ row }) => {
-      const isRequired = row.getValue("isRequired")
-      return (
-        <Badge variant={isRequired ? "destructive" : "secondary"}>
-          {isRequired ? "Required" : "Optional"}
-        </Badge>
-      )
-    },
-  },
+
   {
     accessorKey: "isActive",
     header: "Status",

@@ -64,43 +64,13 @@ export interface MasterDataFormData {
   switchField: boolean
   checkboxField: boolean
   
-  // File & Media Fields
-  filePath: string
-  imagePath: string
-  documentPath: string
-  
   // Special Fields
   colorField: string
   ratingField: number | string
   tagsField: string[]
   
-  // Advanced Fields
-  autocompleteField: string
-  comboboxField: string
-  multiInputField: string[]
-  
   // Required Fields (from database schema)
   fieldType: string
-  
-  // Additional fields from database schema
-  isRequired: boolean
-  minLength: number | string
-  maxLength: number | string
-  minValue: number | string
-  maxValue: number | string
-  pattern: string
-  placeholder: string
-  helpText: string
-  inputMode: string
-  step: number | string
-  multiple: boolean
-  dependsOn: string
-  condition: string
-  isVisible: boolean
-  isDisabled: boolean
-  fieldSize: string
-  fieldWidth: string
-  cssClass: string
 }
 
 interface MasterDataFormProps {
@@ -264,53 +234,7 @@ export function MasterDataForm({
         </div>
       </div>
 
-      {/* Validation & Configuration */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <Settings className="h-5 w-5 mr-2 text-purple-600" />
-          Validation & Configuration
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="placeholder">Placeholder</Label>
-            <Input
-              id="placeholder"
-              value={formData.placeholder}
-              onChange={(e) => setFormData({...formData, placeholder: e.target.value})}
-              placeholder="Enter placeholder text..."
-            />
-          </div>
 
-          <div>
-            <Label htmlFor="helpText">Help Text</Label>
-            <Input
-              id="helpText"
-              value={formData.helpText}
-              onChange={(e) => setFormData({...formData, helpText: e.target.value})}
-              placeholder="Help text for users..."
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isRequired"
-              checked={formData.isRequired}
-              onCheckedChange={(checked) => setFormData({...formData, isRequired: checked})}
-            />
-            <Label htmlFor="isRequired">Required Field</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isVisible"
-              checked={formData.isVisible}
-              onCheckedChange={(checked) => setFormData({...formData, isVisible: checked})}
-            />
-            <Label htmlFor="isVisible">Visible</Label>
-          </div>
-        </div>
-      </div>
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-2 pt-6 border-t">
