@@ -27,6 +27,8 @@ import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { ExportButton } from "@/components/ui/export-button"
+import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advanced-filters"
 
 interface Lawyer {
   id: string
@@ -50,11 +52,13 @@ interface Lawyer {
 export default function LawyersPage() {
   const { data: session, status } = useSession()
   const [lawyers, setLawyers] = useState<Lawyer[]>([])
+  const [filteredLawyers, setFilteredLawyers] = useState<Lawyer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingLawyer, setEditingLawyer] = useState<Lawyer | null>(null)
   const [viewingLawyer, setViewingLawyer] = useState<Lawyer | null>(null)
+  const [filters, setFilters] = useState<FilterValue[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -68,6 +72,52 @@ export default function LawyersPage() {
     isActive: true
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; lawyer: Lawyer | null }>({ open: false, lawyer: null })
+
+  // Filter configuration for lawyers
+  const filterFields: FilterField[] = [
+    { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'Enter first name...' },
+    { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name...' },
+    { key: 'email', label: 'Email', type: 'text', placeholder: 'Enter email...' },
+    { key: 'employeeId', label: 'Employee ID', type: 'text', placeholder: 'Enter employee ID...' },
+    { key: 'barNumber', label: 'Bar Number', type: 'text', placeholder: 'Enter bar number...' },
+    { 
+      key: 'department', 
+      label: 'Department', 
+      type: 'select',
+      options: [
+        { value: 'Corporate Law', label: 'Corporate Law' },
+        { value: 'Criminal Law', label: 'Criminal Law' },
+        { value: 'Family Law', label: 'Family Law' },
+        { value: 'Immigration Law', label: 'Immigration Law' },
+        { value: 'Intellectual Property', label: 'Intellectual Property' },
+        { value: 'Real Estate Law', label: 'Real Estate Law' },
+        { value: 'Employment Law', label: 'Employment Law' },
+        { value: 'Tax Law', label: 'Tax Law' }
+      ]
+    },
+    { 
+      key: 'practiceArea', 
+      label: 'Practice Area', 
+      type: 'select',
+      options: [
+        { value: 'Litigation', label: 'Litigation' },
+        { value: 'Corporate Transactions', label: 'Corporate Transactions' },
+        { value: 'Criminal Defense', label: 'Criminal Defense' },
+        { value: 'Family Mediation', label: 'Family Mediation' },
+        { value: 'Patent Law', label: 'Patent Law' },
+        { value: 'Real Estate Transactions', label: 'Real Estate Transactions' },
+        { value: 'Employment Disputes', label: 'Employment Disputes' },
+        { value: 'Tax Planning', label: 'Tax Planning' }
+      ]
+    },
+    { key: 'yearsOfExperience', label: 'Years of Experience', type: 'number', placeholder: 'Enter years...' },
+    { key: 'salary', label: 'Salary', type: 'number', placeholder: 'Enter salary...' },
+    { 
+      key: 'isActive', 
+      label: 'Status', 
+      type: 'boolean'
+    }
+  ]
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -90,25 +140,77 @@ export default function LawyersPage() {
         const data = await response.json()
         if (Array.isArray(data)) {
           setLawyers(data)
+          setFilteredLawyers(data)
         } else {
           console.error('❌ [ERROR] Lawyers - API returned non-array data:', data)
           setError('Invalid data format received from API')
           setLawyers([])
+          setFilteredLawyers([])
         }
       } else {
         const errorText = await response.text()
         console.error('❌ [ERROR] Lawyers - API request failed:', response.status, errorText)
         setError(`API request failed: ${response.status} - ${errorText}`)
         setLawyers([])
+        setFilteredLawyers([])
       }
     } catch (error) {
       console.error('❌ [ERROR] Lawyers - Error fetching lawyers:', error)
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setLawyers([])
+      setFilteredLawyers([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Apply filters to lawyers data
+  const applyFilters = (filtersToApply: FilterValue[]) => {
+    if (filtersToApply.length === 0) {
+      setFilteredLawyers(lawyers)
+      return
+    }
+
+    const filtered = lawyers.filter(lawyer => {
+      return filtersToApply.every(filter => {
+        const value = lawyer[filter.field as keyof Lawyer]
+        
+        switch (filter.operator) {
+          case 'contains':
+            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+          case 'equals':
+            return String(value) === String(filter.value)
+          case 'startsWith':
+            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
+          case 'endsWith':
+            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
+          case 'greaterThan':
+            return Number(value) > Number(filter.value)
+          case 'lessThan':
+            return Number(value) < Number(filter.value)
+          case 'between':
+            const [min, max] = filter.value
+            return Number(value) >= Number(min) && Number(value) <= Number(max)
+          case 'notEquals':
+            return String(value) !== String(filter.value)
+          default:
+            return true
+        }
+      })
+    })
+    
+    setFilteredLawyers(filtered)
+  }
+
+  const handleFiltersChange = (newFilters: FilterValue[]) => {
+    setFilters(newFilters)
+    applyFilters(newFilters)
+  }
+
+  // Re-apply filters when lawyers data changes
+  useEffect(() => {
+    applyFilters(filters)
+  }, [lawyers, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -266,21 +368,7 @@ export default function LawyersPage() {
     setIsAddDialogOpen(true)
   }
 
-  const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Employee ID,Department,Practice Area,Bar Number,Years of Experience,Salary,Status\n" +
-      lawyers.map(l => 
-        `${l.firstName},${l.lastName},${l.email},${l.employeeId},${l.department},${l.practiceArea},${l.barNumber},${l.yearsOfExperience || ''},${l.salary || ''},${l.isActive ? 'Active' : 'Inactive'}`
-      ).join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "lawyers.csv")
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+
 
   if (!session) {
     return (
@@ -365,15 +453,29 @@ export default function LawyersPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable
-                data={lawyers}
-                columns={columns}
-                isLoading={loading}
+              <>
+                {/* Filters and Export Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <AdvancedFilters 
+                    fields={filterFields}
+                    onFiltersChange={handleFiltersChange}
+                    className="flex-1"
+                  />
+                  <ExportButton 
+                    data={filteredLawyers}
+                    filename="lawyers-export"
+                    className="shrink-0"
+                  />
+                </div>
 
-                searchPlaceholder="Search lawyers..."
-                exportData={exportData}
-                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
-              />
+                <DataTable
+                  data={filteredLawyers}
+                  columns={columns}
+                  isLoading={loading}
+                  searchPlaceholder="Search lawyers..."
+                  meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                />
+              </>
             )}
           </CardContent>
         </Card>

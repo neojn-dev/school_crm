@@ -26,6 +26,8 @@ import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { ExportButton } from "@/components/ui/export-button"
+import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advanced-filters"
 
 interface Engineer {
   id: string
@@ -49,11 +51,13 @@ interface Engineer {
 export default function EngineersPage() {
   const { data: session, status } = useSession()
   const [engineers, setEngineers] = useState<Engineer[]>([])
+  const [filteredEngineers, setFilteredEngineers] = useState<Engineer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEngineer, setEditingEngineer] = useState<Engineer | null>(null)
   const [viewingEngineer, setViewingEngineer] = useState<Engineer | null>(null)
+  const [filters, setFilters] = useState<FilterValue[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -67,6 +71,64 @@ export default function EngineersPage() {
     isActive: true
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; engineer: Engineer | null }>({ open: false, engineer: null })
+
+  // Filter configuration for engineers
+  const filterFields: FilterField[] = [
+    { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'Enter first name...' },
+    { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name...' },
+    { key: 'email', label: 'Email', type: 'text', placeholder: 'Enter email...' },
+    { key: 'employeeId', label: 'Employee ID', type: 'text', placeholder: 'Enter employee ID...' },
+    { 
+      key: 'department', 
+      label: 'Department', 
+      type: 'select',
+      options: [
+        { value: 'Software Engineering', label: 'Software Engineering' },
+        { value: 'Hardware Engineering', label: 'Hardware Engineering' },
+        { value: 'Systems Engineering', label: 'Systems Engineering' },
+        { value: 'DevOps', label: 'DevOps' },
+        { value: 'Quality Assurance', label: 'Quality Assurance' },
+        { value: 'Research & Development', label: 'Research & Development' },
+        { value: 'Data Engineering', label: 'Data Engineering' },
+        { value: 'Network Engineering', label: 'Network Engineering' }
+      ]
+    },
+    { 
+      key: 'specialization', 
+      label: 'Specialization', 
+      type: 'select',
+      options: [
+        { value: 'Frontend Development', label: 'Frontend Development' },
+        { value: 'Backend Development', label: 'Backend Development' },
+        { value: 'Full Stack Development', label: 'Full Stack Development' },
+        { value: 'Mobile Development', label: 'Mobile Development' },
+        { value: 'DevOps Engineering', label: 'DevOps Engineering' },
+        { value: 'Data Science', label: 'Data Science' },
+        { value: 'Machine Learning', label: 'Machine Learning' },
+        { value: 'Cloud Architecture', label: 'Cloud Architecture' }
+      ]
+    },
+    { 
+      key: 'engineeringType', 
+      label: 'Engineering Type', 
+      type: 'select',
+      options: [
+        { value: 'Software', label: 'Software' },
+        { value: 'Hardware', label: 'Hardware' },
+        { value: 'Systems', label: 'Systems' },
+        { value: 'Network', label: 'Network' },
+        { value: 'Security', label: 'Security' },
+        { value: 'Data', label: 'Data' }
+      ]
+    },
+    { key: 'yearsOfExperience', label: 'Years of Experience', type: 'number', placeholder: 'Enter years...' },
+    { key: 'salary', label: 'Salary', type: 'number', placeholder: 'Enter salary...' },
+    { 
+      key: 'isActive', 
+      label: 'Status', 
+      type: 'boolean'
+    }
+  ]
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -90,22 +152,74 @@ export default function EngineersPage() {
         
         if (Array.isArray(data)) {
           setEngineers(data)
+          setFilteredEngineers(data)
         } else {
           setError('Invalid data format received from API')
           setEngineers([])
+          setFilteredEngineers([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setEngineers([])
+        setFilteredEngineers([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setEngineers([])
+      setFilteredEngineers([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Apply filters to engineers data
+  const applyFilters = (filtersToApply: FilterValue[]) => {
+    if (filtersToApply.length === 0) {
+      setFilteredEngineers(engineers)
+      return
+    }
+
+    const filtered = engineers.filter(engineer => {
+      return filtersToApply.every(filter => {
+        const value = engineer[filter.field as keyof Engineer]
+        
+        switch (filter.operator) {
+          case 'contains':
+            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+          case 'equals':
+            return String(value) === String(filter.value)
+          case 'startsWith':
+            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
+          case 'endsWith':
+            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
+          case 'greaterThan':
+            return Number(value) > Number(filter.value)
+          case 'lessThan':
+            return Number(value) < Number(filter.value)
+          case 'between':
+            const [min, max] = filter.value
+            return Number(value) >= Number(min) && Number(value) <= Number(max)
+          case 'notEquals':
+            return String(value) !== String(filter.value)
+          default:
+            return true
+        }
+      })
+    })
+    
+    setFilteredEngineers(filtered)
+  }
+
+  const handleFiltersChange = (newFilters: FilterValue[]) => {
+    setFilters(newFilters)
+    applyFilters(newFilters)
+  }
+
+  // Re-apply filters when engineers data changes
+  useEffect(() => {
+    applyFilters(filters)
+  }, [engineers, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -274,21 +388,7 @@ export default function EngineersPage() {
     setIsAddDialogOpen(true)
   }
 
-  const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Employee ID,Department,Specialization,Engineering Type,Years of Experience,Salary,Status\n" +
-      engineers.map(e => 
-        `${e.firstName},${e.lastName},${e.email},${e.employeeId},${e.department},${e.specialization},${e.engineeringType},${e.yearsOfExperience || ''},${e.salary || ''},${e.isActive ? 'Active' : 'Inactive'}`
-      ).join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "engineers.csv")
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+
 
   if (!session) {
     return (
@@ -413,13 +513,28 @@ export default function EngineersPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable
-                columns={columns}
-                data={engineers}
-                searchPlaceholder="Search engineers..."
-                exportData={exportData}
-                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
-              />
+              <>
+                {/* Filters and Export Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <AdvancedFilters 
+                    fields={filterFields}
+                    onFiltersChange={handleFiltersChange}
+                    className="flex-1"
+                  />
+                  <ExportButton 
+                    data={filteredEngineers}
+                    filename="engineers-export"
+                    className="shrink-0"
+                  />
+                </div>
+
+                <DataTable
+                  columns={columns}
+                  data={filteredEngineers}
+                  searchPlaceholder="Search engineers..."
+                  meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                />
+              </>
             )}
           </CardContent>
         </Card>

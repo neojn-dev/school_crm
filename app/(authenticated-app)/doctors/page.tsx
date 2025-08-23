@@ -41,6 +41,8 @@ import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { ExportButton } from "@/components/ui/export-button"
+import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advanced-filters"
 
 interface Doctor {
   id: string
@@ -63,11 +65,13 @@ interface Doctor {
 export default function DoctorsPage() {
   const { data: session, status } = useSession()
   const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [viewingDoctor, setViewingDoctor] = useState<Doctor | null>(null)
+  const [filters, setFilters] = useState<FilterValue[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -81,6 +85,52 @@ export default function DoctorsPage() {
     isActive: true
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; doctor: Doctor | null }>({ open: false, doctor: null })
+
+  // Filter configuration for doctors
+  const filterFields: FilterField[] = [
+    { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'Enter first name...' },
+    { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name...' },
+    { key: 'email', label: 'Email', type: 'text', placeholder: 'Enter email...' },
+    { key: 'employeeId', label: 'Employee ID', type: 'text', placeholder: 'Enter employee ID...' },
+    { 
+      key: 'department', 
+      label: 'Department', 
+      type: 'select',
+      options: [
+        { value: 'Cardiology', label: 'Cardiology' },
+        { value: 'Neurology', label: 'Neurology' },
+        { value: 'Pediatrics', label: 'Pediatrics' },
+        { value: 'Orthopedics', label: 'Orthopedics' },
+        { value: 'Emergency', label: 'Emergency' },
+        { value: 'Surgery', label: 'Surgery' },
+        { value: 'Internal Medicine', label: 'Internal Medicine' },
+        { value: 'Radiology', label: 'Radiology' }
+      ]
+    },
+    { 
+      key: 'specialization', 
+      label: 'Specialization', 
+      type: 'select',
+      options: [
+        { value: 'Cardiologist', label: 'Cardiologist' },
+        { value: 'Neurologist', label: 'Neurologist' },
+        { value: 'Pediatrician', label: 'Pediatrician' },
+        { value: 'Orthopedic Surgeon', label: 'Orthopedic Surgeon' },
+        { value: 'Emergency Physician', label: 'Emergency Physician' },
+        { value: 'General Surgeon', label: 'General Surgeon' },
+        { value: 'Internist', label: 'Internist' },
+        { value: 'Radiologist', label: 'Radiologist' }
+      ]
+    },
+    { key: 'licenseNumber', label: 'License Number', type: 'text', placeholder: 'Enter license number...' },
+    { key: 'yearsOfExperience', label: 'Years of Experience', type: 'number', placeholder: 'Enter years...' },
+    { key: 'salary', label: 'Salary', type: 'number', placeholder: 'Enter salary...' },
+    { 
+      key: 'isActive', 
+      label: 'Status', 
+      type: 'boolean'
+    }
+  ]
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -104,22 +154,74 @@ export default function DoctorsPage() {
         
         if (Array.isArray(data)) {
           setDoctors(data)
+          setFilteredDoctors(data)
         } else {
           setError('Invalid data format received from API')
           setDoctors([])
+          setFilteredDoctors([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setDoctors([])
+        setFilteredDoctors([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setDoctors([])
+      setFilteredDoctors([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Apply filters to doctors data
+  const applyFilters = (filtersToApply: FilterValue[]) => {
+    if (filtersToApply.length === 0) {
+      setFilteredDoctors(doctors)
+      return
+    }
+
+    const filtered = doctors.filter(doctor => {
+      return filtersToApply.every(filter => {
+        const value = doctor[filter.field as keyof Doctor]
+        
+        switch (filter.operator) {
+          case 'contains':
+            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+          case 'equals':
+            return String(value) === String(filter.value)
+          case 'startsWith':
+            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
+          case 'endsWith':
+            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
+          case 'greaterThan':
+            return Number(value) > Number(filter.value)
+          case 'lessThan':
+            return Number(value) < Number(filter.value)
+          case 'between':
+            const [min, max] = filter.value
+            return Number(value) >= Number(min) && Number(value) <= Number(max)
+          case 'notEquals':
+            return String(value) !== String(filter.value)
+          default:
+            return true
+        }
+      })
+    })
+    
+    setFilteredDoctors(filtered)
+  }
+
+  const handleFiltersChange = (newFilters: FilterValue[]) => {
+    setFilters(newFilters)
+    applyFilters(newFilters)
+  }
+
+  // Re-apply filters when doctors data changes
+  useEffect(() => {
+    applyFilters(filters)
+  }, [doctors, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -277,21 +379,7 @@ export default function DoctorsPage() {
     setIsAddDialogOpen(true)
   }
 
-  const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Employee ID,Department,Specialization,License Number,Years of Experience,Salary,Status\n" +
-      doctors.map(d => 
-        `${d.firstName},${d.lastName},${d.email},${d.employeeId},${d.department},${d.specialization},${d.licenseNumber},${d.yearsOfExperience || ''},${d.salary || ''},${d.isActive ? 'Active' : 'Inactive'}`
-      ).join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "doctors.csv")
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+
 
   if (!session) {
     return (
@@ -376,14 +464,29 @@ export default function DoctorsPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable
-                data={doctors}
-                columns={columns}
-                isLoading={loading}
-                searchPlaceholder="Search doctors..."
-                exportData={exportData}
-                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
-              />
+              <>
+                {/* Filters and Export Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <AdvancedFilters 
+                    fields={filterFields}
+                    onFiltersChange={handleFiltersChange}
+                    className="flex-1"
+                  />
+                  <ExportButton 
+                    data={filteredDoctors}
+                    filename="doctors-export"
+                    className="shrink-0"
+                  />
+                </div>
+
+                <DataTable
+                  data={filteredDoctors}
+                  columns={columns}
+                  isLoading={loading}
+                  searchPlaceholder="Search doctors..."
+                  meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                />
+              </>
             )}
           </CardContent>
         </Card>

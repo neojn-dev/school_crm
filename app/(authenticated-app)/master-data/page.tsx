@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { TipTapEditor } from "@/components/ui/tiptap-editor"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
@@ -41,15 +42,19 @@ import { DataTable } from "@/components/data-table/data-table"
 import { columns, MasterData } from "./columns"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { ExportButton } from "@/components/ui/export-button"
+import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advanced-filters"
 
 export default function MasterDataPage() {
   const { data: session, status } = useSession()
   const [masterData, setMasterData] = useState<MasterData[]>([])
+  const [filteredMasterData, setFilteredMasterData] = useState<MasterData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingMasterData, setEditingMasterData] = useState<MasterData | null>(null)
   const [viewingMasterData, setViewingMasterData] = useState<MasterData | null>(null)
+  const [filters, setFilters] = useState<FilterValue[]>([])
   const [formData, setFormData] = useState({
     // Basic Information
     title: "",
@@ -130,6 +135,49 @@ export default function MasterDataPage() {
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; masterData: MasterData | null }>({ open: false, masterData: null })
 
+  // Filter configuration for master data
+  const filterFields: FilterField[] = [
+    { key: 'title', label: 'Title', type: 'text', placeholder: 'Enter title...' },
+    { key: 'description', label: 'Description', type: 'text', placeholder: 'Enter description...' },
+    { 
+      key: 'category', 
+      label: 'Category', 
+      type: 'select',
+      options: [
+        { value: 'Basic', label: 'Basic' },
+        { value: 'Advanced', label: 'Advanced' },
+        { value: 'Specialized', label: 'Specialized' }
+      ]
+    },
+    { 
+      key: 'fieldType', 
+      label: 'Field Type', 
+      type: 'select',
+      options: [
+        { value: 'text', label: 'Text Field' },
+        { value: 'email', label: 'Email Field' },
+        { value: 'number', label: 'Number Field' },
+        { value: 'date', label: 'Date Field' },
+        { value: 'select', label: 'Select Field' },
+        { value: 'checkbox', label: 'Checkbox Field' },
+        { value: 'textarea', label: 'Textarea Field' },
+        { value: 'file', label: 'File Upload' },
+        { value: 'switch', label: 'Switch Field' }
+      ]
+    },
+    { key: 'sortOrder', label: 'Sort Order', type: 'number', placeholder: 'Enter sort order...' },
+    { 
+      key: 'isActive', 
+      label: 'Status', 
+      type: 'boolean'
+    },
+    { 
+      key: 'isRequired', 
+      label: 'Required', 
+      type: 'boolean'
+    }
+  ]
+
   // Tag management
   const [currentTag, setCurrentTag] = useState("")
   const [currentMultiInput, setCurrentMultiInput] = useState("")
@@ -157,22 +205,74 @@ export default function MasterDataPage() {
         
         if (Array.isArray(data)) {
           setMasterData(data)
+          setFilteredMasterData(data)
         } else {
           setError('Invalid data format received from API')
           setMasterData([])
+          setFilteredMasterData([])
         }
       } else {
         const errorText = await response.text()
         setError(`API request failed: ${response.status} - ${errorText}`)
         setMasterData([])
+        setFilteredMasterData([])
       }
     } catch (error) {
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setMasterData([])
+      setFilteredMasterData([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Apply filters to master data
+  const applyFilters = (filtersToApply: FilterValue[]) => {
+    if (filtersToApply.length === 0) {
+      setFilteredMasterData(masterData)
+      return
+    }
+
+    const filtered = masterData.filter(item => {
+      return filtersToApply.every(filter => {
+        const value = item[filter.field as keyof MasterData]
+        
+        switch (filter.operator) {
+          case 'contains':
+            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+          case 'equals':
+            return String(value) === String(filter.value)
+          case 'startsWith':
+            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
+          case 'endsWith':
+            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
+          case 'greaterThan':
+            return Number(value) > Number(filter.value)
+          case 'lessThan':
+            return Number(value) < Number(filter.value)
+          case 'between':
+            const [min, max] = filter.value
+            return Number(value) >= Number(min) && Number(value) <= Number(max)
+          case 'notEquals':
+            return String(value) !== String(filter.value)
+          default:
+            return true
+        }
+      })
+    })
+    
+    setFilteredMasterData(filtered)
+  }
+
+  const handleFiltersChange = (newFilters: FilterValue[]) => {
+    setFilters(newFilters)
+    applyFilters(newFilters)
+  }
+
+  // Re-apply filters when master data changes
+  useEffect(() => {
+    applyFilters(filters)
+  }, [masterData, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -472,21 +572,7 @@ export default function MasterDataPage() {
     setIsAddDialogOpen(true)
   }
 
-  const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "Title,Description,Category,Field Type,Status,Created\n" +
-      masterData.map(d => 
-        `"${d.title}","${d.description || ''}","${d.category}","${d.fieldType}","${d.isActive ? 'Active' : 'Inactive'}","${new Date(d.createdAt).toLocaleDateString()}"`
-      ).join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "master-data.csv")
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+
 
   // Helper functions for array fields
   const addTag = () => {
@@ -628,14 +714,29 @@ export default function MasterDataPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable
-                data={masterData}
-                columns={columns}
-                isLoading={loading}
-                searchPlaceholder="Search master data..."
-                exportData={exportData}
-                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
-              />
+              <>
+                {/* Filters and Export Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <AdvancedFilters 
+                    fields={filterFields}
+                    onFiltersChange={handleFiltersChange}
+                    className="flex-1"
+                  />
+                  <ExportButton 
+                    data={filteredMasterData}
+                    filename="master-data-export"
+                    className="shrink-0"
+                  />
+                </div>
+
+                <DataTable
+                  data={filteredMasterData}
+                  columns={columns}
+                  isLoading={loading}
+                  searchPlaceholder="Search master data..."
+                  meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -735,11 +836,11 @@ export default function MasterDataPage() {
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    <TipTapEditor
+                      content={formData.description}
+                      onChange={(content) => setFormData({...formData, description: content})}
                       placeholder="Describe this form field..."
+                      className="min-h-[120px]"
                     />
                   </div>
                 </div>

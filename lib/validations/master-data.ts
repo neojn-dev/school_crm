@@ -3,7 +3,7 @@ import { z } from "zod"
 export const masterDataSchema = z.object({
   // Basic Information
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
-  description: z.string().max(2000, "Description must be less than 2000 characters").optional(),
+  description: z.string().max(10000, "Description must be less than 10000 characters").optional().or(z.literal("")),
   category: z.enum(["Basic", "Advanced", "Specialized"], {
     errorMap: () => ({ message: "Category must be Basic, Advanced, or Specialized" })
   }),

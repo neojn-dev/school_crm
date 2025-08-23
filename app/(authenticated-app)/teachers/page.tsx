@@ -39,6 +39,8 @@ import { DataTable } from "@/components/data-table/data-table"
 import { columns } from "./columns"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { ExportButton } from "@/components/ui/export-button"
+import { AdvancedFilters, FilterField, FilterValue } from "@/components/ui/advanced-filters"
 
 interface Teacher {
   id: string
@@ -62,11 +64,13 @@ interface Teacher {
 export default function TeachersPage() {
   const { data: session, status } = useSession()
   const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null)
   const [viewingTeacher, setViewingTeacher] = useState<Teacher | null>(null)
+  const [filters, setFilters] = useState<FilterValue[]>([])
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -80,6 +84,52 @@ export default function TeachersPage() {
     isActive: true
   })
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; teacher: Teacher | null }>({ open: false, teacher: null })
+
+  // Filter configuration for teachers
+  const filterFields: FilterField[] = [
+    { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'Enter first name...' },
+    { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Enter last name...' },
+    { key: 'email', label: 'Email', type: 'text', placeholder: 'Enter email...' },
+    { key: 'employeeId', label: 'Employee ID', type: 'text', placeholder: 'Enter employee ID...' },
+    { 
+      key: 'department', 
+      label: 'Department', 
+      type: 'select',
+      options: [
+        { value: 'Mathematics', label: 'Mathematics' },
+        { value: 'Science', label: 'Science' },
+        { value: 'English', label: 'English' },
+        { value: 'History', label: 'History' },
+        { value: 'Physical Education', label: 'Physical Education' },
+        { value: 'Art', label: 'Art' },
+        { value: 'Music', label: 'Music' },
+        { value: 'Computer Science', label: 'Computer Science' }
+      ]
+    },
+    { 
+      key: 'subject', 
+      label: 'Subject', 
+      type: 'select',
+      options: [
+        { value: 'Algebra', label: 'Algebra' },
+        { value: 'Biology', label: 'Biology' },
+        { value: 'Chemistry', label: 'Chemistry' },
+        { value: 'Physics', label: 'Physics' },
+        { value: 'Literature', label: 'Literature' },
+        { value: 'World History', label: 'World History' },
+        { value: 'Geography', label: 'Geography' },
+        { value: 'Programming', label: 'Programming' }
+      ]
+    },
+    { key: 'yearsOfExperience', label: 'Years of Experience', type: 'number', placeholder: 'Enter years...' },
+    { key: 'salary', label: 'Salary', type: 'number', placeholder: 'Enter salary...' },
+    { key: 'hireDate', label: 'Hire Date', type: 'date' },
+    { 
+      key: 'isActive', 
+      label: 'Status', 
+      type: 'boolean'
+    }
+  ]
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -102,25 +152,81 @@ export default function TeachersPage() {
         const data = await response.json()
         if (Array.isArray(data)) {
           setTeachers(data)
+          setFilteredTeachers(data)
         } else {
           console.error('❌ [ERROR] Teachers - API returned non-array data:', data)
           setError('Invalid data format received from API')
           setTeachers([])
+          setFilteredTeachers([])
         }
       } else {
         const errorText = await response.text()
         console.error('❌ [ERROR] Teachers - API request failed:', response.status, errorText)
         setError(`API request failed: ${response.status} - ${errorText}`)
         setTeachers([])
+        setFilteredTeachers([])
       }
     } catch (error) {
       console.error('❌ [ERROR] Teachers - Error fetching teachers:', error)
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setTeachers([])
+      setFilteredTeachers([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Apply filters to teachers data
+  const applyFilters = (filtersToApply: FilterValue[]) => {
+    if (filtersToApply.length === 0) {
+      setFilteredTeachers(teachers)
+      return
+    }
+
+    const filtered = teachers.filter(teacher => {
+      return filtersToApply.every(filter => {
+        const value = teacher[filter.field as keyof Teacher]
+        
+        switch (filter.operator) {
+          case 'contains':
+            return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+          case 'equals':
+            return String(value) === String(filter.value)
+          case 'startsWith':
+            return String(value).toLowerCase().startsWith(String(filter.value).toLowerCase())
+          case 'endsWith':
+            return String(value).toLowerCase().endsWith(String(filter.value).toLowerCase())
+          case 'greaterThan':
+            return Number(value) > Number(filter.value)
+          case 'lessThan':
+            return Number(value) < Number(filter.value)
+          case 'between':
+            const [min, max] = filter.value
+            return Number(value) >= Number(min) && Number(value) <= Number(max)
+          case 'after':
+            return new Date(String(value)) > new Date(String(filter.value))
+          case 'before':
+            return new Date(String(value)) < new Date(String(filter.value))
+          case 'notEquals':
+            return String(value) !== String(filter.value)
+          default:
+            return true
+        }
+      })
+    })
+    
+    setFilteredTeachers(filtered)
+  }
+
+  const handleFiltersChange = (newFilters: FilterValue[]) => {
+    setFilters(newFilters)
+    applyFilters(newFilters)
+  }
+
+  // Re-apply filters when teachers data changes
+  useEffect(() => {
+    applyFilters(filters)
+  }, [teachers, filters])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -284,21 +390,7 @@ export default function TeachersPage() {
     setIsAddDialogOpen(true)
   }
 
-  const exportData = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "First Name,Last Name,Email,Employee ID,Department,Subject,Years of Experience,Salary,Hire Date,Status\n" +
-      teachers.map(t => 
-        `${t.firstName},${t.lastName},${t.email},${t.employeeId},${t.department},${t.subject},${t.yearsOfExperience || ''},${t.salary || ''},${t.hireDate || ''},${t.isActive ? 'Active' : 'Inactive'}`
-      ).join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", "teachers.csv")
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+
 
   if (!session) {
     return (
@@ -383,15 +475,29 @@ export default function TeachersPage() {
                 </Button>
               </div>
             ) : (
-              <DataTable
-                data={teachers}
-                columns={columns}
-                isLoading={loading}
+              <>
+                {/* Filters and Export Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <AdvancedFilters 
+                    fields={filterFields}
+                    onFiltersChange={handleFiltersChange}
+                    className="flex-1"
+                  />
+                  <ExportButton 
+                    data={filteredTeachers}
+                    filename="teachers-export"
+                    className="shrink-0"
+                  />
+                </div>
 
-                searchPlaceholder="Search teachers..."
-                exportData={exportData}
-                meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
-              />
+                <DataTable
+                  data={filteredTeachers}
+                  columns={columns}
+                  isLoading={loading}
+                  searchPlaceholder="Search teachers..."
+                  meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                />
+              </>
             )}
           </CardContent>
         </Card>
