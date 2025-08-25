@@ -120,6 +120,25 @@ export default function SignInPage() {
       })
 
       if (result?.error) {
+        // Check if the user exists but is deactivated
+        try {
+          const checkUserResponse = await fetch('/api/auth/check-user-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: data.identifier })
+          })
+          
+          if (checkUserResponse.ok) {
+            const userData = await checkUserResponse.json()
+            if (userData.exists && !userData.isActive) {
+              setError("Your account has been deactivated. Please contact your administrator.")
+              return
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to check user status:', error)
+        }
+        
         setError("Invalid username or password")
       } else if (result?.ok) {
         // Use replace instead of push to prevent back navigation issues

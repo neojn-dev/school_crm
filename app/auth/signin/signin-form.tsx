@@ -57,11 +57,26 @@ export function SigninForm() {
       })
 
       if (result?.error) {
-        if (result.error === 'ACCOUNT_DEACTIVATED') {
-          toast.error("Your account has been deactivated. Please contact your administrator.")
-        } else {
-          toast.error("Invalid credentials or account not verified")
+        // Check if the user exists but is deactivated
+        try {
+          const checkUserResponse = await fetch('/api/auth/check-user-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: data.username })
+          })
+          
+          if (checkUserResponse.ok) {
+            const userData = await checkUserResponse.json()
+            if (userData.exists && !userData.isActive) {
+              toast.error("Your account has been deactivated. Please contact your administrator.")
+              return
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to check user status:', error)
         }
+        
+        toast.error("Invalid credentials or account not verified")
       } else {
         const successMessage = data.rememberMe 
           ? "Signed in successfully (Remember me enabled - 30 days)" 

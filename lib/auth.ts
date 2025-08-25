@@ -45,7 +45,9 @@ export const authOptions: NextAuthOptions = {
 
         // Check if user account is active
         if (!user.isActive) {
-          throw new Error('ACCOUNT_DEACTIVATED')
+          // Return null with a way to identify this specific case
+          // We'll handle this in the signin page by checking the user's active status
+          return null
         }
 
         const isPasswordValid = await bcrypt.compare(
