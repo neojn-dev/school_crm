@@ -17,8 +17,12 @@ export const userSchema = z.object({
     .max(50, "Last name must be less than 50 characters")
     .optional(),
   roleId: z.string()
-    .cuid("Invalid role ID format")
-    .optional(),
+    .refine((val) => val === '' || z.string().cuid().safeParse(val).success, {
+      message: "Invalid role ID format"
+    })
+    .optional()
+    .nullable()
+    .transform(val => val === '' ? null : val),
   isActive: z.boolean().default(true),
 })
 

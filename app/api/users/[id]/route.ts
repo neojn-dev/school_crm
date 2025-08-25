@@ -135,8 +135,8 @@ export async function PUT(
       }
     }
 
-    // Validate role exists if provided
-    if (roleId) {
+    // Validate role exists if provided (and not null/empty)
+    if (roleId && roleId !== null) {
       const role = await prisma.role.findUnique({
         where: { id: roleId }
       })
@@ -155,7 +155,7 @@ export async function PUT(
     if (email) updateData.email = email
     if (firstName !== undefined) updateData.firstName = firstName
     if (lastName !== undefined) updateData.lastName = lastName
-    if (roleId !== undefined) updateData.roleId = roleId
+    if (roleId !== undefined) updateData.roleId = roleId === null ? null : roleId
     if (isActive !== undefined) updateData.isActive = isActive
 
     // Hash password if provided

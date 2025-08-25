@@ -33,15 +33,11 @@ export function AppHeader() {
           <div className="flex items-center space-x-4">
             {status === "loading" ? (
               <span className="text-sm text-gray-500">Loading...</span>
-            ) : (session?.user || (session as any)?.session?.user) ? (
+            ) : session?.user ? (
               <>
                 {/* User Name */}
                 <span className="text-sm font-medium text-gray-700">
-                  Welcome, {
-                    session?.user?.username || 
-                    (session as any)?.session?.user?.username || 
-                    'User'
-                  }
+                  Welcome, {session?.user?.username || 'User'}
                 </span>
 
                 {/* Logout Button */}

@@ -346,8 +346,8 @@ export default function UsersPage() {
     )
   }
 
-  // Check if user has admin role - handle nested session structure
-  const userRole = session?.user?.role || (session as any)?.session?.user?.role
+  // Check if user has admin role
+  const userRole = session?.user?.role
   if (userRole !== 'Admin') {
     return (
       <div className="flex items-center justify-center h-64">

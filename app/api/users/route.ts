@@ -201,8 +201,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate role exists if provided
-    if (roleId) {
+    // Validate role exists if provided (and not null/empty)
+    if (roleId && roleId !== null) {
       const role = await prisma.role.findUnique({
         where: { id: roleId }
       })

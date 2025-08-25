@@ -74,8 +74,8 @@ export function WebsiteHeader() {
     setMounted(true)
   }, [])
 
-  // Check if user is authenticated (handle both direct and nested session structures)
-  const user = session?.user || (session as any)?.session?.user
+  // Check if user is authenticated
+  const user = session?.user
   const isAuthenticated = !sessionError && status === "authenticated" && user
 
   const handleSignOut = async () => {
