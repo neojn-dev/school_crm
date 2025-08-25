@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DashboardFilters, type DashboardFilters as FilterType } from "@/components/dashboard/DashboardFilters"
 import { KPITiles } from "@/components/dashboard/KPITiles"
 import { BarChart, PieChart, LineChart, AreaChart } from "@/components/charts"
+import { computeDashboardData, clearDashboardCache, forceRefreshDashboardData, type DashboardData } from "@/lib/dashboard-data"
 import { 
   Users, 
   TrendingUp,
@@ -18,49 +19,13 @@ import {
   Award
 } from "lucide-react"
 
-interface DashboardData {
-  overview: {
-    totalStaff: number
-    activeStaff: number
-    inactiveStaff: number
-    avgSalary: number
-    minSalary: number
-    maxSalary: number
-  }
-  roleDistribution: Array<{
-    name: string
-    value: number
-    color: string
-  }>
-  departmentStats: Record<string, {
-    total: number
-    active: number
-    roles: Record<string, number>
-  }>
-  monthlyTrends: Array<{
-    month: string
-    teachers: number
-    doctors: number
-    engineers: number
-    lawyers: number
-    total: number
-  }>
-  experienceDistribution: Array<{
-    range: string
-    count: number
-  }>
-  masterDataStats: {
-    total: number
-    active: number
-    byCategory: Record<string, number>
-    byFieldType: Record<string, number>
-  }
-}
+// DashboardData interface is now imported from lib/dashboard-data.ts
 
 export default function DashboardPage() {
   const { data: session } = useSession()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingProgress, setLoadingProgress] = useState<string>('Initializing...')
   const [data, setData] = useState<DashboardData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterType>({
@@ -75,33 +40,24 @@ export default function DashboardPage() {
     setMounted(true)
   }, [])
 
-  // Fetch dashboard data
-  const fetchDashboardData = async (currentFilters: FilterType) => {
+  // Compute dashboard data client-side
+  const computeData = async (currentFilters: FilterType) => {
     try {
       setLoading(true)
       setError(null)
-      const params = new URLSearchParams()
+      setLoadingProgress('Loading analytics data...')
+      console.log('🚀 Computing dashboard data client-side for faster performance...')
       
-      if (currentFilters.dateRange) params.set('dateRange', currentFilters.dateRange)
-      if (currentFilters.department) params.set('department', currentFilters.department)
-      if (currentFilters.status) params.set('status', currentFilters.status)
-      if (currentFilters.role) params.set('role', currentFilters.role)
-
-      const response = await fetch(`/api/dashboard/analytics?${params.toString()}`, {
-        credentials: 'include'
-      })
+      // Update progress message
+      setLoadingProgress('Populating graphs, please wait...')
+      const dashboardData = await computeDashboardData(currentFilters)
       
-      if (response.ok) {
-        const dashboardData = await response.json()
-        setData(dashboardData)
-      } else {
-        const errorText = await response.text()
-        console.error('Failed to fetch dashboard data:', response.status, errorText)
-        setError(`Failed to fetch dashboard data: ${response.status} - ${errorText}`)
-      }
+      setLoadingProgress('Finalizing dashboard...')
+      setData(dashboardData)
+      setLoadingProgress('Dashboard ready!')
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-      setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error computing dashboard data:', error)
+      setError(`Failed to load dashboard analytics. Please try again.`)
     } finally {
       setLoading(false)
     }
@@ -109,7 +65,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (mounted) {
-      fetchDashboardData(filters)
+      computeData(filters)
     }
   }, [mounted, filters])
 
@@ -117,17 +73,47 @@ export default function DashboardPage() {
     setFilters(newFilters)
   }
 
+  // Memoized chart data preparation for better performance
+  // IMPORTANT: This must be called before any conditional returns to follow Rules of Hooks
+  const chartData = useMemo(() => {
+    if (!data) return null
+
+    const departmentChartData = Object.entries(data.departmentStats).map(([dept, stats]) => ({
+      department: dept,
+      total: stats.total,
+      active: stats.active,
+      inactive: stats.total - stats.active
+    }))
+
+    const experienceChartData = data.experienceDistribution.map(item => ({
+      range: item.range,
+      count: item.count
+    }))
+
+    const masterDataCategoryData = Object.entries(data.masterDataStats.byCategory).map(([category, count]) => ({
+      name: category,
+      value: count,
+      color: category === 'Basic' ? '#3B82F6' : category === 'Advanced' ? '#8B5CF6' : '#10B981'
+    }))
+
+    return {
+      departmentChartData,
+      experienceChartData,
+      masterDataCategoryData
+    }
+  }, [data])
+
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton loadingProgress="Preparing dashboard..." />
   }
 
   if (!session) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton loadingProgress="Verifying access..." />
   }
 
   if (loading || !data) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton loadingProgress={loadingProgress} />
   }
 
   if (error) {
@@ -141,10 +127,24 @@ export default function DashboardPage() {
             <h3 className="text-red-800 font-semibold mb-2">Error Loading Dashboard</h3>
             <p className="text-red-600">{error}</p>
             <button 
-              onClick={() => fetchDashboardData(filters)}
+              onClick={async () => {
+                try {
+                  setLoading(true)
+                  setError(null)
+                  setLoadingProgress('Refreshing analytics...')
+                  const dashboardData = await forceRefreshDashboardData(filters)
+                  setData(dashboardData)
+                  setLoadingProgress('Dashboard updated!')
+                } catch (error) {
+                  console.error('Error force refreshing dashboard data:', error)
+                  setError(`Failed to refresh dashboard analytics. Please try again.`)
+                } finally {
+                  setLoading(false)
+                }
+              }}
               className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
-              Retry
+              Force Refresh
             </button>
           </div>
         </div>
@@ -152,41 +152,49 @@ export default function DashboardPage() {
     )
   }
 
-  // Prepare chart data
-  const departmentChartData = Object.entries(data.departmentStats).map(([dept, stats]) => ({
-    department: dept,
-    total: stats.total,
-    active: stats.active,
-    inactive: stats.total - stats.active
-  }))
-
-  const experienceChartData = data.experienceDistribution.map(item => ({
-    range: item.range,
-    count: item.count
-  }))
-
-  const masterDataCategoryData = Object.entries(data.masterDataStats.byCategory).map(([category, count]) => ({
-    name: category,
-    value: count,
-    color: category === 'Basic' ? '#3B82F6' : category === 'Advanced' ? '#8B5CF6' : '#10B981'
-  }))
-
-  const masterDataFieldTypeData = Object.entries(data.masterDataStats.byFieldType).map(([type, count]) => ({
-    type,
-    count
-  }))
+  if (!chartData) {
+    return <DashboardSkeleton loadingProgress="Generating charts..." />
+  }
 
   return (
     <ErrorBoundary>
       <div className="space-y-6">
         {/* Welcome Header */}
         <div className="text-center lg:text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Analytics Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Welcome back, {session.user?.username || 'User'}! Here's your comprehensive staff analytics overview.
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Analytics Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Welcome back, {session.user?.username || 'User'}! Here's your comprehensive staff analytics overview.
+              </p>
+            </div>
+            <div className="mt-4 lg:mt-0">
+              <button
+                onClick={async () => {
+                  try {
+                    setLoading(true)
+                    setError(null)
+                    setLoadingProgress('Refreshing analytics...')
+                    const dashboardData = await forceRefreshDashboardData(filters)
+                    setData(dashboardData)
+                    setLoadingProgress('Dashboard updated!')
+                  } catch (error) {
+                    console.error('Error force refreshing dashboard data:', error)
+                    setError(`Failed to refresh dashboard analytics. Please try again.`)
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <TrendingUp className="h-4 w-4" />
+                <span>Refresh Data</span>
+              </button>
+            </div>
+          </div>
+
         </div>
 
         {/* Filters */}
@@ -237,7 +245,7 @@ export default function DashboardPage() {
           <BarChart
             title="Department Analysis"
             description="Staff distribution and activity status across departments"
-            data={departmentChartData}
+            data={chartData.departmentChartData}
             xAxisKey="department"
             dataKeys={[
               { key: 'active', name: 'Active Staff', color: '#10B981' },
@@ -254,7 +262,7 @@ export default function DashboardPage() {
             <AreaChart
               title="Experience Distribution"
               description="Staff distribution by years of experience"
-              data={experienceChartData}
+              data={chartData.experienceChartData}
               xAxisKey="range"
               dataKeys={[
                 { key: 'count', name: 'Staff Count', color: '#8B5CF6' }
@@ -268,26 +276,14 @@ export default function DashboardPage() {
             <PieChart
               title="Master Data Categories"
               description="Distribution of form data by category"
-              data={masterDataCategoryData}
+              data={chartData.masterDataCategoryData}
               height={350}
               innerRadius={40}
             />
           </div>
         </div>
 
-        {/* Field Types Analysis */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '800ms' }}>
-          <BarChart
-            title="Form Field Types Analysis"
-            description="Distribution of different field types in master data"
-            data={masterDataFieldTypeData}
-            xAxisKey="type"
-            dataKeys={[
-              { key: 'count', name: 'Field Count', color: '#F59E0B' }
-            ]}
-            height={350}
-          />
-        </div>
+
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: '900ms' }}>
@@ -363,13 +359,23 @@ export default function DashboardPage() {
 }
 
 // Loading skeleton component
-function DashboardSkeleton() {
+function DashboardSkeleton({ loadingProgress }: { loadingProgress?: string }) {
   return (
     <div className="space-y-6">
       <div className="text-center lg:text-left">
         <div className="w-64 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
         <div className="w-96 h-6 bg-gray-200 rounded animate-pulse"></div>
       </div>
+      
+      {/* Loading progress indicator */}
+      {loadingProgress && (
+        <div className="text-center">
+          <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-blue-700 font-medium">{loadingProgress}</span>
+          </div>
+        </div>
+      )}
       
       {/* Filters skeleton */}
       <div className="h-32 bg-gray-200 rounded animate-pulse"></div>

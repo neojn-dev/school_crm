@@ -26,6 +26,7 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary"
 import { DataTable } from "@/components/data-table/data-table"
 import { columns, User as UserType } from "./columns"
+import { createSelectionColumn } from "@/components/data-table/selection-column"
 import { toast } from "@/components/ui/toast-container"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { ExportButton } from "@/components/ui/export-button"
@@ -313,6 +314,63 @@ export default function UsersPage() {
     }
   }
 
+  const handleBulkDelete = async (ids: string[], password?: string) => {
+    try {
+      const response = await fetch('/api/users/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ids,
+          password,
+          deleteAll: false
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        toast.success(result.message)
+        fetchUsers() // Refresh the list
+      } else {
+        toast.error(result.error || 'Failed to delete selected users')
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error)
+      toast.error('Failed to delete selected users')
+    }
+  }
+
+  const handleDeleteAll = async (password: string) => {
+    try {
+      const response = await fetch('/api/users/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          password,
+          deleteAll: true
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        toast.success(result.message)
+        fetchUsers() // Refresh the list
+      } else {
+        toast.error(result.error || 'Failed to delete all users')
+      }
+    } catch (error) {
+      console.error('Delete all error:', error)
+      toast.error('Failed to delete all users')
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       username: "",
@@ -467,7 +525,7 @@ export default function UsersPage() {
 
                 <DataTable
                   data={users}
-                  columns={columns}
+                  columns={session?.user?.role === 'Admin' ? [createSelectionColumn<UserType>(), ...columns] : columns}
                   isLoading={loading}
                   searchPlaceholder="Search users..."
                   pagination={{
@@ -478,6 +536,10 @@ export default function UsersPage() {
                   }}
                   onPaginationChange={handlePaginationChange}
                   meta={{ onView: handleView, onEdit: handleEdit, onDelete: handleDelete }}
+                  enableBulkActions={session?.user?.role === 'Admin'}
+                  entityName="Users"
+                  onBulkDelete={handleBulkDelete}
+                  onDeleteAll={handleDeleteAll}
                 />
               </>
             )}

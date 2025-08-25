@@ -106,6 +106,7 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden; /* Prevent horizontal scroll */
   }
   
   /* Typography */
@@ -307,6 +308,24 @@
   
   .text-responsive-xl {
     @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
+  }
+
+  /* Layout Fixes */
+  .app-layout-container {
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .app-main-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  
+  .app-content-wrapper {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }
 

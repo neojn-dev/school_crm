@@ -39,10 +39,14 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Trash2,
+  AlertTriangle
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { BulkDeleteDialog } from "@/components/ui/bulk-delete-dialog"
+import { useSession } from "next-auth/react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -60,10 +64,14 @@ interface DataTableProps<TData, TValue> {
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
   onEdit?: (id: string) => void
   onDelete?: (id: string) => Promise<void>
+  onBulkDelete?: (ids: string[], password?: string) => Promise<void>
+  onDeleteAll?: (password: string) => Promise<void>
   searchPlaceholder?: string
   exportData?: () => void
   loading?: boolean
   meta?: Record<string, any>
+  enableBulkActions?: boolean
+  entityName?: string
 }
 
 
@@ -79,10 +87,14 @@ export function DataTable<TData, TValue>({
   onPaginationChange,
   onEdit,
   onDelete,
+  onBulkDelete,
+  onDeleteAll,
   searchPlaceholder,
   exportData,
   loading,
   meta,
+  enableBulkActions = false,
+  entityName = "Records",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -91,6 +103,13 @@ export function DataTable<TData, TValue>({
   const [globalFilter, setGlobalFilter] = useState("")
   const [density, setDensity] = useState<"comfortable" | "compact" | "normal">("normal")
   const [tableReady, setTableReady] = useState(false)
+  const [bulkDeleteDialog, setBulkDeleteDialog] = useState<{
+    open: boolean
+    isDeleteAll: boolean
+    selectedIds: string[]
+  }>({ open: false, isDeleteAll: false, selectedIds: [] })
+  
+  const { data: session } = useSession()
 
   const table = useReactTable({
     data,
@@ -105,6 +124,7 @@ export function DataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
+    enableRowSelection: enableBulkActions,
     meta,
     initialState: {
       pagination: {
@@ -155,6 +175,35 @@ export function DataTable<TData, TValue>({
     if (onPaginationChange) {
       onPaginationChange(newPagination)
     }
+  }
+
+  // Bulk delete handlers
+  const selectedRows = table.getFilteredSelectedRowModel().rows
+  const selectedIds = selectedRows.map(row => (row.original as any).id)
+  const isAdmin = session?.user?.role === 'Admin'
+
+  const handleBulkDelete = async (password?: string) => {
+    if (onBulkDelete && selectedIds.length > 0) {
+      await onBulkDelete(selectedIds, password)
+      setRowSelection({})
+      setBulkDeleteDialog({ open: false, isDeleteAll: false, selectedIds: [] })
+    }
+  }
+
+  const handleDeleteAll = async (password: string) => {
+    if (onDeleteAll) {
+      await onDeleteAll(password)
+      setRowSelection({})
+      setBulkDeleteDialog({ open: false, isDeleteAll: false, selectedIds: [] })
+    }
+  }
+
+  const openBulkDeleteDialog = (isDeleteAll: boolean = false) => {
+    setBulkDeleteDialog({
+      open: true,
+      isDeleteAll,
+      selectedIds: isDeleteAll ? [] : selectedIds
+    })
   }
 
   // Helper function to safely get current page size
@@ -312,6 +361,37 @@ export function DataTable<TData, TValue>({
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected
             </Badge>
+          )}
+
+          {/* Bulk Actions */}
+          {enableBulkActions && isAdmin && (
+            <div className="flex items-center space-x-2">
+              {/* Delete Selected */}
+              {selectedIds.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => openBulkDeleteDialog(false)}
+                  className="h-8"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected ({selectedIds.length})
+                </Button>
+              )}
+
+              {/* Delete All */}
+              {onDeleteAll && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openBulkDeleteDialog(true)}
+                  className="h-8 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Delete All
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
@@ -589,6 +669,16 @@ export function DataTable<TData, TValue>({
           </div>
         </div>
       </div>
+
+      {/* Bulk Delete Dialog */}
+      <BulkDeleteDialog
+        open={bulkDeleteDialog.open}
+        onOpenChange={(open) => setBulkDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={bulkDeleteDialog.isDeleteAll ? handleDeleteAll : handleBulkDelete}
+        selectedCount={bulkDeleteDialog.isDeleteAll ? data.length : selectedIds.length}
+        entityName={entityName}
+        isDeleteAll={bulkDeleteDialog.isDeleteAll}
+      />
     </div>
   )
 }
