@@ -8,29 +8,9 @@ import { Button } from "@/components/ui/button"
 import { 
   CheckCircle, 
   ArrowRight, 
-  Shield,
-  Clock,
-  MessageSquare,
   AlertCircle,
   Loader2
 } from "lucide-react"
-const features = [
-  {
-    icon: Shield,
-    title: "Secure Verification",
-    description: "Your account is verified with bank-level security"
-  },
-  {
-    icon: Clock,
-    title: "Quick Process",
-    description: "Get verified in seconds, not minutes"
-  },
-  {
-    icon: MessageSquare,
-    title: "Instant Access",
-    description: "Start using your account immediately"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -73,38 +53,26 @@ function VerifyPageContent() {
 
       // Prevent multiple verification attempts using ref
       if (hasAttemptedVerification.current) {
-        console.log("🔍 Frontend: Verification already attempted, skipping...")
         return
       }
 
       hasAttemptedVerification.current = true
-      console.log("🔍 Frontend: Starting verification for token:", token)
 
       try {
         const response = await fetch(`/api/auth/verify?token=${token}`, {
           method: 'GET',
         })
 
-        console.log("🔍 Frontend: Response received:", {
-          status: response.status,
-          ok: response.ok,
-          statusText: response.statusText,
-          url: response.url
-        })
-
         if (response.ok) {
           const data = await response.json()
-          console.log("🔍 Frontend: Success response data:", data)
           setError(null) // Clear any previous errors
           setIsVerified(true)
-          console.log("🔍 Frontend: State updated - isVerified: true, error: null")
         } else {
           const errorData = await response.json()
-          console.log("🔍 Frontend: Error response data:", errorData)
           setError(errorData.error || "Verification failed")
         }
       } catch (err) {
-        console.error("🔍 Frontend: Fetch error:", err)
+        console.error("Verification fetch error:", err)
         setError("Network error occurred during verification")
       } finally {
         setIsLoading(false)
@@ -114,7 +82,7 @@ function VerifyPageContent() {
     verifyEmail()
   }, [token]) // Remove hasAttemptedVerification from dependencies
 
-  console.log("🔍 Frontend: Rendering with state - isLoading:", isLoading, "isVerified:", isVerified, "error:", error)
+
   
   if (isLoading) {
     return (

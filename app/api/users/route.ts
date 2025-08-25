@@ -3,18 +3,17 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { createUserSchema, userQuerySchema } from '@/lib/validations/users'
+import { generateSecurePassword, generateRandomString } from '@/lib/utils'
+import { sendAdminCreatedAccountVerificationEmail, sendTemporaryPasswordEmail } from '@/lib/email'
+import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request: NextRequest) {
-  console.log('🔍 [API DEBUG] GET /api/users called')
   
   try {
-    console.log('🔍 [API DEBUG] Getting server session...')
     const session = await getServerSession(authOptions)
-    console.log('🔍 [API DEBUG] Session result:', session ? 'Authenticated' : 'No session')
     
     if (!session) {
-      console.log('❌ [API DEBUG] Unauthorized - no session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -51,7 +50,12 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where clause for users with filters
-    const where: any = {}
+    const where: any = {
+      // Hide admin user from listing (exclude username 'admin')
+      username: {
+        not: 'admin'
+      }
+    }
 
     if (search) {
       where.OR = [
@@ -84,9 +88,6 @@ export async function GET(request: NextRequest) {
       orderBy.createdAt = sortOrder
     }
 
-    console.log('🔍 [API DEBUG] User authenticated:', session.user?.email)
-    console.log('🔍 [API DEBUG] Querying database for users with pagination...')
-    console.log('🔍 [API DEBUG] Query params:', { page, limit, search, roleId, isActive })
     
     // Get total count for pagination
     const total = await prisma.user.count({ where })
@@ -118,8 +119,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('🔍 [API DEBUG] Database query completed')
-    console.log('🔍 [API DEBUG] Found users count:', users.length, 'of', total, 'total')
     
     const response = {
       data: users,
@@ -166,8 +165,19 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     
+    // For admin-created users, we don't require password in the request
+    // We'll generate one automatically
+    const adminCreateUserSchema = z.object({
+      username: z.string().min(3).max(30),
+      email: z.string().email(),
+      firstName: z.string().min(1).max(50),
+      lastName: z.string().min(1).max(50),
+      roleId: z.string().optional().nullable(),
+      isActive: z.boolean().default(true),
+    })
+    
     // Validate the request body
-    const validationResult = createUserSchema.safeParse(body)
+    const validationResult = adminCreateUserSchema.safeParse(body)
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: validationResult.error.errors },
@@ -175,7 +185,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { username, email, firstName, lastName, roleId, isActive, password } = validationResult.data
+    const { username, email, firstName, lastName, roleId, isActive } = validationResult.data
 
     // Check if username already exists
     const existingUsername = await prisma.user.findUnique({
@@ -202,31 +212,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role exists if provided (and not null/empty)
-    if (roleId && roleId !== null) {
+    if (roleId && roleId !== null && roleId !== '') {
       const role = await prisma.role.findUnique({
-        where: { id: roleId }
+        where: { 
+          id: roleId,
+          isActive: true 
+        }
       })
 
       if (!role) {
         return NextResponse.json(
-          { error: 'Invalid role ID' },
+          { error: 'Invalid or inactive role ID' },
           { status: 400 }
         )
       }
     }
 
-    // Hash the password
-    const passwordHash = await bcrypt.hash(password, 12)
+    // Generate secure password for admin-created user
+    const generatedPassword = generateSecurePassword()
+    const passwordHash = await bcrypt.hash(generatedPassword, 12)
 
+    // Create user with admin-created flags
     const user = await prisma.user.create({
       data: {
         username,
         email,
         firstName,
         lastName,
-        roleId,
+        roleId: roleId === '' ? null : roleId,
         isActive: isActive !== undefined ? isActive : true,
         passwordHash,
+        mustChangePassword: true, // Force password change on first login
+        createdByAdmin: true, // Mark as admin-created
       },
       select: {
         id: true,
@@ -237,6 +254,8 @@ export async function POST(request: NextRequest) {
         roleId: true,
         isActive: true,
         emailVerified: true,
+        mustChangePassword: true,
+        createdByAdmin: true,
         createdAt: true,
         updatedAt: true,
         role: {
@@ -249,7 +268,41 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(user, { status: 201 })
+    // Create verification token
+    const verificationToken = generateRandomString(32)
+    await prisma.verificationToken.create({
+      data: {
+        token: verificationToken,
+        userId: user.id,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    })
+
+    // Send dual emails (verification + password)
+    try {
+      // Send verification email with admin-created account instructions
+      await sendAdminCreatedAccountVerificationEmail(
+        email, 
+        verificationToken, 
+        firstName
+      )
+
+      // Send temporary password email separately for security
+      await sendTemporaryPasswordEmail(
+        email, 
+        generatedPassword, 
+        firstName
+      )
+    } catch (emailError) {
+      console.error('Failed to send emails:', emailError)
+      // Don't fail the user creation if email fails, but log it
+      // The admin can manually send the credentials if needed
+    }
+
+    return NextResponse.json({
+      ...user,
+      message: 'User created successfully. Verification and password emails have been sent.'
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating user:', error)
     return NextResponse.json(

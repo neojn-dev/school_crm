@@ -8,7 +8,8 @@ export default withAuth(
         req.nextUrl.pathname.startsWith("/doctors") ||
         req.nextUrl.pathname.startsWith("/engineers") ||
         req.nextUrl.pathname.startsWith("/teachers") ||
-        req.nextUrl.pathname.startsWith("/lawyers")) {
+        req.nextUrl.pathname.startsWith("/lawyers") ||
+        req.nextUrl.pathname.startsWith("/change-password")) {
       if (!req.nextauth.token) {
         return NextResponse.redirect(new URL("/signin", req.url))
       }
@@ -33,7 +34,8 @@ export default withAuth(
             req.nextUrl.pathname.startsWith("/doctors") ||
             req.nextUrl.pathname.startsWith("/engineers") ||
             req.nextUrl.pathname.startsWith("/teachers") ||
-            req.nextUrl.pathname.startsWith("/lawyers")) {
+            req.nextUrl.pathname.startsWith("/lawyers") ||
+            req.nextUrl.pathname.startsWith("/change-password")) {
           return !!token
         }
         
@@ -51,6 +53,7 @@ export const config = {
     "/engineers/:path*",
     "/teachers/:path*",
     "/lawyers/:path*",
+    "/change-password/:path*",
     "/signin",
     "/signup", 
     "/verify",

@@ -61,8 +61,6 @@ export default function UsersPage() {
     email: "",
     firstName: "",
     lastName: "",
-    password: "",
-    confirmPassword: "",
     roleId: "",
     isActive: true
   })
@@ -188,25 +186,17 @@ export default function UsersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validate passwords match for new users or when password is being changed
-    if (!editingUser || (formData.password && formData.confirmPassword)) {
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Passwords don't match")
-        return
-      }
-    }
+    // No password validation needed - admin-created users get auto-generated passwords
+    // Editing users don't have password fields either
     
     try {
       const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users'
       const method = editingUser ? 'PUT' : 'POST'
       
-      // Prepare data - exclude confirmPassword and empty password for updates
+      // Prepare data - exclude password fields (auto-generated for new users, not editable for existing users)
       const submitData = { ...formData }
+      delete (submitData as any).password
       delete (submitData as any).confirmPassword
-      
-      if (editingUser && !submitData.password) {
-        delete (submitData as any).password
-      }
       
       // Handle "none" role selection (convert to empty string for API)
       if (submitData.roleId === 'none') {
@@ -285,8 +275,6 @@ export default function UsersPage() {
         email: user.email,
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        password: "",
-        confirmPassword: "",
         roleId: user.roleId || "none", // Use "none" for empty role
         isActive: user.isActive
       })
@@ -300,8 +288,6 @@ export default function UsersPage() {
       email: "",
       firstName: "",
       lastName: "",
-      password: "",
-      confirmPassword: "",
       roleId: "none", // Default to "none" for no role
       isActive: true
     })
@@ -323,8 +309,6 @@ export default function UsersPage() {
       email,
       firstName,
       lastName,
-      password: "TempPass123!",
-      confirmPassword: "TempPass123!",
       roleId: "none", // Default to "none" for no role
       isActive: true
     })
@@ -474,10 +458,12 @@ export default function UsersPage() {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingUser ? 'Edit User' : 'Add New User'}
+                {editingUser ? 'Edit User' : 'Create New User Account'}
               </DialogTitle>
               <DialogDescription>
-                {editingUser ? 'Update user information and role' : 'Create a new user account'}
+                {editingUser 
+                  ? 'Update user information and role. Passwords cannot be changed here.' 
+                  : 'Create a new user account. A secure password will be automatically generated and sent via email.'}
               </DialogDescription>
             </DialogHeader>
             
@@ -539,33 +525,20 @@ export default function UsersPage() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="password">
-                    Password {editingUser ? "(leave empty to keep current)" : "*"}
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required={!editingUser}
-                    placeholder="Enter password"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="confirmPassword">
-                    Confirm Password {editingUser ? "(if changing)" : "*"}
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    required={!editingUser || !!formData.password}
-                    placeholder="Confirm password"
-                  />
-                </div>
+                {/* Password fields removed - admin-created users get auto-generated passwords */}
+                {!editingUser && (
+                  <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-medium">Automatic Password Generation</span>
+                    </div>
+                    <p className="text-blue-700 text-sm mt-1">
+                      A secure password will be automatically generated and sent to the user via email along with account verification instructions.
+                    </p>
+                  </div>
+                )}
 
                 <div className="md:col-span-2">
                   <Label htmlFor="roleId">Role</Label>

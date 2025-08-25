@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -13,47 +13,21 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { 
   Eye, 
   EyeOff, 
-  Mail, 
-  Lock, 
+  Lock,
   User, 
   ArrowRight, 
   Github, 
   Chrome,
-  Sparkles,
-  Shield,
-  Zap,
-  Heart,
   AlertCircle
 } from "lucide-react"
 
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { AuthLoadingPage } from "@/components/ui/loading-spinner"
+import { signinSchema, type SigninForm } from "@/lib/validations/auth"
+import { handleApiError, getErrorMessage, ERROR_MESSAGES } from "@/lib/error-handling"
 
-const signinSchema = z.object({
-  identifier: z.string().min(1, "Username or email is required"),
-  password: z.string().min(1, "Password is required"),
-  rememberMe: z.boolean().optional(),
-})
 
-type SigninForm = z.infer<typeof signinSchema>
-
-const features = [
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Bank-level security with SOC 2 compliance and encryption"
-  },
-  {
-    icon: Zap,
-    title: "Lightning Fast",
-    description: "Optimized performance with global CDN and edge computing"
-  },
-  {
-    icon: Heart,
-    title: "User First",
-    description: "Designed with accessibility and user experience in mind"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -139,13 +113,14 @@ export default function SignInPage() {
           console.warn('Failed to check user status:', error)
         }
         
-        setError("Invalid username or password")
+        setError(ERROR_MESSAGES.INVALID_CREDENTIALS)
       } else if (result?.ok) {
         // Use replace instead of push to prevent back navigation issues
         router.replace("/dashboard")
       }
     } catch (error) {
-      setError("An error occurred during sign in")
+      const appError = handleApiError(error)
+      setError(appError.message)
     } finally {
       setIsLoading(false)
     }
@@ -161,18 +136,7 @@ export default function SignInPage() {
 
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="container-custom">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-              <div className="w-8 h-8 bg-white rounded-lg"></div>
-            </div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </div>
-    )
+    return <AuthLoadingPage />
   }
 
   return (

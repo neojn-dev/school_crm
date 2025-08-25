@@ -16,52 +16,11 @@ import {
   Lock, 
   CheckCircle, 
   ArrowRight,
-  Sparkles,
-  Shield,
-  Zap,
-  Key,
   AlertCircle
 } from "lucide-react"
-const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/(?=.*[a-z])/, "Password must contain at least one lowercase letter")
-    .regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
-    .regex(/(?=.*\d)/, "Password must contain at least one number")
-    .regex(/(?=.*[@$!%*?&])/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+import { resetPasswordSchema, type ResetPasswordForm, passwordRequirements } from "@/lib/validations/auth"
 
-type ResetPasswordForm = z.infer<typeof resetPasswordSchema>
 
-const passwordRequirements = [
-  { id: "length", label: "At least 8 characters", regex: /.{8,}/ },
-  { id: "lowercase", label: "One lowercase letter", regex: /(?=.*[a-z])/ },
-  { id: "uppercase", label: "One uppercase letter", regex: /(?=.*[A-Z])/ },
-  { id: "number", label: "One number", regex: /(?=.*\d)/ },
-  { id: "special", label: "One special character", regex: /(?=.*[@$!%*?&])/ },
-]
-
-const features = [
-  {
-    icon: Shield,
-    title: "Strong Security",
-    description: "Your new password meets enterprise security standards"
-  },
-  {
-    icon: Zap,
-    title: "Instant Access",
-    description: "Get back to your account immediately"
-  },
-  {
-    icon: Key,
-    title: "Unique & Secure",
-    description: "Generated with industry best practices"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },

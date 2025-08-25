@@ -6,6 +6,8 @@ import { sendVerificationEmail } from "@/lib/email"
 import { generateRandomString } from "@/lib/utils"
 
 const signupSchema = z.object({
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
   username: z.string().min(3).max(20),
   email: z.string().email(),
   password: z.string().min(8),
@@ -14,7 +16,7 @@ const signupSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, email, password } = signupSchema.parse(body)
+    const { firstName, lastName, username, email, password } = signupSchema.parse(body)
 
     // Check if user already exists
     const existingUser = await db.user.findFirst({
@@ -36,19 +38,32 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12)
 
-    // Create user (without role initially - will be assigned by admin)
+    // Find the default "User" role
+    const defaultRole = await db.role.findFirst({
+      where: { name: "User" }
+    })
+
+    if (!defaultRole) {
+      return NextResponse.json(
+        { error: "Default user role not found. Please contact administrator." },
+        { status: 500 }
+      )
+    }
+
+    // Create user with default "User" role
     const user = await db.user.create({
       data: {
+        firstName,
+        lastName,
         username,
         email,
         passwordHash,
-        // roleId will be null initially - admin can assign roles later
+        roleId: defaultRole.id, // Assign default "User" role
       },
     })
 
     // Create verification token
     const token = generateRandomString(32)
-    console.log("🔑 Creating verification token:", token, "for user:", user.id)
     
     await db.verificationToken.create({
       data: {
@@ -58,14 +73,11 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    console.log("✅ Verification token created successfully")
-
     // Send verification email
     try {
       await sendVerificationEmail(email, token)
-      console.log("📧 Verification email sent to:", email)
     } catch (error) {
-      console.error("❌ Failed to send verification email:", error)
+      console.error("Failed to send verification email:", error)
       // Don't fail the signup if email fails
     }
 

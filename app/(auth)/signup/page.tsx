@@ -19,54 +19,15 @@ import {
   ArrowRight, 
   Github, 
   Chrome,
-  Sparkles,
-  Shield,
-  Zap,
-  Heart,
   CheckCircle,
-  Star,
   AlertCircle,
   Check,
   X
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { signupSchema, type SignupForm, passwordRequirements } from "@/lib/validations/auth"
 
-const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters").max(20, "Username must be less than 20 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/\d/, "Password must contain at least one number")
-    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-  agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and conditions"),
-  marketingEmails: z.boolean().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
 
-type SignupForm = z.infer<typeof signupSchema>
-
-const benefits = [
-  {
-    icon: Star,
-    title: "Premium Features",
-    description: "Access to advanced tools and analytics"
-  },
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Bank-level security and compliance"
-  },
-  {
-    icon: Zap,
-    title: "Lightning Fast",
-    description: "Optimized performance and speed"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -134,6 +95,8 @@ export default function SignUpPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
           username: data.username,
           email: data.email,
           password: data.password,
@@ -170,7 +133,7 @@ export default function SignUpPage() {
   }
 
   const nextStep = async () => {
-    const isValidStep = await trigger(["username", "email", "password", "confirmPassword"])
+    const isValidStep = await trigger(["firstName", "lastName", "username", "email", "password", "confirmPassword"])
     if (isValidStep) {
       setCurrentStep(2)
     }
@@ -271,6 +234,59 @@ export default function SignUpPage() {
                         transition={{ duration: 0.3 }}
                         className="space-y-4"
                       >
+                        {/* First Name and Last Name Fields */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label htmlFor="firstName" className="text-sm font-semibold text-gray-700">
+                              First Name
+                            </Label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Input
+                                id="firstName"
+                                placeholder="First name"
+                                className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl transition-all duration-200"
+                                {...register("firstName")}
+                              />
+                            </div>
+                            {errors.firstName && (
+                              <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-sm text-red-600 flex items-center gap-2"
+                              >
+                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                {errors.firstName.message}
+                              </motion.p>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label htmlFor="lastName" className="text-sm font-semibold text-gray-700">
+                              Last Name
+                            </Label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Input
+                                id="lastName"
+                                placeholder="Last name"
+                                className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl transition-all duration-200"
+                                {...register("lastName")}
+                              />
+                            </div>
+                            {errors.lastName && (
+                              <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-sm text-red-600 flex items-center gap-2"
+                              >
+                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                {errors.lastName.message}
+                              </motion.p>
+                            )}
+                          </div>
+                        </div>
+
                         {/* Username Field */}
                         <div className="space-y-1">
                           <Label htmlFor="username" className="text-sm font-semibold text-gray-700">
@@ -366,56 +382,21 @@ export default function SignUpPage() {
                             >
                               <p className="text-xs font-semibold text-gray-700 mb-2">Password Requirements:</p>
                               <div className="grid grid-cols-2 gap-1 text-xs">
-                                <div className={`flex items-center gap-1.5 ${
-                                  watchedFields.password.length >= 8 ? 'text-green-600' : 'text-gray-500'
-                                }`}>
-                                  {watchedFields.password.length >= 8 ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <X className="h-3 w-3" />
-                                  )}
-                                  <span>At least 8 characters</span>
-                                </div>
-                                <div className={`flex items-center gap-1.5 ${
-                                  /[a-z]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
-                                }`}>
-                                  {/[a-z]/.test(watchedFields.password) ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <X className="h-3 w-3" />
-                                  )}
-                                  <span>One lowercase letter</span>
-                                </div>
-                                <div className={`flex items-center gap-1.5 ${
-                                  /[A-Z]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
-                                }`}>
-                                  {/[A-Z]/.test(watchedFields.password) ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <X className="h-3 w-3" />
-                                  )}
-                                  <span>One uppercase letter</span>
-                                </div>
-                                <div className={`flex items-center gap-1.5 ${
-                                  /\d/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
-                                }`}>
-                                  {/\d/.test(watchedFields.password) ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <X className="h-3 w-3" />
-                                  )}
-                                  <span>One number</span>
-                                </div>
-                                <div className={`flex items-center gap-1.5 ${
-                                  /[^a-zA-Z0-9]/.test(watchedFields.password) ? 'text-green-600' : 'text-gray-500'
-                                }`}>
-                                  {/[^a-zA-Z0-9]/.test(watchedFields.password) ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <X className="h-3 w-3" />
-                                  )}
-                                  <span>One special character</span>
-                                </div>
+                                {passwordRequirements.map((requirement) => {
+                                  const isMet = requirement.regex.test(watchedFields.password)
+                                  return (
+                                    <div key={requirement.id} className={`flex items-center gap-1.5 ${
+                                      isMet ? 'text-green-600' : 'text-gray-500'
+                                    }`}>
+                                      {isMet ? (
+                                        <Check className="h-3 w-3" />
+                                      ) : (
+                                        <X className="h-3 w-3" />
+                                      )}
+                                      <span>{requirement.label}</span>
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </motion.div>
                           )}

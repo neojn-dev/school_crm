@@ -4,15 +4,11 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  console.log('🔍 [API DEBUG] GET /api/doctors called')
   
   try {
-    console.log('🔍 [API DEBUG] Getting server session...')
     const session = await getServerSession(authOptions)
-    console.log('🔍 [API DEBUG] Session result:', session ? 'Authenticated' : 'No session')
     
     if (!session) {
-      console.log('❌ [API DEBUG] Unauthorized - no session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -84,9 +80,6 @@ export async function GET(request: NextRequest) {
       orderBy.createdAt = sortOrder
     }
 
-    console.log('🔍 [API DEBUG] User authenticated:', session.user?.email)
-    console.log('🔍 [API DEBUG] Querying database for doctors with pagination...')
-    console.log('🔍 [API DEBUG] Query params:', { page, limit, search, department, specialization, isActive })
     
     // Get total count for pagination
     const total = await prisma.doctor.count({ where })
@@ -114,8 +107,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('🔍 [API DEBUG] Database query completed')
-    console.log('🔍 [API DEBUG] Found doctors count:', doctors.length, 'of', total, 'total')
     
     const response = {
       data: doctors,
@@ -215,17 +206,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Log session information for debugging
-    console.log('🔍 [API DEBUG] Full session object:', JSON.stringify(session, null, 2))
-    console.log('🔍 [API DEBUG] Session user:', session.user)
-    console.log('🔍 [API DEBUG] Session user keys:', Object.keys(session.user))
-    console.log('🔍 [API DEBUG] User ID from session:', session.user.id)
-    console.log('🔍 [API DEBUG] Session user email:', session.user.email)
     
     // Try to get user ID from session or fallback to email lookup
     let userId = session.user.id
     
     if (!userId && session.user.email) {
-      console.log('🔍 [API DEBUG] User ID not in session, trying to find user by email:', session.user.email)
       try {
         const user = await prisma.user.findUnique({
           where: { email: session.user.email },
@@ -233,7 +218,6 @@ export async function POST(request: NextRequest) {
         })
         if (user) {
           userId = user.id
-          console.log('🔍 [API DEBUG] Found user ID by email:', userId)
         } else {
           console.error('❌ [API ERROR] No user found with email:', session.user.email)
         }

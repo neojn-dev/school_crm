@@ -9,114 +9,15 @@ import { Button } from "@/components/ui/button"
 import { 
   ChevronLeft, 
   ChevronRight,
-  Users, 
-  BarChart3,
-  Stethoscope,
-  Wrench,
-  Scale,
-  Layers,
-  Building2,
-  UserCog,
-  Shield
+  Building2
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { getFilteredNavigationItems } from "@/lib/navigation"
 
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
 }
-
-// Hypermodern pastel color scheme
-const navigationItems = [
-  { 
-    title: "Dashboard", 
-    href: "/dashboard", 
-    icon: BarChart3, 
-    color: "from-blue-100 to-blue-200",
-    activeColor: "from-blue-200 to-blue-300",
-    iconBg: "bg-blue-50",
-    activeIconBg: "bg-blue-100",
-    textColor: "text-blue-700",
-    hoverBg: "hover:bg-blue-50/80"
-  },
-  { 
-    title: "Teachers", 
-    href: "/teachers", 
-    icon: Users, 
-    color: "from-emerald-100 to-emerald-200",
-    activeColor: "from-emerald-200 to-emerald-300",
-    iconBg: "bg-emerald-50",
-    activeIconBg: "bg-emerald-100",
-    textColor: "text-emerald-700",
-    hoverBg: "hover:bg-emerald-50/80"
-  },
-  { 
-    title: "Doctors", 
-    href: "/doctors", 
-    icon: Stethoscope, 
-    color: "from-rose-100 to-rose-200",
-    activeColor: "from-rose-200 to-rose-300",
-    iconBg: "bg-rose-50",
-    activeIconBg: "bg-rose-100",
-    textColor: "text-rose-700",
-    hoverBg: "hover:bg-rose-50/80"
-  },
-  { 
-    title: "Engineers", 
-    href: "/engineers", 
-    icon: Wrench, 
-    color: "from-amber-100 to-amber-200",
-    activeColor: "from-amber-200 to-amber-300",
-    iconBg: "bg-amber-50",
-    activeIconBg: "bg-amber-100",
-    textColor: "text-amber-700",
-    hoverBg: "hover:bg-amber-50/80"
-  },
-  { 
-    title: "Lawyers", 
-    href: "/lawyers", 
-    icon: Scale, 
-    color: "from-purple-100 to-purple-200",
-    activeColor: "from-purple-200 to-purple-300",
-    iconBg: "bg-purple-50",
-    activeIconBg: "bg-purple-100",
-    textColor: "text-purple-700",
-    hoverBg: "hover:bg-purple-50/80"
-  },
-  { 
-    title: "Master Data", 
-    href: "/master-data", 
-    icon: Layers, 
-    color: "from-slate-100 to-slate-200",
-    activeColor: "from-slate-200 to-slate-300",
-    iconBg: "bg-slate-50",
-    activeIconBg: "bg-slate-100",
-    textColor: "text-slate-700",
-    hoverBg: "hover:bg-slate-50/80"
-  },
-  { 
-    title: "Users", 
-    href: "/users", 
-    icon: UserCog, 
-    color: "from-cyan-100 to-cyan-200",
-    activeColor: "from-cyan-200 to-cyan-300",
-    iconBg: "bg-cyan-50",
-    activeIconBg: "bg-cyan-100",
-    textColor: "text-cyan-700",
-    hoverBg: "hover:bg-cyan-50/80"
-  },
-  { 
-    title: "Roles", 
-    href: "/roles", 
-    icon: Shield, 
-    color: "from-orange-100 to-orange-200",
-    activeColor: "from-orange-200 to-orange-300",
-    iconBg: "bg-orange-50",
-    activeIconBg: "bg-orange-100",
-    textColor: "text-orange-700",
-    hoverBg: "hover:bg-orange-50/80"
-  }
-]
 
 const containerVariants = {
   expanded: { width: "17rem" },
@@ -133,17 +34,8 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const { data: session } = useSession()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
-  // Filter navigation items based on user role
-  const filteredNavigationItems = navigationItems.filter(item => {
-    // Only show Users and Roles to Admin users
-    if (item.href === '/users' || item.href === '/roles') {
-      // Check if user has admin role
-      const userRole = session?.user?.role
-      return userRole === 'Admin'
-    }
-    // Show all other items to everyone
-    return true
-  })
+  // Get filtered navigation items based on user role
+  const filteredNavigationItems = getFilteredNavigationItems(session?.user?.role)
 
   return (
     <motion.div

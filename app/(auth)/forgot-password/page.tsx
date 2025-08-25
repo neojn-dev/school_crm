@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { fadeInUp, hoverScale } from "@/lib/animations"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -12,35 +13,11 @@ import { Label } from "@/components/ui/label"
 import { 
   Mail, 
   ArrowLeft, 
-  CheckCircle, 
-  Sparkles,
-  Shield,
-  Clock,
-  MessageSquare
+  CheckCircle
 } from "lucide-react"
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-})
+import { forgotPasswordSchema, type ForgotPasswordForm } from "@/lib/validations/auth"
 
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>
 
-const features = [
-  {
-    icon: Shield,
-    title: "Secure Process",
-    description: "Your password reset is encrypted and secure"
-  },
-  {
-    icon: Clock,
-    title: "Quick Recovery",
-    description: "Get back to your account in minutes"
-  },
-  {
-    icon: MessageSquare,
-    title: "Email Delivery",
-    description: "Instant delivery to your inbox"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },

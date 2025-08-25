@@ -136,14 +136,17 @@ export async function PUT(
     }
 
     // Validate role exists if provided (and not null/empty)
-    if (roleId && roleId !== null) {
+    if (roleId && roleId !== null && roleId !== '') {
       const role = await prisma.role.findUnique({
-        where: { id: roleId }
+        where: { 
+          id: roleId,
+          isActive: true // Only allow assignment to active roles
+        }
       })
 
       if (!role) {
         return NextResponse.json(
-          { error: 'Invalid role ID' },
+          { error: 'Invalid or inactive role ID' },
           { status: 400 }
         )
       }
@@ -190,8 +193,16 @@ export async function PUT(
     return NextResponse.json(user)
   } catch (error) {
     console.error('Error updating user:', error)
+    
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     )
   }
