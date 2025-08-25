@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { AppHeader, AppFooter, Sidebar } from "@/components/website-components"
 import { ToastContainerWrapper } from "@/components/ui/toast-container"
+import { useSessionValidator } from "@/hooks/use-session-validator"
 
 
 const navigationItems = [
@@ -104,6 +105,14 @@ export default function AppLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+
+  // Initialize session validator with 5-minute intervals
+  useSessionValidator({
+    intervalMs: 5 * 60 * 1000, // 5 minutes
+    validateOnFocus: true,      // Validate when user returns to tab
+    validateOnMount: true,      // Validate on page refresh/load
+    showNotifications: true     // Show toast notifications
+  })
 
   // Ensure component is mounted before rendering
   useEffect(() => {
