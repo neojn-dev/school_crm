@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -21,8 +21,9 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied. Admin privileges required.' }, { status: 403 })
     }
 
-    // Validate the user ID
-    const validationResult = userIdSchema.safeParse({ id: params.id })
+    // Await params and validate the user ID
+    const { id } = await params
+    const validationResult = userIdSchema.safeParse({ id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         username: true,
@@ -69,7 +70,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -85,8 +86,9 @@ export async function PUT(
 
     const body = await request.json()
     
-    // Validate the request body
-    const validationResult = updateUserSchema.safeParse({ ...body, id: params.id })
+    // Await params and validate the request body
+    const { id } = await params
+    const validationResult = updateUserSchema.safeParse({ ...body, id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: validationResult.error.errors },
@@ -98,7 +100,7 @@ export async function PUT(
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingUser) {
@@ -162,7 +164,7 @@ export async function PUT(
     }
 
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       select: {
         id: true,
@@ -197,7 +199,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -211,8 +213,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied. Admin privileges required.' }, { status: 403 })
     }
 
-    // Validate the user ID
-    const validationResult = userIdSchema.safeParse({ id: params.id })
+    // Await params and validate the user ID
+    const { id } = await params
+    const validationResult = userIdSchema.safeParse({ id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Invalid user ID' },
@@ -222,7 +225,7 @@ export async function DELETE(
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingUser) {
@@ -230,7 +233,7 @@ export async function DELETE(
     }
 
     // Prevent users from deleting themselves
-    if (session.user?.id === params.id) {
+    if (session.user?.id === id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -239,28 +242,28 @@ export async function DELETE(
 
     // Delete related records first (cascade should handle this, but being explicit)
     await prisma.session.deleteMany({
-      where: { userId: params.id }
+      where: { userId: id }
     })
 
     await prisma.account.deleteMany({
-      where: { userId: params.id }
+      where: { userId: id }
     })
 
     await prisma.verificationToken.deleteMany({
-      where: { userId: params.id }
+      where: { userId: id }
     })
 
     await prisma.passwordResetToken.deleteMany({
-      where: { userId: params.id }
+      where: { userId: id }
     })
 
     await prisma.upload.deleteMany({
-      where: { userId: params.id }
+      where: { userId: id }
     })
 
     // Finally delete the user
     await prisma.user.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'User deleted successfully' })

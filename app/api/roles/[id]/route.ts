@@ -6,7 +6,7 @@ import { updateRoleSchema, roleIdSchema } from '@/lib/validations/roles'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,8 +20,9 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied. Admin privileges required.' }, { status: 403 })
     }
 
-    // Validate the role ID
-    const validationResult = roleIdSchema.safeParse({ id: params.id })
+    // Await params and validate the role ID
+    const { id } = await params
+    const validationResult = roleIdSchema.safeParse({ id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Invalid role ID' },
@@ -30,7 +31,7 @@ export async function GET(
     }
 
     const role = await prisma.role.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -63,7 +64,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -79,8 +80,9 @@ export async function PUT(
 
     const body = await request.json()
     
-    // Validate the request body
-    const validationResult = updateRoleSchema.safeParse({ ...body, id: params.id })
+    // Await params and validate the request body
+    const { id } = await params
+    const validationResult = updateRoleSchema.safeParse({ ...body, id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: validationResult.error.errors },
@@ -92,7 +94,7 @@ export async function PUT(
 
     // Check if role exists
     const existingRole = await prisma.role.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingRole) {
@@ -114,7 +116,7 @@ export async function PUT(
     }
 
     const role = await prisma.role.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(description !== undefined && { description }),
@@ -149,7 +151,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -163,8 +165,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied. Admin privileges required.' }, { status: 403 })
     }
 
-    // Validate the role ID
-    const validationResult = roleIdSchema.safeParse({ id: params.id })
+    // Await params and validate the role ID
+    const { id } = await params
+    const validationResult = roleIdSchema.safeParse({ id })
     if (!validationResult.success) {
       return NextResponse.json(
         { error: 'Invalid role ID' },
@@ -174,7 +177,7 @@ export async function DELETE(
 
     // Check if role exists
     const existingRole = await prisma.role.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -197,7 +200,7 @@ export async function DELETE(
     }
 
     await prisma.role.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'Role deleted successfully' })

@@ -39,9 +39,7 @@ export function AppHeader() {
                 <span className="text-sm font-medium text-gray-700">
                   Welcome, {
                     session?.user?.username || 
-                    session?.user?.email || 
                     (session as any)?.session?.user?.username || 
-                    (session as any)?.session?.user?.email || 
                     'User'
                   }
                 </span>

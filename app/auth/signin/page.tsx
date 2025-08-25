@@ -120,7 +120,7 @@ export default function SignInPage() {
       })
 
       if (result?.error) {
-        setError("Invalid username/email or password")
+        setError("Invalid username or password")
       } else if (result?.ok) {
         // Use replace instead of push to prevent back navigation issues
         router.replace("/dashboard")
@@ -213,7 +213,7 @@ export default function SignInPage() {
                       <Input
                         id="identifier"
                         type="text"
-                        placeholder="Enter your username or email"
+                        placeholder="Enter your username"
                         className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl transition-all duration-200"
                         disabled={isLoading}
                         {...register("identifier")}

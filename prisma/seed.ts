@@ -72,7 +72,7 @@ async function main() {
         passwordHash,
         firstName: 'Manager',
         lastName: 'User',
-        roleId: managerRole.id,
+        roleId: userRole.id, // Changed to userRole instead of managerRole
         emailVerified: new Date(),
         isActive: true,
       },
@@ -84,7 +84,7 @@ async function main() {
         passwordHash,
         firstName: 'Analyst',
         lastName: 'User',
-        roleId: userRole.id,
+        roleId: userRole.id, // Already correct
         emailVerified: new Date(),
         isActive: true,
       },
@@ -461,7 +461,7 @@ async function main() {
   console.log(`  • 100 Master Data entries created`)
   console.log('\n📋 Test accounts:')
   console.log('  Admin: admin@example.com / password123 (Admin role)')
-  console.log('  Manager: manager@example.com / password123 (Manager role)')
+  console.log('  Manager: manager@example.com / password123 (User role)')
   console.log('  Analyst: analyst@example.com / password123 (User role)')
 }
 

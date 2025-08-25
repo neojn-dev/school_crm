@@ -21,6 +21,15 @@ export async function POST(request: NextRequest) {
           { email: identifier },
         ],
       },
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          }
+        }
+      }
     })
 
     if (!user) {
@@ -34,6 +43,14 @@ export async function POST(request: NextRequest) {
     if (!user.emailVerified) {
       return NextResponse.json(
         { error: "Please verify your email before signing in" },
+        { status: 401 }
+      )
+    }
+
+    // Check if user account is active
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: "Your account has been deactivated. Please contact your administrator." },
         { status: 401 }
       )
     }
@@ -53,7 +70,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
+        role: user.role?.name || 'User',
         emailVerified: user.emailVerified,
       },
       message: "Sign in successful",

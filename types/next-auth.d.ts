@@ -7,7 +7,7 @@ declare module "next-auth" {
       id: string
       username: string
       role: string
-      roleId?: string
+      roleId?: string | null
     } & DefaultSession["user"]
     rememberMe?: boolean
   }
@@ -15,7 +15,7 @@ declare module "next-auth" {
   interface User extends DefaultUser {
     username: string
     role: string
-    roleId?: string
+    roleId?: string | null
     rememberMe?: boolean
   }
 }
@@ -25,7 +25,7 @@ declare module "next-auth/jwt" {
     id: string
     username: string
     role: string
-    roleId?: string
+    roleId?: string | null
     rememberMe?: boolean
   }
 }

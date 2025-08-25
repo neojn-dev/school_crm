@@ -43,6 +43,11 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        // Check if user account is active
+        if (!user.isActive) {
+          throw new Error('ACCOUNT_DEACTIVATED')
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.passwordHash
@@ -99,9 +104,12 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       try {
         if (token && session?.user) {
+          // Validate that the user is still active (but don't do this on every request for performance)
+          // Only check occasionally or skip for now since we have the data in the token
+          
           session.user.id = token.id as string
           session.user.role = token.role as string
-          session.user.roleId = token.roleId as string
+          session.user.roleId = token.roleId as string | null
           session.user.username = token.username as string
           session.rememberMe = token.rememberMe as boolean
         }

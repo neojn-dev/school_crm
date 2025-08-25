@@ -137,14 +137,9 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const filteredNavigationItems = navigationItems.filter(item => {
     // Only show Users and Roles to Admin users
     if (item.href === '/users' || item.href === '/roles') {
-      // Handle nested session structure
-      const userRole = session?.session?.user?.role || session?.user?.role
-      console.log('🔍 [Sidebar] Checking access for', item.href)
-      console.log('🔍 [Sidebar] User role:', userRole)
-      
-      const hasAccess = userRole === 'Admin'
-      console.log('🔍 [Sidebar] Has access:', hasAccess)
-      return hasAccess
+      // Handle nested session structure - check both possible locations
+      const userRole = session?.user?.role || (session as any)?.session?.user?.role
+      return userRole === 'Admin'
     }
     // Show all other items to everyone
     return true

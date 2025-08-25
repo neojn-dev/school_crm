@@ -57,7 +57,11 @@ export function SigninForm() {
       })
 
       if (result?.error) {
-        toast.error("Invalid credentials or account not verified")
+        if (result.error === 'ACCOUNT_DEACTIVATED') {
+          toast.error("Your account has been deactivated. Please contact your administrator.")
+        } else {
+          toast.error("Invalid credentials or account not verified")
+        }
       } else {
         const successMessage = data.rememberMe 
           ? "Signed in successfully (Remember me enabled - 30 days)" 

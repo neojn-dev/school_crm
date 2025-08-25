@@ -242,8 +242,8 @@ export default function AppLayout({
               {navigationItems.filter(item => {
                 // Only show Users and Roles to Admin users
                 if (item.href === '/users' || item.href === '/roles') {
-                  // Handle nested session structure
-                  const userRole = session?.session?.user?.role || session?.user?.role
+                  // Handle nested session structure - check both possible locations
+                  const userRole = session?.user?.role || (session as any)?.session?.user?.role
                   return userRole === 'Admin'
                 }
                 // Show all other items to everyone

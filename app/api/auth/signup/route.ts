@@ -36,13 +36,13 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12)
 
-    // Create user
+    // Create user (without role initially - will be assigned by admin)
     const user = await db.user.create({
       data: {
         username,
         email,
         passwordHash,
-        role: "user", // Default role for all new users
+        // roleId will be null initially - admin can assign roles later
       },
     })
 
