@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { 
@@ -14,7 +15,9 @@ import {
   Wrench,
   Scale,
   Layers,
-  Building2
+  Building2,
+  UserCog,
+  Shield
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -90,6 +93,28 @@ const navigationItems = [
     activeIconBg: "bg-slate-100",
     textColor: "text-slate-700",
     hoverBg: "hover:bg-slate-50/80"
+  },
+  { 
+    title: "Users", 
+    href: "/users", 
+    icon: UserCog, 
+    color: "from-cyan-100 to-cyan-200",
+    activeColor: "from-cyan-200 to-cyan-300",
+    iconBg: "bg-cyan-50",
+    activeIconBg: "bg-cyan-100",
+    textColor: "text-cyan-700",
+    hoverBg: "hover:bg-cyan-50/80"
+  },
+  { 
+    title: "Roles", 
+    href: "/roles", 
+    icon: Shield, 
+    color: "from-orange-100 to-orange-200",
+    activeColor: "from-orange-200 to-orange-300",
+    iconBg: "bg-orange-50",
+    activeIconBg: "bg-orange-100",
+    textColor: "text-orange-700",
+    hoverBg: "hover:bg-orange-50/80"
   }
 ]
 
@@ -105,7 +130,25 @@ const itemVariants = {
 
 export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+
+  // Filter navigation items based on user role
+  const filteredNavigationItems = navigationItems.filter(item => {
+    // Only show Users and Roles to Admin users
+    if (item.href === '/users' || item.href === '/roles') {
+      // Handle nested session structure
+      const userRole = session?.session?.user?.role || session?.user?.role
+      console.log('🔍 [Sidebar] Checking access for', item.href)
+      console.log('🔍 [Sidebar] User role:', userRole)
+      
+      const hasAccess = userRole === 'Admin'
+      console.log('🔍 [Sidebar] Has access:', hasAccess)
+      return hasAccess
+    }
+    // Show all other items to everyone
+    return true
+  })
 
   return (
     <motion.div
@@ -164,7 +207,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
 
         {/* Navigation - Perfect spacing */}
         <nav className="flex-1 px-4 py-6 space-y-3 overflow-y-auto">
-          {navigationItems.map((item, index) => {
+          {filteredNavigationItems.map((item, index) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (

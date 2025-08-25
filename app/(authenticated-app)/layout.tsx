@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { AppHeader, AppFooter, Sidebar } from "@/components/website-components"
 import { ToastContainerWrapper } from "@/components/ui/toast-container"
+import { DebugSession } from "@/components/debug-session"
 
 const navigationItems = [
   {
@@ -76,6 +77,18 @@ const navigationItems = [
     href: "/master-data",
     icon: Layers,
     description: "Comprehensive form data management"
+  },
+  {
+    title: "Users",
+    href: "/users",
+    icon: Users,
+    description: "Manage system users"
+  },
+  {
+    title: "Roles",
+    href: "/roles",
+    icon: Database,
+    description: "Manage user roles and permissions"
   }
 ]
 
@@ -226,7 +239,16 @@ export default function AppLayout({
 
             {/* Mobile Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
-              {navigationItems.map((item) => {
+              {navigationItems.filter(item => {
+                // Only show Users and Roles to Admin users
+                if (item.href === '/users' || item.href === '/roles') {
+                  // Handle nested session structure
+                  const userRole = session?.session?.user?.role || session?.user?.role
+                  return userRole === 'Admin'
+                }
+                // Show all other items to everyone
+                return true
+              }).map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
                 return (
@@ -300,6 +322,9 @@ export default function AppLayout({
       
       {/* Toast Notifications */}
       <ToastContainerWrapper />
+      
+      {/* Debug Session - Remove this in production */}
+      <DebugSession />
     </ErrorBoundary>
   )
 }

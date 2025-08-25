@@ -19,6 +19,35 @@ async function main() {
   await prisma.verificationToken.deleteMany()
   await prisma.passwordResetToken.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.role.deleteMany()
+
+  // Create default roles first
+  const adminRole = await prisma.role.create({
+    data: {
+      name: 'Admin',
+      description: 'Full system access with all permissions',
+      permissions: JSON.stringify(['read', 'write', 'delete', 'admin']),
+      isActive: true,
+    },
+  })
+
+  const managerRole = await prisma.role.create({
+    data: {
+      name: 'Manager',
+      description: 'Management access with read and write permissions',
+      permissions: JSON.stringify(['read', 'write']),
+      isActive: true,
+    },
+  })
+
+  const userRole = await prisma.role.create({
+    data: {
+      name: 'User',
+      description: 'Basic user access with read permissions',
+      permissions: JSON.stringify(['read']),
+      isActive: true,
+    },
+  })
 
   // Create test users
   const passwordHash = await bcrypt.hash('password123', 12)
@@ -29,8 +58,11 @@ async function main() {
         username: 'admin',
         email: 'admin@example.com',
         passwordHash,
-        role: 'admin', // Special admin role
+        firstName: 'Admin',
+        lastName: 'User',
+        roleId: adminRole.id,
         emailVerified: new Date(),
+        isActive: true,
       },
     }),
     prisma.user.create({
@@ -38,8 +70,11 @@ async function main() {
         username: 'manager',
         email: 'manager@example.com',
         passwordHash,
-        role: 'user', // Default user role
+        firstName: 'Manager',
+        lastName: 'User',
+        roleId: managerRole.id,
         emailVerified: new Date(),
+        isActive: true,
       },
     }),
     prisma.user.create({
@@ -47,8 +82,11 @@ async function main() {
         username: 'analyst',
         email: 'analyst@example.com',
         passwordHash,
-        role: 'user', // Default user role
+        firstName: 'Analyst',
+        lastName: 'User',
+        roleId: userRole.id,
         emailVerified: new Date(),
+        isActive: true,
       },
     }),
   ])
@@ -414,6 +452,7 @@ async function main() {
 
   console.log('🎉 Database seeded successfully!')
   console.log('\n📊 Summary:')
+  console.log(`  • 3 Roles created`)
   console.log(`  • ${users.length} Users created`)
   console.log(`  • 100 Teachers created`)
   console.log(`  • 100 Doctors created`)
@@ -421,9 +460,9 @@ async function main() {
   console.log(`  • 100 Lawyers created`)
   console.log(`  • 100 Master Data entries created`)
   console.log('\n📋 Test accounts:')
-  console.log('  Admin: admin@example.com / password123 (admin role)')
-  console.log('  Manager: manager@example.com / password123 (user role)')
-  console.log('  Analyst: analyst@example.com / password123 (user role)')
+  console.log('  Admin: admin@example.com / password123 (Admin role)')
+  console.log('  Manager: manager@example.com / password123 (Manager role)')
+  console.log('  Analyst: analyst@example.com / password123 (User role)')
 }
 
 main()

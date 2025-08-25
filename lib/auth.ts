@@ -28,6 +28,15 @@ export const authOptions: NextAuthOptions = {
               { email: credentials.identifier },
             ],
           },
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+              }
+            }
+          }
         })
 
         if (!user || !user.emailVerified) {
@@ -47,7 +56,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role,
+          role: user.role?.name || 'User', // Use role name or default to 'User'
+          roleId: user.roleId,
           rememberMe: credentials.rememberMe === "true",
         }
       }
@@ -67,6 +77,7 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           token.id = user.id
           token.role = user.role
+          token.roleId = user.roleId
           token.username = user.username
           token.rememberMe = user.rememberMe
           
@@ -90,6 +101,7 @@ export const authOptions: NextAuthOptions = {
         if (token && session?.user) {
           session.user.id = token.id as string
           session.user.role = token.role as string
+          session.user.roleId = token.roleId as string
           session.user.username = token.username as string
           session.rememberMe = token.rememberMe as boolean
         }

@@ -42,16 +42,39 @@ model User {
   username      String    @unique
   email         String    @unique
   passwordHash  String
-  role          String    @default("user")
+  firstName     String?
+  lastName      String?
+  roleId        String?
   emailVerified DateTime?
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
+  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
   accounts Account[]
   sessions Session[]
   uploads  Upload[]
   verificationTokens VerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  
+  @@index([roleId])
+  @@index([isActive])
+  @@index([email])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String?  // JSON string for permissions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users User[]
+  
+  @@index([isActive])
+  @@index([name])
 }
 
 model VerificationToken {
