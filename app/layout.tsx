@@ -1,20 +1,22 @@
 /**
- * ROOT LAYOUT - Global Layout for Entire Application
+ * ROOT LAYOUT - CMS-Driven Public Website Layout
  * 
- * This is the top-level layout that wraps ALL pages in the application.
- * It provides:
- * - Global HTML structure (html, body tags)
- * - Global CSS imports
- * - Session provider for authentication
- * - Toast notifications
- * - Global metadata
+ * This layout provides the structure for the CMS-driven public website.
+ * It dynamically loads:
+ * - Navigation structure from CMS
+ * - Site settings (logo, branding, etc.)
+ * - SEO configuration
+ * - Footer content and social links
  * 
- * Used by: ALL pages in the application
+ * Used by: Public website pages (/, /about, /services, etc.)
+ * Note: Auth and admin routes have their own layouts
  */
 
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-
+import { db } from "@/lib/db"
+import { CmsWebsiteHeader } from "@/components/cms/cms-website-header"
+import { WebsiteFooter } from "@/components/website-components"
 import { SessionProviderWrapper } from "@/components/providers/session-provider"
 import "@/styles/globals.css"
 
@@ -53,16 +55,84 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+async function getNavigationData() {
+  try {
+    // Get navigation items
+    const navigationItems = await db.cmsNavigation.findMany({
+      where: { isActive: true },
+      include: {
+        children: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' }
+        },
+        page: {
+          select: { slug: true, title: true }
+        }
+      },
+      orderBy: { sortOrder: 'asc' }
+    })
+
+    // Get site settings
+    const siteSettings = await db.cmsSiteSettings.findFirst()
+    
+    // Get SEO settings for site name
+    const seoSettings = await db.cmsSeoSettings.findFirst()
+
+    // Transform navigation data
+    const transformedNavigation = navigationItems
+      .filter(item => !item.parentId) // Only top-level items
+      .map(item => ({
+        id: item.id,
+        label: item.label,
+        href: item.type === 'page' && item.page ? `/${item.page.slug}` : item.href,
+        target: item.target || undefined,
+        type: item.type,
+        children: item.children?.map(child => ({
+          id: child.id,
+          label: child.label,
+          href: child.type === 'page' && child.page ? `/${child.page.slug}` : child.href,
+          target: child.target || undefined,
+          type: child.type
+        }))
+      }))
+
+    return {
+      navigation: transformedNavigation,
+      siteSettings,
+      siteName: seoSettings?.siteName || 'Your Website'
+    }
+  } catch (error) {
+    console.error('Error loading navigation data:', error)
+    return {
+      navigation: [],
+      siteSettings: null,
+      siteName: 'Your Website'
+    }
+  }
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { navigation, siteSettings, siteName } = await getNavigationData()
+
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
         <SessionProviderWrapper>
-          {children}
+          <div className="min-h-screen flex flex-col">
+            <CmsWebsiteHeader 
+              navigation={navigation}
+              siteSettings={siteSettings || undefined}
+              siteName={siteName}
+            />
+            <main className="flex-1 pt-16 lg:pt-20">
+              {children}
+            </main>
+            <WebsiteFooter />
+          </div>
         </SessionProviderWrapper>
       </body>
     </html>
