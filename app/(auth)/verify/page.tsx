@@ -187,35 +187,6 @@ function VerifyPageContent() {
                   </Button>
                 </div>
               </motion.div>
-
-              {/* Help Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mt-12 p-6 bg-red-50 rounded-2xl border border-red-200"
-              >
-                <h3 className="font-semibold text-red-900 mb-2">💡 Need Help?</h3>
-                <p className="text-red-800 text-sm mb-3">
-                  If you're having trouble with email verification, try signing up again or contact our support team.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                  >
-                    Contact Support
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                  >
-                    View Help Center
-                  </Button>
-                </div>
-              </motion.div>
             </motion.div>
           </div>
         </div></div>

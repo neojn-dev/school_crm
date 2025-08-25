@@ -55,15 +55,18 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<UserType | null>(null)
   const [viewingUser, setViewingUser] = useState<UserType | null>(null)
   const [filters, setFilters] = useState<FilterValue[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     firstName: "",
     lastName: "",
-    roleId: "",
+    roleId: "", // Will be set to User role ID when creating
     isActive: true
   })
+  
+  const [userRoleId, setUserRoleId] = useState<string | null>(null)
   
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ open: boolean; user: UserType | null }>({ 
     open: false, 
@@ -86,10 +89,29 @@ export default function UsersPage() {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchUsers()
+      fetchUserRoleId()
     } else if (status === 'unauthenticated') {
       setLoading(false)
     }
   }, [status, pagination.pageIndex, pagination.pageSize, searchQuery, roleFilter, statusFilter, sortBy, sortOrder])
+  
+  // Fetch the User role ID for defaulting new users
+  const fetchUserRoleId = async () => {
+    try {
+      const response = await fetch('/api/roles?page=1&limit=100&sortBy=name&sortOrder=asc', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const result = await response.json()
+        const userRole = result.data?.find((role: any) => role.name === 'User')
+        if (userRole) {
+          setUserRoleId(userRole.id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error)
+    }
+  }
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -189,6 +211,8 @@ export default function UsersPage() {
     // No password validation needed - admin-created users get auto-generated passwords
     // Editing users don't have password fields either
     
+    setIsSubmitting(true)
+    
     try {
       const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users'
       const method = editingUser ? 'PUT' : 'POST'
@@ -197,6 +221,11 @@ export default function UsersPage() {
       const submitData = { ...formData }
       delete (submitData as any).password
       delete (submitData as any).confirmPassword
+      
+      // For new users, default to User role if no role is selected and userRoleId is available
+      if (!editingUser && (!submitData.roleId || submitData.roleId === 'none') && userRoleId) {
+        submitData.roleId = userRoleId
+      }
       
       // Handle "none" role selection (convert to empty string for API)
       if (submitData.roleId === 'none') {
@@ -216,7 +245,7 @@ export default function UsersPage() {
         setEditingUser(null)
         resetForm()
         fetchUsers()
-        toast.success(editingUser ? 'User updated successfully!' : 'User added successfully!')
+        toast.success(editingUser ? 'User updated successfully!' : 'User created successfully! An email with login credentials has been sent.')
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('❌ [FORM ERROR] API error:', errorData)
@@ -225,6 +254,8 @@ export default function UsersPage() {
     } catch (error) {
       console.error('❌ [FORM ERROR] Network error:', error)
       toast.error('Network error occurred. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -288,7 +319,7 @@ export default function UsersPage() {
       email: "",
       firstName: "",
       lastName: "",
-      roleId: "none", // Default to "none" for no role
+      roleId: userRoleId || "none", // Default to User role for new users
       isActive: true
     })
   }
@@ -309,7 +340,7 @@ export default function UsersPage() {
       email,
       firstName,
       lastName,
-      roleId: "none", // Default to "none" for no role
+      roleId: userRoleId || "none", // Default to User role for new users
       isActive: true
     })
   }
@@ -454,8 +485,28 @@ export default function UsersPage() {
         </Card>
 
         {/* Add/Edit Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={!isSubmitting ? setIsAddDialogOpen : undefined}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            {/* Loading Overlay */}
+            {isSubmitting && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Mail className="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-900 mb-1">Creating User Account</h3>
+                    <p className="text-sm text-gray-600">Generating credentials and sending email...</p>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
             <DialogHeader>
               <DialogTitle>
                 {editingUser ? 'Edit User' : 'Create New User Account'}
@@ -540,14 +591,30 @@ export default function UsersPage() {
                   </div>
                 )}
 
-                <div className="md:col-span-2">
-                  <Label htmlFor="roleId">Role</Label>
-                  <RoleSelect
-                    value={formData.roleId}
-                    onValueChange={(value) => setFormData({...formData, roleId: value})}
-                    placeholder="Select a role (optional)"
-                  />
-                </div>
+                {/* Role field - only show for editing users, new users get User role by default */}
+                {editingUser && (
+                  <div className="md:col-span-2">
+                    <Label htmlFor="roleId">Role</Label>
+                    <RoleSelect
+                      value={formData.roleId}
+                      onValueChange={(value) => setFormData({...formData, roleId: value})}
+                      placeholder="Select a role (optional)"
+                    />
+                  </div>
+                )}
+                
+                {/* Info about default role for new users */}
+                {!editingUser && (
+                  <div className="md:col-span-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-800">
+                      <Shield className="w-5 h-5" />
+                      <span className="font-medium">Default Role Assignment</span>
+                    </div>
+                    <p className="text-green-700 text-sm mt-1">
+                      New users will be automatically assigned the "User" role for standard system access. You can change their role later if needed.
+                    </p>
+                  </div>
+                )}
 
                 <div className="md:col-span-2">
                   <div className="flex items-center space-x-2">
@@ -562,11 +629,27 @@ export default function UsersPage() {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsAddDialogOpen(false)}
+                  disabled={isSubmitting}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={!session}>
-                  {editingUser ? 'Update User' : 'Create User'}
+                <Button 
+                  type="submit" 
+                  disabled={!session || isSubmitting}
+                  className="min-w-[120px]"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Creating...</span>
+                    </div>
+                  ) : (
+                    editingUser ? 'Update User' : 'Create User'
+                  )}
                 </Button>
               </DialogFooter>
             </form>

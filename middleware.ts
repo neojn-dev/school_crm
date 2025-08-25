@@ -8,8 +8,7 @@ export default withAuth(
         req.nextUrl.pathname.startsWith("/doctors") ||
         req.nextUrl.pathname.startsWith("/engineers") ||
         req.nextUrl.pathname.startsWith("/teachers") ||
-        req.nextUrl.pathname.startsWith("/lawyers") ||
-        req.nextUrl.pathname.startsWith("/change-password")) {
+        req.nextUrl.pathname.startsWith("/lawyers")) {
       if (!req.nextauth.token) {
         return NextResponse.redirect(new URL("/signin", req.url))
       }
@@ -25,7 +24,8 @@ export default withAuth(
             req.nextUrl.pathname.startsWith("/signup") ||
             req.nextUrl.pathname.startsWith("/verify") ||
             req.nextUrl.pathname.startsWith("/forgot-password") ||
-            req.nextUrl.pathname.startsWith("/reset-password")) {
+            req.nextUrl.pathname.startsWith("/reset-password") ||
+            req.nextUrl.pathname.startsWith("/change-password")) {
           return true
         }
         
@@ -34,8 +34,7 @@ export default withAuth(
             req.nextUrl.pathname.startsWith("/doctors") ||
             req.nextUrl.pathname.startsWith("/engineers") ||
             req.nextUrl.pathname.startsWith("/teachers") ||
-            req.nextUrl.pathname.startsWith("/lawyers") ||
-            req.nextUrl.pathname.startsWith("/change-password")) {
+            req.nextUrl.pathname.startsWith("/lawyers")) {
           return !!token
         }
         
@@ -53,11 +52,11 @@ export const config = {
     "/engineers/:path*",
     "/teachers/:path*",
     "/lawyers/:path*",
-    "/change-password/:path*",
     "/signin",
     "/signup", 
     "/verify",
     "/forgot-password",
-    "/reset-password"
+    "/reset-password",
+    "/change-password/:path*"
   ]
 }

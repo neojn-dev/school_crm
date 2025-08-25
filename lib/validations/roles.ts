@@ -8,17 +8,7 @@ export const roleSchema = z.object({
   description: z.string()
     .max(255, "Description must be less than 255 characters")
     .optional(),
-  permissions: z.string()
-    .optional()
-    .refine((val) => {
-      if (!val) return true
-      try {
-        const parsed = JSON.parse(val)
-        return Array.isArray(parsed) && parsed.every(p => typeof p === 'string')
-      } catch {
-        return false
-      }
-    }, "Permissions must be a valid JSON array of strings"),
+  permissions: z.string().optional(),
   isActive: z.boolean().default(true),
 })
 
@@ -32,12 +22,6 @@ export const roleIdSchema = z.object({
   id: z.string().cuid("Invalid role ID format"),
 })
 
-// Helper function to validate permissions array
-export const validatePermissions = (permissions: string[]): boolean => {
-  const validPermissions = ['read', 'write', 'delete', 'admin', 'manage_users', 'manage_roles']
-  return permissions.every(permission => validPermissions.includes(permission))
-}
-
 // Query schema for roles API
 export const roleQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
@@ -47,19 +31,6 @@ export const roleQuerySchema = z.object({
   sortBy: z.enum(['name', 'description', 'createdAt', 'updatedAt']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 })
-
-// Helper function to get default permissions for role types
-export const getDefaultPermissions = (roleName: string): string[] => {
-  const name = roleName.toLowerCase()
-  
-  if (name.includes('admin')) {
-    return ['read', 'write', 'delete', 'admin', 'manage_users', 'manage_roles']
-  } else if (name.includes('manager')) {
-    return ['read', 'write', 'manage_users']
-  } else {
-    return ['read']
-  }
-}
 
 export type Role = z.infer<typeof roleSchema>
 export type CreateRole = z.infer<typeof createRoleSchema>

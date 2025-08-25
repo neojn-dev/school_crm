@@ -53,20 +53,9 @@ export default function RolesPage() {
   const [viewingRole, setViewingRole] = useState<Role | null>(null)
   const [filters, setFilters] = useState<FilterValue[]>([])
   
-  // Available permissions
-  const availablePermissions = [
-    { id: 'read', label: 'Read', description: 'View data and content' },
-    { id: 'write', label: 'Write', description: 'Create and edit content' },
-    { id: 'delete', label: 'Delete', description: 'Remove data and content' },
-    { id: 'admin', label: 'Admin', description: 'Full administrative access' },
-    { id: 'manage_users', label: 'Manage Users', description: 'Create and manage user accounts' },
-    { id: 'manage_roles', label: 'Manage Roles', description: 'Create and manage roles and permissions' },
-  ]
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    permissions: [] as string[],
     isActive: true
   })
   
@@ -194,10 +183,7 @@ export default function RolesPage() {
         method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          permissions: JSON.stringify(formData.permissions)
-        })
+        body: JSON.stringify(formData)
       })
       
       if (response.ok) {
@@ -261,19 +247,9 @@ export default function RolesPage() {
     if (role) {
       setEditingRole(role)
       
-      let permissions: string[] = []
-      try {
-        if (role.permissions) {
-          permissions = JSON.parse(role.permissions)
-        }
-      } catch {
-        permissions = []
-      }
-      
       setFormData({
         name: role.name,
         description: role.description || "",
-        permissions,
         isActive: role.isActive
       })
       setIsAddDialogOpen(true)
@@ -284,7 +260,6 @@ export default function RolesPage() {
     setFormData({
       name: "",
       description: "",
-      permissions: [],
       isActive: true
     })
   }
@@ -300,15 +275,10 @@ export default function RolesPage() {
     ]
     
     const randomIndex = Math.floor(Math.random() * roleNames.length)
-    const randomPermissions = availablePermissions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, Math.floor(Math.random() * 4) + 2)
-      .map(p => p.id)
     
     setFormData({
       name: roleNames[randomIndex],
       description: descriptions[randomIndex],
-      permissions: randomPermissions,
       isActive: true
     })
   }
@@ -319,14 +289,7 @@ export default function RolesPage() {
     setIsAddDialogOpen(true)
   }
 
-  const handlePermissionChange = (permissionId: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: checked 
-        ? [...prev.permissions, permissionId]
-        : prev.permissions.filter(p => p !== permissionId)
-    }))
-  }
+
 
   if (!session) {
     return (
@@ -512,33 +475,7 @@ export default function RolesPage() {
                   />
                 </div>
 
-                <div>
-                  <Label>Permissions</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                    {availablePermissions.map((permission) => (
-                      <div key={permission.id} className="flex items-start space-x-3 p-3 border rounded-lg">
-                        <Checkbox
-                          id={permission.id}
-                          checked={formData.permissions.includes(permission.id)}
-                          onCheckedChange={(checked) => 
-                            handlePermissionChange(permission.id, checked as boolean)
-                          }
-                        />
-                        <div className="flex-1">
-                          <Label 
-                            htmlFor={permission.id} 
-                            className="text-sm font-medium cursor-pointer"
-                          >
-                            {permission.label}
-                          </Label>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {permission.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+
               </div>
 
               <DialogFooter>
@@ -595,34 +532,7 @@ export default function RolesPage() {
                   </div>
                 </div>
 
-                {/* Permissions */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Permissions</Label>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    {(() => {
-                      let permissions: string[] = []
-                      try {
-                        if (viewingRole.permissions) {
-                          permissions = JSON.parse(viewingRole.permissions)
-                        }
-                      } catch {
-                        permissions = []
-                      }
-                      
-                      return permissions.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {permissions.map((permission, index) => (
-                            <Badge key={index} variant="outline">
-                              {permission}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">No permissions assigned</span>
-                      )
-                    })()}
-                  </div>
-                </div>
+
 
                 {/* User Count */}
                 <div className="space-y-2">

@@ -25,8 +25,7 @@ async function main() {
   const adminRole = await prisma.role.create({
     data: {
       name: 'Admin',
-      description: 'Full system access with all permissions',
-      permissions: JSON.stringify(['read', 'write', 'delete', 'admin']),
+      description: 'Full system administrator with complete access',
       isActive: true,
     },
   })
@@ -34,8 +33,7 @@ async function main() {
   const managerRole = await prisma.role.create({
     data: {
       name: 'Manager',
-      description: 'Management access with read and write permissions',
-      permissions: JSON.stringify(['read', 'write']),
+      description: 'Management role for overseeing operations',
       isActive: true,
     },
   })
@@ -43,8 +41,7 @@ async function main() {
   const userRole = await prisma.role.create({
     data: {
       name: 'User',
-      description: 'Basic user access with read permissions',
-      permissions: JSON.stringify(['read']),
+      description: 'Standard user role for regular system access',
       isActive: true,
     },
   })
