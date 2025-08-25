@@ -165,7 +165,7 @@ export function SigninForm() {
                   </span>
                 </div>
                 <Link
-                  href="/auth/forgot-password"
+                  href="/forgot-password"
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
@@ -184,7 +184,7 @@ export function SigninForm() {
 
             <div className="mt-6 text-center text-sm">
               Don't have an account?{" "}
-              <Link href="/auth/signup" className="text-primary hover:underline">
+              <Link href="/signup" className="text-primary hover:underline">
                 Sign up
               </Link>
             </div>

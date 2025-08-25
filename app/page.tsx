@@ -112,11 +112,11 @@ export default function HomePage() {
 
   const handleGetStarted = () => {
     // Always redirect to signup for public homepage
-    router.push("/auth/signup")
+    router.push("/signup")
   }
 
   const handleSignIn = () => {
-    router.push("/auth/signin")
+    router.push("/signin")
   }
 
   // Don't render until mounted to prevent hydration issues

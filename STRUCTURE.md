@@ -37,12 +37,12 @@ app/
 │   ├── role2/page.tsx          # /role2
 │   ├── role3/page.tsx          # /role3
 │   └── all-roles/page.tsx      # /all-roles
-├── auth/                       # 🔑 Authentication Pages
-│   ├── signin/page.tsx         # /auth/signin
-│   ├── signup/page.tsx         # /auth/signup
-│   ├── verify/page.tsx         # /auth/verify
-│   ├── forgot-password/page.tsx # /auth/forgot-password
-│   └── reset-password/page.tsx # /auth/reset-password
+├── (auth)/                     # 🔑 Authentication Pages (Route Group)
+│   ├── signin/page.tsx         # /signin
+│   ├── signup/page.tsx         # /signup
+│   ├── verify/page.tsx         # /verify
+│   ├── forgot-password/page.tsx # /forgot-password
+│   └── reset-password/page.tsx # /reset-password
 ├── api/                        # 🚀 API Routes
 │   ├── auth/                   # Authentication APIs
 │   ├── mydata/                 # Data management APIs
@@ -54,13 +54,13 @@ app/
 ## 🎯 **Key Benefits of New Structure**
 
 ### **1. Clear Separation of Concerns**
-- **`(public)/`** - Marketing website, company info, public resources
-- **`(app)/`** - Protected application features, user dashboard
-- **`auth/`** - Authentication flows
+- **`(public-website)/`** - Marketing website, company info, public resources
+- **`(authenticated-app)/`** - Protected application features, user dashboard
+- **`(auth)/`** - Authentication flows (Route Group)
 - **`api/`** - Backend API endpoints
 
 ### **2. Next.js App Router Best Practices**
-- **Route Groups** `(public)` and `(app)` organize related routes
+- **Route Groups** `(public-website)`, `(authenticated-app)`, and `(auth)` organize related routes
 - **No nested "pages" folder** - follows App Router conventions
 - **Proper layout hierarchy** - each section has its own layout
 
@@ -88,10 +88,10 @@ app/
 - `/role1`, `/role2`, `/role3` - Role-specific features
 
 ### **Authentication URLs**
-- `/auth/signin` - Sign in
-- `/auth/signup` - Sign up
-- `/auth/verify` - Email verification
-- `/auth/forgot-password` - Password reset
+- `/signin` - Sign in
+- `/signup` - Sign up
+- `/verify` - Email verification
+- `/forgot-password` - Password reset
 
 ## 🛡️ **Authentication & Protection**
 
@@ -114,9 +114,9 @@ app/
 ## 🚀 **Getting Started**
 
 1. **Public users** start at `/` and can explore company/services
-2. **Sign up** at `/auth/signup` to create an account
+2. **Sign up** at `/signup` to create an account
 3. **Verify email** via the link sent to their email
-4. **Sign in** at `/auth/signin` to access the application
+4. **Sign in** at `/signin` to access the application
 5. **Dashboard** at `/dashboard` provides access to all features
 
 ## 🔧 **Development Notes**

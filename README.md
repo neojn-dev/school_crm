@@ -209,7 +209,7 @@ After seeding, you can use these test accounts:
 │   │   ├── auth/                # Authentication endpoints
 │   │   ├── mydata/              # Data CRUD operations
 │   │   └── upload/              # File upload endpoints
-│   ├── auth/                    # Authentication pages
+│   ├── (auth)/                  # Authentication pages (Route Group)
 │   ├── layout.tsx               # Root layout
 │   └── page.tsx                 # Home page
 ├── components/                   # Reusable components

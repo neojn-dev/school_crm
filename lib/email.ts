@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const verifyUrl = `${config.app.url}/auth/verify?token=${token}`
+  const verifyUrl = `${config.app.url}/verify?token=${token}`
   
   await transporter.sendMail({
     from: config.email.from,
@@ -34,7 +34,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetUrl = `${config.app.url}/auth/reset-password?token=${token}`
+  const resetUrl = `${config.app.url}/reset-password?token=${token}`
   
   await transporter.sendMail({
     from: config.email.from,

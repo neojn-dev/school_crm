@@ -210,7 +210,7 @@ function ResetPasswordPageContent() {
                   asChild
                   className="w-full md:w-auto h-12 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
                 >
-                  <Link href="/auth/signin">
+                  <Link href="/signin">
                     Sign In Now
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
@@ -232,29 +232,14 @@ function ResetPasswordPageContent() {
                     asChild
                     className="h-12 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-200"
                   >
-                    <Link href="/auth/signup">
+                    <Link href="/signup">
                       Create New Account
                     </Link>
                   </Button>
                 </div>
               </motion.div>
 
-              {/* Security Notice */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mt-12 p-6 bg-green-50 rounded-2xl border border-green-200"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <Shield className="h-5 w-5 text-green-600" />
-                  <h3 className="font-semibold text-green-800">Security Notice</h3>
-                </div>
-                <p className="text-green-700 text-sm">
-                  Your password has been securely updated. For your protection, we recommend using a password manager 
-                  and enabling two-factor authentication on your account.
-                </p>
-              </motion.div>
+
             </motion.div>
           </div>
         </div></div>
@@ -308,7 +293,7 @@ function ResetPasswordPageContent() {
                         variant="outline"
                         className="border-red-300 text-red-700 hover:bg-red-100"
                       >
-                        <Link href="/auth/forgot-password">
+                        <Link href="/forgot-password">
                           Request New Reset Link
                         </Link>
                       </Button>
@@ -474,7 +459,7 @@ function ResetPasswordPageContent() {
                     className="text-center pt-4"
                   >
                     <Link
-                      href="/auth/signin"
+                      href="/signin"
                       className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                     >
                       Back to Sign In

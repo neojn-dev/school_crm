@@ -113,7 +113,7 @@ export function useSessionValidator(options: UseSessionValidatorOptions = {}) {
     // Wait a moment for the toast to show, then sign out
     setTimeout(async () => {
       await signOut({ 
-        callbackUrl: '/auth/signin',
+        callbackUrl: '/signin',
         redirect: true 
       })
     }, 2000)

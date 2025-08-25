@@ -123,7 +123,7 @@ export default function AppLayout({
   useEffect(() => {
     if (mounted && status === "unauthenticated" && !isRedirecting) {
       setIsRedirecting(true)
-      router.push("/auth/signin")
+      router.push("/signin")
     }
   }, [mounted, status, router, isRedirecting])
 

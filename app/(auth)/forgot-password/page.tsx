@@ -202,7 +202,7 @@ export default function ForgotPasswordPage() {
                     asChild
                     className="h-12 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-200"
                   >
-                    <Link href="/auth/signin">
+                    <Link href="/signin">
                       <ArrowLeft className="mr-2 h-5 w-5" />
                       Back to Sign In
                     </Link>
@@ -213,41 +213,14 @@ export default function ForgotPasswordPage() {
                     asChild
                     className="h-12 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-200"
                   >
-                    <Link href="/auth/signup">
+                    <Link href="/signup">
                       Create New Account
                     </Link>
                   </Button>
                 </div>
               </motion.div>
 
-              {/* Help Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mt-12 p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg"
-              >
-                <h3 className="font-semibold text-gray-900 mb-3">Need Help?</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  If you don't see the email, check your spam folder or contact our support team.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                  >
-                    Contact Support
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                  >
-                    View Help Center
-                  </Button>
-                </div>
-              </motion.div>
+
             </motion.div>
           </div>
         </div></div>
@@ -342,7 +315,7 @@ export default function ForgotPasswordPage() {
                     className="text-center pt-4"
                   >
                     <Link
-                      href="/auth/signin"
+                      href="/signin"
                       className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />

@@ -299,7 +299,7 @@ export default function SignInPage() {
                       </Label>
                     </div>
                     <Link
-                      href="/auth/forgot-password"
+                      href="/forgot-password"
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                     >
                       Forgot password?
@@ -392,7 +392,7 @@ export default function SignInPage() {
                     <p className="text-gray-600">
                       Don't have an account?{" "}
                       <Link
-                        href="/auth/signup"
+                        href="/signup"
                         className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                       >
                         Sign up for free

@@ -123,8 +123,8 @@ export const authOptions: NextAuthOptions = {
     }
   },
   pages: {
-    signIn: "/auth/signin",
-    error: "/auth/signin", // Redirect errors to signin page
+    signIn: "/signin",
+    error: "/signin", // Redirect errors to signin page
   },
   secret: config.auth.secret,
   debug: false, // Disable debug logging to reduce console noise

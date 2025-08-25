@@ -151,7 +151,7 @@ export default function SignUpPage() {
       
       // Redirect to signin page after a delay
       setTimeout(() => {
-        router.push("/auth/signin?message=account_created")
+        router.push("/signin?message=account_created")
       }, 3000)
       
     } catch (error) {
@@ -620,7 +620,7 @@ export default function SignUpPage() {
                     <p className="text-gray-600">
                       Already have an account?{" "}
                       <Link
-                        href="/auth/signin"
+                        href="/signin"
                         className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
                       >
                         Sign in here

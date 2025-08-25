@@ -10,7 +10,7 @@ export default withAuth(
         req.nextUrl.pathname.startsWith("/teachers") ||
         req.nextUrl.pathname.startsWith("/lawyers")) {
       if (!req.nextauth.token) {
-        return NextResponse.redirect(new URL("/auth/signin", req.url))
+        return NextResponse.redirect(new URL("/signin", req.url))
       }
     }
     
@@ -20,7 +20,11 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Allow access to auth pages without token
-        if (req.nextUrl.pathname.startsWith("/auth")) {
+        if (req.nextUrl.pathname.startsWith("/signin") || 
+            req.nextUrl.pathname.startsWith("/signup") ||
+            req.nextUrl.pathname.startsWith("/verify") ||
+            req.nextUrl.pathname.startsWith("/forgot-password") ||
+            req.nextUrl.pathname.startsWith("/reset-password")) {
           return true
         }
         
@@ -47,6 +51,10 @@ export const config = {
     "/engineers/:path*",
     "/teachers/:path*",
     "/lawyers/:path*",
-    "/auth/:path*"
+    "/signin",
+    "/signup", 
+    "/verify",
+    "/forgot-password",
+    "/reset-password"
   ]
 }

@@ -53,7 +53,7 @@ export function AppHeader() {
               </>
             ) : (
               <Button asChild variant="outline" size="sm">
-                <Link href="/auth/signin" className="flex items-center space-x-2">
+                <Link href="/signin" className="flex items-center space-x-2">
                   <span>Sign In</span>
                 </Link>
               </Button>

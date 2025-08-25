@@ -74,7 +74,7 @@ export function WebsiteFooter() {
                 Ready to build something amazing?
               </p>
               <Link 
-                href="/auth/signup"
+                href="/signup"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
                 Sign Up Free

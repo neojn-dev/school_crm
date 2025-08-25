@@ -67,7 +67,7 @@ export function VerifyForm() {
             <h3 className="text-lg font-medium text-green-600">Email Verified Successfully!</h3>
             <p className="text-gray-600">{message}</p>
             <div className="pt-4">
-              <Link href="/auth/signin">
+              <Link href="/signin">
                 <Button className="w-full">
                   Continue to Sign In
                 </Button>
@@ -83,12 +83,12 @@ export function VerifyForm() {
             <h3 className="text-lg font-medium text-red-600">Verification Failed</h3>
             <p className="text-gray-600">{message}</p>
             <div className="space-y-2">
-              <Link href="/auth/signup">
+              <Link href="/signup">
                 <Button variant="outline" className="w-full">
                   Try Signing Up Again
                 </Button>
               </Link>
-              <Link href="/auth/signin">
+              <Link href="/signin">
                 <Button className="w-full">
                   Go to Sign In
                 </Button>

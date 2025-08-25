@@ -99,7 +99,7 @@ export function ResetPasswordForm() {
         setIsSuccess(true)
         toast.success("Password reset successfully!")
         setTimeout(() => {
-          router.push("/auth/signin")
+          router.push("/signin")
         }, 3000)
       } else {
         toast.error(result.error || "Failed to reset password")
@@ -139,12 +139,12 @@ export function ResetPasswordForm() {
                   Please request a new password reset link to continue.
                 </p>
                 <div className="space-y-2">
-                  <Link href="/auth/forgot-password">
+                  <Link href="/forgot-password">
                     <Button className="w-full">
                       Request New Reset Link
                     </Button>
                   </Link>
-                  <Link href="/auth/signin">
+                  <Link href="/signin">
                     <Button variant="outline" className="w-full">
                       Back to Sign In
                     </Button>
@@ -184,7 +184,7 @@ export function ResetPasswordForm() {
                 <p className="text-sm text-gray-600">
                   You will be redirected to the sign in page in a few seconds.
                 </p>
-                <Link href="/auth/signin">
+                <Link href="/signin">
                   <Button className="w-full">
                     Continue to Sign In
                   </Button>
@@ -254,7 +254,7 @@ export function ResetPasswordForm() {
 
             <div className="mt-6 text-center text-sm">
               Remember your password?{" "}
-              <Link href="/auth/signin" className="text-primary hover:underline">
+              <Link href="/signin" className="text-primary hover:underline">
                 Sign in
               </Link>
             </div>

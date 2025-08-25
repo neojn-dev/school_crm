@@ -25,7 +25,7 @@ app/
 │   ├── company/                       # Company Pages
 │   ├── services/                      # Services Pages
 │   └── resources/                     # Resources Pages
-└── auth/                              # 🔑 Authentication Pages
+└── (auth)/                            # 🔑 Authentication Pages (Route Group)
     ├── signin/page.tsx                # Sign In
     ├── signup/page.tsx                # Sign Up
     ├── forgot-password/page.tsx       # Password Reset
@@ -100,7 +100,7 @@ app/
 | `/all-roles` | Root + App | All roles overview |
 | `/company/about` | Root + Website | Company information |
 | `/services/overview` | Root + Website | Services information |
-| `/auth/signin` | Root only | Authentication pages |
+| `/signin` | Root only | Authentication pages |
 
 ## Navigation Flow
 
@@ -127,7 +127,7 @@ app/
 
 1. **New App Feature**: Add to `(authenticated-app)/` directory
 2. **New Public Content**: Add to `(public-website)/` directory  
-3. **New Auth Flow**: Add to `auth/` directory (uses root layout only)
+3. **New Auth Flow**: Add to `(auth)/` directory (uses root layout only)
 
 ### Layout Modifications
 
@@ -166,7 +166,7 @@ app/
 - ✅ `/company/*` - Company information pages
 - ✅ `/services/*` - Services information pages
 - ✅ `/resources/*` - Resources and support pages
-- ✅ `/auth/*` - Authentication pages
+- ✅ `/signin`, `/signup`, `/verify`, `/forgot-password`, `/reset-password` - Authentication pages
 
 ### **Redirects After Sign In:**
 - **Success**: Users are redirected to `/dashboard` (not `/pages/all-roles`)

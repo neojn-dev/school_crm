@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { 
   CheckCircle, 
   ArrowRight, 
-  Sparkles,
   Shield,
   Clock,
   MessageSquare,
@@ -192,7 +191,7 @@ function VerifyPageContent() {
                   asChild
                   className="w-full md:w-auto h-12 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
                 >
-                  <Link href="/auth/signin">
+                  <Link href="/signin">
                     Sign In
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
@@ -204,7 +203,7 @@ function VerifyPageContent() {
                     asChild
                     className="h-12 border-gray-300 hover:border-gray-400 rounded-xl transition-all duration-200"
                   >
-                    <Link href="/auth/signup">
+                    <Link href="/signup">
                       Create New Account
                     </Link>
                   </Button>
@@ -291,7 +290,7 @@ function VerifyPageContent() {
                   Your email address has been verified and your account is now active.
                 </p>
                 <p className="text-gray-500 max-w-md mx-auto">
-                  Welcome to our platform! You can now access all features and start using your account.
+                  You can now sign in to your account.
                 </p>
               </motion.div>
 
@@ -306,7 +305,7 @@ function VerifyPageContent() {
                   asChild
                   className="w-full md:w-auto h-12 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
                 >
-                  <Link href="/auth/signin">
+                  <Link href="/signin">
                     Sign In Now
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
@@ -335,22 +334,7 @@ function VerifyPageContent() {
                 </div>
               </motion.div>
 
-              {/* Welcome Message */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mt-12 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-800">Welcome to Our Platform!</h3>
-                </div>
-                <p className="text-blue-700 text-sm">
-                  You now have access to all our features including advanced analytics, team collaboration tools, 
-                  and premium support. Start exploring what we have to offer!
-                </p>
-              </motion.div>
+
             </motion.div>
           </div>
         </div></div>

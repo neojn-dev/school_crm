@@ -284,7 +284,7 @@ export function WebsiteHeader() {
                     asChild 
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0 px-6 py-2.5 rounded-xl font-semibold relative overflow-hidden"
                   >
-                    <Link href="/auth/signin" className="flex items-center space-x-2">
+                    <Link href="/signin" className="flex items-center space-x-2">
                       <span>Sign In</span>
                       <motion.div
                         animate={{ x: [0, 4, 0] }}
@@ -385,7 +385,7 @@ export function WebsiteHeader() {
                   className="pt-4 border-t border-gray-200"
                 >
                   <Link 
-                    href="/auth/signin" 
+                    href="/signin" 
                     className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
