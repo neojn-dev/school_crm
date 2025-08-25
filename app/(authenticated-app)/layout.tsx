@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { AppHeader, AppFooter, Sidebar } from "@/components/website-components"
 import { ToastContainerWrapper } from "@/components/ui/toast-container"
-import { DebugSession } from "@/components/debug-session"
+
 
 const navigationItems = [
   {
@@ -323,8 +323,7 @@ export default function AppLayout({
       {/* Toast Notifications */}
       <ToastContainerWrapper />
       
-      {/* Debug Session - Remove this in production */}
-      <DebugSession />
+
     </ErrorBoundary>
   )
 }
