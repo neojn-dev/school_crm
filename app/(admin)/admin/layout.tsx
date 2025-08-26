@@ -39,14 +39,14 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 p-4">
       {/* Admin Sidebar */}
       <AdminSidebar />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden shadow-lg rounded-lg ml-16 border-l-4 border-red-500">
         {/* Admin Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <header className="bg-white border-b border-gray-200 pl-16 pr-8 py-4 flex-shrink-0 rounded-t-lg shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">
@@ -98,14 +98,14 @@ export default function AdminLayout({
         </header>
         
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6">
+        <main className="flex-1 overflow-y-auto bg-white">
+          <div className="pl-16 pr-8 py-8">
             {children}
           </div>
         </main>
         
         {/* Admin Footer */}
-        <footer className="bg-white border-t border-gray-200 px-6 py-3 flex-shrink-0">
+        <footer className="bg-white border-t border-gray-200 pl-16 pr-8 py-3 flex-shrink-0 rounded-b-lg">
           <div className="flex items-center justify-between text-sm text-gray-500">
             <div>
               © 2024 CMS Admin Panel. All rights reserved.

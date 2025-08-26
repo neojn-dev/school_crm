@@ -12,11 +12,17 @@ import {
   Undo,
   Redo,
   Settings,
-  Layers
+  Layers,
+  Type,
+  Image,
+  Layout,
+  MousePointer,
+  FileText,
+  Zap
 } from "lucide-react"
 import { BlockLibrary } from "./block-library"
 import { BlockRenderer } from "./block-renderer"
-import { BlockEditor } from "./block-editor"
+import { EnhancedBlockEditor } from "../enhanced-block-editor"
 
 interface PageBlock {
   id: string
@@ -138,39 +144,83 @@ export function PageBuilder({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile Overlay */}
+      {showLibrary && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setShowLibrary(false)}
+        />
+      )}
+      
       {/* Sidebar - Block Library */}
-      <div className={`${showLibrary ? 'w-80' : 'w-16'} bg-white border-r border-gray-200 transition-all duration-300`}>
-        <div className="p-4 border-b border-gray-200">
+      <div className={`
+        ${showLibrary ? 'w-80' : 'w-16'} 
+        bg-white border-r border-gray-200 transition-all duration-300 flex-shrink-0
+        ${showLibrary ? 'fixed lg:relative z-50 lg:z-auto' : 'relative'}
+        ${showLibrary ? 'inset-y-0 left-0 lg:inset-auto' : ''}
+        shadow-xl lg:shadow-none
+      `}>
+        <div className="cms-toolbar">
           <Button
             onClick={() => setShowLibrary(!showLibrary)}
             variant="outline"
             size="sm"
-            className="w-full flex items-center justify-center"
+            className="cms-button-secondary w-full flex items-center justify-center"
+            aria-label={showLibrary ? "Hide block library" : "Show block library"}
           >
-            <Layers className="h-4 w-4" />
-            {showLibrary && <span className="ml-2">Hide Library</span>}
+            <Layers className="h-4 w-4 flex-shrink-0" />
+            {showLibrary && <span className="ml-2 hidden sm:inline">Hide Library</span>}
           </Button>
         </div>
         
-        {showLibrary && (
-          <BlockLibrary onAddBlock={addBlock} />
+        {showLibrary ? (
+          <div className="flex-1 overflow-hidden">
+            <BlockLibrary onAddBlock={addBlock} />
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col pt-6 pb-4">
+            {/* Collapsed Category Icons */}
+            <div className="space-y-3 px-2">
+              {[
+                { id: 'layout', icon: Layout, name: 'Layout', color: 'text-blue-600' },
+                { id: 'text', icon: Type, name: 'Text', color: 'text-green-600' },
+                { id: 'content', icon: FileText, name: 'Content', color: 'text-purple-600' },
+                { id: 'media', icon: Image, name: 'Media', color: 'text-orange-600' },
+                { id: 'interactive', icon: MousePointer, name: 'Interactive', color: 'text-red-600' },
+                { id: 'forms', icon: Zap, name: 'Forms', color: 'text-yellow-600' }
+              ].map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setShowLibrary(true)}
+                  className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors group"
+                  title={`${category.name} Blocks`}
+                  aria-label={`Show ${category.name} blocks`}
+                >
+                  <category.icon className={`h-5 w-5 ${category.color} group-hover:scale-110 transition-transform`} />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
       {/* Main Editor Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
-        <div className="bg-white border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+        <div className="cms-toolbar bg-white shadow-sm">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-2 overflow-x-auto">
               <Button
                 onClick={undo}
                 disabled={historyIndex === 0}
                 variant="outline"
                 size="sm"
+                className="cms-button-secondary flex-shrink-0"
+                title="Undo last action"
               >
                 <Undo className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Undo</span>
               </Button>
               
               <Button
@@ -178,63 +228,85 @@ export function PageBuilder({
                 disabled={historyIndex === history.length - 1}
                 variant="outline"
                 size="sm"
+                className="cms-button-secondary flex-shrink-0"
+                title="Redo last action"
               >
                 <Redo className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Redo</span>
               </Button>
               
-              <div className="w-px h-6 bg-gray-300" />
+              <div className="cms-divider-vertical hidden sm:block" />
               
               <Button
                 onClick={() => setShowLibrary(true)}
                 variant="outline"
                 size="sm"
+                className="cms-button-secondary flex-shrink-0 lg:hidden"
+                title="Open block library"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Block
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline ml-2">Add Block</span>
               </Button>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-2" />
-                Preview
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="cms-button-secondary"
+                title="Preview page"
+              >
+                <Eye className="h-4 w-4" />
+                <span className="hidden md:inline ml-2">Preview</span>
               </Button>
               
-              <Button onClick={handleSave} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                Save
+              <Button 
+                onClick={handleSave} 
+                size="sm"
+                className="cms-button-primary"
+                title="Save page"
+              >
+                <Save className="h-4 w-4" />
+                <span className="hidden md:inline ml-2">Save</span>
               </Button>
             </div>
           </div>
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-6xl mx-auto p-6">
+        <div className="flex-1 overflow-y-auto scrollbar-thin bg-gray-100">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="page-blocks">
                 {(provided) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="space-y-4"
+                    className="space-y-6"
+                    role="main"
+                    aria-label="Page content editor"
                   >
                     {blocks.length === 0 ? (
-                      <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-                        <Layers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Start Building Your Page
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          Add blocks from the library to start creating your page.
-                        </p>
-                        <Button
-                          onClick={() => setShowLibrary(true)}
-                          className="flex items-center space-x-2"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>Add Your First Block</span>
-                        </Button>
+                      <div className="cms-card text-center py-20">
+                        <div className="max-w-md mx-auto">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Layers className="h-10 w-10 text-blue-600" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                            Start Building Your Page
+                          </h3>
+                          <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                            Add blocks from the library to start creating your page content. 
+                            Choose from headers, text, images, and more.
+                          </p>
+                          <Button
+                            onClick={() => setShowLibrary(true)}
+                            className="cms-button-primary text-lg px-8 py-3"
+                          >
+                            <Plus className="h-5 w-5" />
+                            <span>Add Your First Block</span>
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       blocks.map((block, index) => (
@@ -247,25 +319,37 @@ export function PageBuilder({
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`relative group ${
-                                snapshot.isDragging ? 'opacity-50' : ''
-                              } ${
-                                selectedBlock === block.id 
-                                  ? 'ring-2 ring-blue-500 ring-offset-2' 
-                                  : ''
-                              }`}
+                              className={`
+                                relative group cms-card transition-all duration-200
+                                ${snapshot.isDragging ? 'opacity-50 rotate-2 scale-105' : ''}
+                                ${selectedBlock === block.id 
+                                  ? 'ring-2 ring-blue-500 ring-offset-4 shadow-lg' 
+                                  : 'hover:shadow-md'
+                                }
+                              `}
                               onClick={() => setSelectedBlock(block.id)}
+                              role="article"
+                              aria-label={`${block.type} block`}
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  setSelectedBlock(block.id)
+                                }
+                              }}
                             >
                               {/* Block Controls */}
-                              <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="flex items-center space-x-1 bg-white rounded-md shadow-lg border p-1">
+                              <div className="absolute -top-3 -right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-100 scale-90">
+                                <div className="flex items-center space-x-1 bg-white rounded-lg shadow-xl border border-gray-200 p-1">
                                   <Button
                                     {...provided.dragHandleProps}
                                     variant="ghost"
                                     size="sm"
-                                    className="cursor-move"
+                                    className="cursor-move hover:bg-gray-100 p-2"
+                                    title="Drag to reorder"
+                                    aria-label="Drag to reorder block"
                                   >
-                                    <Settings className="h-4 w-4" />
+                                    <Settings className="h-4 w-4 text-gray-600" />
                                   </Button>
                                   
                                   <Button
@@ -275,8 +359,11 @@ export function PageBuilder({
                                     }}
                                     variant="ghost"
                                     size="sm"
+                                    className="hover:bg-blue-50 p-2"
+                                    title="Edit block"
+                                    aria-label="Edit block"
                                   >
-                                    <Edit className="h-4 w-4" />
+                                    <Edit className="h-4 w-4 text-blue-600" />
                                   </Button>
                                   
                                   <Button
@@ -286,19 +373,23 @@ export function PageBuilder({
                                     }}
                                     variant="ghost"
                                     size="sm"
-                                    className="text-red-600 hover:text-red-700"
+                                    className="hover:bg-red-50 p-2"
+                                    title="Delete block"
+                                    aria-label="Delete block"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-4 w-4 text-red-600" />
                                   </Button>
                                 </div>
                               </div>
 
                               {/* Block Content */}
-                              <BlockRenderer
-                                block={block}
-                                isEditing={selectedBlock === block.id}
-                                onEdit={() => setEditingBlock(block.id)}
-                              />
+                              <div className="p-4">
+                                <BlockRenderer
+                                  block={block}
+                                  isEditing={selectedBlock === block.id}
+                                  onEdit={() => setEditingBlock(block.id)}
+                                />
+                              </div>
                             </div>
                           )}
                         </Draggable>
@@ -313,9 +404,9 @@ export function PageBuilder({
         </div>
       </div>
 
-      {/* Block Editor Modal */}
+      {/* Enhanced Block Editor Modal */}
       {editingBlock && (
-        <BlockEditor
+        <EnhancedBlockEditor
           block={blocks.find(b => b.id === editingBlock)!}
           onSave={(content, settings) => {
             updateBlock(editingBlock, content, settings)

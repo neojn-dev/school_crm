@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { resolveTemplateInheritance } from "@/lib/template-utils"
 
 const createPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -116,10 +117,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // If templateId is provided, resolve template inheritance and merge content
+    let finalContent = data.content
+    if (data.templateId) {
+      try {
+        const inheritedBlocks = await resolveTemplateInheritance(data.templateId)
+        
+        // If page already has content, merge it with template
+        if (data.content) {
+          const pageBlocks = JSON.parse(data.content)
+          // Page blocks override template blocks with same ID
+          const mergedBlocks = [...inheritedBlocks, ...pageBlocks]
+          finalContent = JSON.stringify(mergedBlocks)
+        } else {
+          // Use template blocks as-is
+          finalContent = JSON.stringify(inheritedBlocks)
+        }
+      } catch (error) {
+        console.error('Error resolving template inheritance:', error)
+        // Continue with original content if template resolution fails
+      }
+    }
+
     // Create the page
     const page = await db.cmsPage.create({
       data: {
         ...data,
+        content: finalContent,
         createdBy: session.user.id,
         updatedBy: session.user.id,
         publishedAt: data.isPublished ? new Date() : null,

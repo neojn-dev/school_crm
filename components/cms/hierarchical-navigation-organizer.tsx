@@ -84,6 +84,17 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
   const [newItemLabel, setNewItemLabel] = useState('')
   const [newItemPageId, setNewItemPageId] = useState('')
   const [newItemParentId, setNewItemParentId] = useState<string | null>(null)
+  const [showFolderDialog, setShowFolderDialog] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    item: NavigationItem | null
+    isDeleting: boolean
+  }>({
+    isOpen: false,
+    item: null,
+    isDeleting: false
+  })
 
   useEffect(() => {
     fetchData()
@@ -176,28 +187,50 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
   const handleDragEnd = (result: any) => {
     if (!result.destination) return
 
-    const flatItems = flattenHierarchy(navigationItems)
-    const [reorderedItem] = flatItems.splice(result.source.index, 1)
-    flatItems.splice(result.destination.index, 0, reorderedItem)
+    const { source, destination, draggableId } = result
 
-    // Update sort orders
-    const updatedItems = flatItems.map((item, index) => ({
-      ...item,
-      sortOrder: index + 1
-    }))
+    // Handle dragging from available pages to navigation structure
+    if (source.droppableId === 'available-pages' && destination.droppableId === 'navigation-structure') {
+      const pageId = draggableId.replace('page-', '')
+      addPageToNavigation(pageId)
+      return
+    }
 
-    setNavigationItems(buildHierarchy(updatedItems))
+    // Handle dragging from available pages to a navigation item (for nesting)
+    if (source.droppableId === 'available-pages' && destination.droppableId.startsWith('nav-item-')) {
+      const pageId = draggableId.replace('page-', '')
+      const parentId = destination.droppableId.replace('nav-item-', '')
+      addPageToNavigation(pageId, parentId)
+      return
+    }
+
+    // Handle reordering within navigation structure
+    if (source.droppableId === 'navigation-structure' && destination.droppableId === 'navigation-structure') {
+      const flatItems = flattenHierarchy(navigationItems)
+      const [reorderedItem] = flatItems.splice(source.index, 1)
+      flatItems.splice(destination.index, 0, reorderedItem)
+
+      // Update sort orders
+      const updatedItems = flatItems.map((item, index) => ({
+        ...item,
+        sortOrder: index + 1
+      }))
+
+      setNavigationItems(buildHierarchy(updatedItems))
+      return
+    }
+
+    // Handle moving navigation items between different containers (for nesting)
+    if (source.droppableId !== destination.droppableId) {
+      // This would handle moving items between different levels
+      // Implementation depends on the specific nesting requirements
+    }
   }
 
-  const addNavigationItem = async () => {
+  const addNavigationFolder = async () => {
     try {
-      if (newItemType === 'page' && !newItemPageId) {
-        toast.error('Please select a page')
-        return
-      }
-
-      if (newItemType === 'section' && !newItemLabel.trim()) {
-        toast.error('Please enter a section label')
+      if (!newFolderName.trim()) {
+        toast.error('Please enter a folder name')
         return
       }
 
@@ -205,29 +238,58 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          label: newItemType === 'page' 
-            ? pages.find(p => p.id === newItemPageId)?.title 
-            : newItemLabel.trim(),
-          type: newItemType,
-          pageId: newItemType === 'page' ? newItemPageId : null,
-          parentId: newItemParentId,
+          label: newFolderName.trim(),
+          type: 'section',
+          pageId: null,
+          parentId: null,
           isActive: true,
-          href: newItemType === 'section' ? '#' : ''
+          href: '#'
         })
       })
 
       if (response.ok) {
         await fetchData()
-        setShowAddDialog(false)
-        resetAddForm()
-        toast.success(`Added ${newItemType} to navigation`)
+        setShowFolderDialog(false)
+        setNewFolderName('')
+        toast.success('Added folder to navigation')
         onNavigationUpdate?.()
       } else {
-        throw new Error('Failed to add item to navigation')
+        throw new Error('Failed to add folder to navigation')
       }
     } catch (error) {
-      console.error('Error adding item to navigation:', error)
-      toast.error('Failed to add item to navigation')
+      console.error('Error adding folder to navigation:', error)
+      toast.error('Failed to add folder to navigation')
+    }
+  }
+
+  const addPageToNavigation = async (pageId: string, parentId?: string) => {
+    try {
+      const page = pages.find(p => p.id === pageId)
+      if (!page) return
+
+      const response = await fetch('/api/cms/navigation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: page.title,
+          type: 'page',
+          pageId: pageId,
+          parentId: parentId || null,
+          isActive: true,
+          href: `/${page.slug}`
+        })
+      })
+
+      if (response.ok) {
+        await fetchData()
+        toast.success('Added page to navigation')
+        onNavigationUpdate?.()
+      } else {
+        throw new Error('Failed to add page to navigation')
+      }
+    } catch (error) {
+      console.error('Error adding page to navigation:', error)
+      toast.error('Failed to add page to navigation')
     }
   }
 
@@ -238,22 +300,72 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
     setNewItemParentId(null)
   }
 
-  const removeFromNavigation = async (itemId: string) => {
-    try {
-      const response = await fetch(`/api/cms/navigation/${itemId}`, {
-        method: 'DELETE'
+  const openDeleteDialog = (itemId: string) => {
+    const item = flattenHierarchy(navigationItems).find(nav => nav.id === itemId)
+    if (item) {
+      setDeleteDialog({
+        isOpen: true,
+        item,
+        isDeleting: false
       })
+    }
+  }
 
-      if (response.ok) {
-        await fetchData()
-        toast.success('Removed from navigation')
-        onNavigationUpdate?.()
-      } else {
-        throw new Error('Failed to remove from navigation')
+  const closeDeleteDialog = () => {
+    setDeleteDialog({
+      isOpen: false,
+      item: null,
+      isDeleting: false
+    })
+  }
+
+  const deleteNavigationItemRecursively = async (item: NavigationItem): Promise<void> => {
+    // First, delete all children recursively
+    if (item.children && item.children.length > 0) {
+      for (const child of item.children) {
+        await deleteNavigationItemRecursively(child)
       }
+    }
+
+    // Then delete the item itself
+    const response = await fetch(`/api/cms/navigation/${item.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to remove from navigation'
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.error || errorData.message || errorMessage
+      } catch {
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`
+      }
+      throw new Error(errorMessage)
+    }
+  }
+
+  const confirmDeleteNavigation = async () => {
+    if (!deleteDialog.item) return
+
+    setDeleteDialog(prev => ({ ...prev, isDeleting: true }))
+
+    try {
+      // Delete the item and all its children recursively
+      await deleteNavigationItemRecursively(deleteDialog.item)
+      
+      // Refresh the data and close dialog
+      await fetchData()
+      toast.success('Removed from navigation')
+      onNavigationUpdate?.()
+      closeDeleteDialog()
     } catch (error) {
       console.error('Error removing from navigation:', error)
-      toast.error('Failed to remove from navigation')
+      const message = error instanceof Error ? error.message : 'Failed to remove from navigation'
+      toast.error(message)
+      setDeleteDialog(prev => ({ ...prev, isDeleting: false }))
     }
   }
 
@@ -344,10 +456,11 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
     const isExpanded = expandedItems.has(item.id)
     const depth = item.depth || 0
     const maxDepth = 4
+    const isFolder = item.type === 'section'
 
     return (
-      <div key={item.id} className="space-y-1">
-        <Draggable draggableId={item.id} index={index}>
+      <div key={item.id} className="space-y-0.5">
+        <Draggable draggableId={`nav-${item.id}`} index={index}>
           {(provided, snapshot) => (
             <div
               ref={provided.innerRef}
@@ -360,131 +473,175 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
                 ...provided.draggableProps.style
               }}
             >
-              <div className="p-3 flex items-center space-x-3">
-                {/* Drag Handle */}
-                <div
-                  {...provided.dragHandleProps}
-                  className="cursor-move text-gray-400 hover:text-gray-600"
-                >
-                  <GripVertical className="h-4 w-4" />
-                </div>
-
-                {/* Expand/Collapse */}
-                {hasChildren && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleExpanded(item.id)}
-                    className="p-0 h-auto"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-
-                {/* Icon */}
-                <div className="flex-shrink-0">
-                  {item.type === 'section' ? (
-                    <Folder className="h-4 w-4 text-blue-600" />
-                  ) : item.type === 'homepage' ? (
-                    <Home className="h-4 w-4 text-green-600" />
-                  ) : item.type === 'external' ? (
-                    <ExternalLink className="h-4 w-4 text-purple-600" />
-                  ) : (
-                    <FileText className="h-4 w-4 text-gray-600" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-medium truncate">{item.label}</h4>
-                    <Badge variant="outline" className="text-xs">
-                      {item.type}
-                    </Badge>
-                    {depth > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        Level {depth + 1}
-                      </Badge>
-                    )}
-                  </div>
-                  {item.type === 'page' && item.page && (
-                    <p className="text-sm text-gray-500 truncate">
-                      /{item.page.slug}
-                    </p>
-                  )}
-                  {item.type === 'external' && (
-                    <p className="text-sm text-gray-500 truncate">
-                      {item.href}
-                    </p>
-                  )}
-                </div>
-
-                {/* Controls */}
-                <div className="flex items-center space-x-2">
-                  {/* Add Child (only if not at max depth) */}
-                  {item.type === 'section' && depth < maxDepth - 1 && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-blue-600 hover:text-blue-700"
-                          onClick={() => setNewItemParentId(item.id)}
+              {isFolder ? (
+                <Droppable droppableId={`nav-item-${item.id}`} type="PAGES">
+                  {(dropProvided, dropSnapshot) => (
+                    <div
+                      ref={dropProvided.innerRef}
+                      {...dropProvided.droppableProps}
+                      className={`p-2 rounded-lg transition-colors ${
+                        dropSnapshot.isDraggingOver ? 'bg-blue-50 border-blue-200' : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        {/* Drag Handle */}
+                        <div
+                          {...provided.dragHandleProps}
+                          className="cursor-move text-gray-400 hover:text-gray-600 flex-shrink-0"
                         >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Item to &quot;{item.label}&quot;</DialogTitle>
-                        </DialogHeader>
-                        <AddItemForm 
-                          parentId={item.id}
-                          onAdd={addNavigationItem}
-                          onCancel={() => setNewItemParentId(null)}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  )}
+                          <GripVertical className="h-4 w-4" />
+                        </div>
 
-                  {/* Visibility Toggle */}
-                  <div className="flex items-center space-x-1">
-                    <Switch
-                      checked={item.isActive}
-                      onCheckedChange={(checked) => 
-                        toggleItemVisibility(item.id, checked)
-                      }
-                      size="sm"
-                    />
-                    {item.isActive ? (
-                      <Eye className="h-3 w-3 text-green-600" />
+                        {/* Expand/Collapse */}
+                        {hasChildren && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleExpanded(item.id)}
+                            className="p-0 h-auto w-5 flex-shrink-0"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+
+                        {/* Icon */}
+                        <div className="flex-shrink-0">
+                          <Folder className="h-4 w-4 text-blue-600" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-sm font-medium truncate">{item.label}</h4>
+                            <Badge variant="outline" className="text-xs px-2 py-0.5">
+                              folder
+                            </Badge>
+                            {depth > 0 && (
+                              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                L{depth + 1}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center space-x-1 flex-shrink-0">
+                          {/* Visibility Toggle */}
+                          <Button
+                            onClick={() => toggleItemVisibility(item.id, !item.isActive)}
+                            size="sm"
+                            variant="ghost"
+                            className={`h-6 w-6 p-0 ${
+                              item.isActive 
+                                ? 'text-green-600 hover:text-green-700 hover:bg-green-50' 
+                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                            }`}
+                            title={item.isActive ? "Hide from navigation" : "Show in navigation"}
+                          >
+                            {item.isActive ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <EyeOff className="h-4 w-4" />
+                            )}
+                          </Button>
+
+                                            {/* Remove Button */}
+                  <Button
+                    onClick={() => openDeleteDialog(item.id)}
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    title="Remove from navigation"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                        </div>
+                      </div>
+                      {dropProvided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              ) : (
+                <div className="p-2 flex items-center space-x-2">
+                  {/* Drag Handle */}
+                  <div
+                    {...provided.dragHandleProps}
+                    className="cursor-move text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </div>
+
+                  {/* Icon */}
+                  <div className="flex-shrink-0">
+                    {item.type === 'homepage' ? (
+                      <Home className="h-4 w-4 text-green-600" />
+                    ) : item.type === 'external' ? (
+                      <ExternalLink className="h-4 w-4 text-purple-600" />
                     ) : (
-                      <EyeOff className="h-3 w-3 text-gray-400" />
+                      <FileText className="h-4 w-4 text-gray-600" />
                     )}
                   </div>
 
-                  {/* Remove Button */}
-                  <Button
-                    onClick={() => removeFromNavigation(item.id)}
-                    size="sm"
-                    variant="ghost"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="text-sm font-medium truncate">{item.label}</h4>
+                      <Badge variant="outline" className="text-xs px-2 py-0.5">
+                        page
+                      </Badge>
+                      {depth > 0 && (
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                          L{depth + 1}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    {/* Visibility Toggle */}
+                    <Button
+                      onClick={() => toggleItemVisibility(item.id, !item.isActive)}
+                      size="sm"
+                      variant="ghost"
+                      className={`h-7 w-7 p-0 ${
+                        item.isActive 
+                          ? 'text-green-600 hover:text-green-700 hover:bg-green-50' 
+                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                      }`}
+                      title={item.isActive ? "Hide from navigation" : "Show in navigation"}
+                    >
+                      {item.isActive ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
+                    </Button>
+
+                    {/* Remove Button */}
+                    <Button
+                      onClick={() => openDeleteDialog(item.id)}
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Remove from navigation"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </Draggable>
 
         {/* Render Children */}
         {hasChildren && isExpanded && (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {item.children!.map((child, childIndex) => 
               renderNavigationItem(child, childIndex, item.id)
             )}
@@ -494,62 +651,7 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
     )
   }
 
-  const AddItemForm = ({ parentId, onAdd, onCancel }: {
-    parentId: string | null
-    onAdd: () => void
-    onCancel: () => void
-  }) => (
-    <div className="space-y-4">
-      <div>
-        <Label>Item Type</Label>
-        <Select value={newItemType} onValueChange={(value: 'page' | 'section') => setNewItemType(value)}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="page">Page</SelectItem>
-            <SelectItem value="section">Section Header</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      {newItemType === 'page' ? (
-        <div>
-          <Label>Select Page</Label>
-          <Select value={newItemPageId} onValueChange={setNewItemPageId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a page" />
-            </SelectTrigger>
-            <SelectContent>
-              {pages.filter(p => p.isPublished).map(page => (
-                <SelectItem key={page.id} value={page.id}>
-                  {page.title} (/{page.slug})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      ) : (
-        <div>
-          <Label>Section Label</Label>
-          <Input
-            value={newItemLabel}
-            onChange={(e) => setNewItemLabel(e.target.value)}
-            placeholder="Enter section name"
-          />
-        </div>
-      )}
-
-      <div className="flex space-x-2">
-        <Button onClick={onAdd} className="flex-1">
-          Add {newItemType}
-        </Button>
-        <Button onClick={onCancel} variant="outline">
-          Cancel
-        </Button>
-      </div>
-    </div>
-  )
 
   if (loading) {
     return (
@@ -560,12 +662,15 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Navigation className="h-5 w-5 text-blue-600" />
-          <h2 className="text-xl font-semibold">Hierarchical Navigation</h2>
+          <Navigation className="h-4 w-4 text-blue-600" />
+          <h2 className="text-base font-semibold">Navigation Builder</h2>
+          <Badge variant="secondary" className="text-xs">
+            {flattenHierarchy(navigationItems).length} items
+          </Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -573,57 +678,38 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
             variant="outline"
             size="sm"
             disabled={loading}
+            className="h-8"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            <RefreshCw className="h-3 w-3 mr-1" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm" onClick={resetAddForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Navigation Item</DialogTitle>
-              </DialogHeader>
-              <AddItemForm 
-                parentId={newItemParentId}
-                onAdd={addNavigationItem}
-                onCancel={() => setShowAddDialog(false)}
-              />
-            </DialogContent>
-          </Dialog>
+
           <Button
             onClick={saveNavigationOrder}
             disabled={saving}
             size="sm"
+            className="h-8"
           >
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Order'}
+            <Save className="h-3 w-3 mr-1" />
+            <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save Order'}</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Homepage Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Home className="h-4 w-4" />
-              <span>Homepage</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label>Select Homepage</Label>
+      {/* Homepage Settings */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Home className="h-4 w-4 text-green-600" />
+              <Label className="font-medium">Homepage:</Label>
+            </div>
+                          <div className="flex items-center space-x-3">
                 <Select
                   value={siteSettings.homepageId || ''}
                   onValueChange={updateHomepage}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-48">
                     <SelectValue placeholder="Choose homepage" />
                   </SelectTrigger>
                   <SelectContent>
@@ -635,80 +721,251 @@ export function HierarchicalNavigationOrganizer({ onNavigationUpdate }: Hierarch
                   </SelectContent>
                 </Select>
               </div>
-              {siteSettings.homepage && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Home className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-800">
-                      {siteSettings.homepage.title}
-                    </span>
-                  </div>
-                  <p className="text-sm text-green-600 mt-1">
-                    /{siteSettings.homepage.slug}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation Structure */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Navigation className="h-4 w-4" />
-              <span>Navigation Structure</span>
-              <Badge variant="secondary">{flattenHierarchy(navigationItems).length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {navigationItems.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Navigation className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No navigation items yet</p>
-                <p className="text-sm">Click &quot;Add Item&quot; to start building your navigation</p>
-              </div>
-            ) : (
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="navigation-items">
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="space-y-2"
-                    >
-                      {navigationItems.map((item, index) => 
-                        renderNavigationItem(item, index)
-                      )}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex items-start space-x-3">
-            <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-blue-900 mb-2">Multi-Level Navigation:</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• <strong>Homepage:</strong> Select which page serves as your homepage</li>
-                <li>• <strong>Pages:</strong> Add individual pages to navigation</li>
-                <li>• <strong>Sections:</strong> Create section headers to group pages</li>
-                <li>• <strong>Nesting:</strong> Add items to sections (up to 4 levels deep)</li>
-                <li>• <strong>Reordering:</strong> Drag and drop to reorder items</li>
-                <li>• <strong>Visibility:</strong> Toggle items on/off with the eye icon</li>
-              </ul>
-            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Drag and Drop Navigation Builder */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Available Pages */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <h3 className="text-base font-semibold">Available Pages</h3>
+                <Badge variant="secondary" className="text-xs">
+                  {pages.filter(p => p.isPublished && !navigationItems.some(nav => nav.pageId === p.id)).length} pages
+                </Badge>
+              </div>
+              
+              <Droppable droppableId="available-pages" type="PAGES">
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={`space-y-1 min-h-[200px] p-2 border-2 border-dashed rounded-lg transition-colors ${
+                      snapshot.isDraggingOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+                    }`}
+                  >
+                    {pages
+                      .filter(p => p.isPublished && !navigationItems.some(nav => nav.pageId === p.id))
+                      .map((page, index) => (
+                        <Draggable key={`page-${page.id}`} draggableId={`page-${page.id}`} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`p-2 bg-white border rounded-lg cursor-move transition-all ${
+                                snapshot.isDragging ? 'shadow-lg rotate-2' : 'hover:shadow-md'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <GripVertical className="h-4 w-4 text-gray-400" />
+                                <FileText className="h-4 w-4 text-gray-600" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium truncate">{page.title}</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                    {provided.placeholder}
+                    {pages.filter(p => p.isPublished && !navigationItems.some(nav => nav.pageId === p.id)).length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">All pages are in navigation</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Droppable>
+            </CardContent>
+          </Card>
+
+        {/* Navigation Structure */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Navigation className="h-4 w-4 text-green-600" />
+                <h3 className="text-base font-semibold">Navigation Structure</h3>
+                <Badge variant="secondary" className="text-xs">
+                  {flattenHierarchy(navigationItems).length} items
+                </Badge>
+              </div>
+              <Button
+                onClick={() => setShowFolderDialog(true)}
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                title="Add new folder"
+              >
+                <FolderPlus className="h-4 w-4 text-blue-600" />
+              </Button>
+            </div>
+            
+            <Droppable droppableId="navigation-structure" type="NAVIGATION">
+              {(provided, snapshot) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className={`space-y-1 min-h-[200px] p-2 border-2 border-dashed rounded-lg transition-colors ${
+                    snapshot.isDraggingOver ? 'border-green-400 bg-green-50' : 'border-gray-200'
+                  }`}
+                >
+                  {navigationItems.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Navigation className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Drag pages here to build navigation</p>
+                      <p className="text-xs text-gray-400">Or add folders with the button above</p>
+                    </div>
+                  ) : (
+                    navigationItems.map((item, index) => 
+                      renderNavigationItem(item, index)
+                    )
+                  )}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </CardContent>
+        </Card>
+        </div>
+      </DragDropContext>
+
+      {/* New Folder Dialog */}
+      <Dialog open={showFolderDialog} onOpenChange={setShowFolderDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FolderPlus className="h-5 w-5 text-blue-600" />
+              <span>Create New Folder</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="folder-name" className="text-sm font-medium">
+                Folder Name
+              </Label>
+              <Input
+                id="folder-name"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Enter folder name..."
+                className="mt-2"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    addNavigationFolder()
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            
+            <div className="text-sm text-gray-500">
+              <p>Folders help organize your navigation into logical groups. You can drag pages into folders to create nested navigation.</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowFolderDialog(false)
+                setNewFolderName('')
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addNavigationFolder}
+              disabled={!newFolderName.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Create Folder
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.isOpen} onOpenChange={closeDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              <span>Confirm Deletion</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {deleteDialog.item && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex-shrink-0">
+                  {deleteDialog.item.type === 'section' ? (
+                    <Folder className="h-5 w-5 text-red-600" />
+                  ) : (
+                    <FileText className="h-5 w-5 text-red-600" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-red-900">{deleteDialog.item.label}</h4>
+                  <p className="text-sm text-red-700">
+                    {deleteDialog.item.type === 'section' ? 'Folder' : 'Page'}
+                    {deleteDialog.item.children && deleteDialog.item.children.length > 0 && 
+                      ` • Contains ${deleteDialog.item.children.length} item(s)`
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              <div className="text-sm text-gray-600">
+                {deleteDialog.item.children && deleteDialog.item.children.length > 0 ? (
+                  <p>
+                    <strong>Warning:</strong> This will permanently remove "{deleteDialog.item.label}" and all {deleteDialog.item.children.length} item(s) inside it from your navigation. This action cannot be undone.
+                  </p>
+                ) : (
+                  <p>
+                    Are you sure you want to remove "{deleteDialog.item.label}" from your navigation? This action cannot be undone.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={closeDeleteDialog}
+              disabled={deleteDialog.isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteNavigation}
+              disabled={deleteDialog.isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteDialog.isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

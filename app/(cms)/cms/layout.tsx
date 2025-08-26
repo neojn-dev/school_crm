@@ -8,8 +8,10 @@ export default function CmsLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <AdminSidebar />
-      <main className="flex-1 overflow-hidden">
-        {children}
+      <main className="flex-1 overflow-hidden ml-6">
+        <div className="h-full pt-8">
+          {children}
+        </div>
       </main>
     </div>
   )
