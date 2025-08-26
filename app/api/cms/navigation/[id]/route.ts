@@ -3,14 +3,19 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 
+// GET /api/cms/navigation/[id] - Get single navigation item
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const navigationItem = await db.cmsNavigation.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
+        page: {
+          select: { id: true, title: true, slug: true }
+        },
         children: {
           include: {
             page: {
@@ -18,9 +23,6 @@ export async function GET(
             }
           },
           orderBy: { sortOrder: 'asc' }
-        },
-        page: {
-          select: { id: true, title: true, slug: true }
         }
       }
     })
@@ -42,10 +44,12 @@ export async function GET(
   }
 }
 
+// PUT /api/cms/navigation/[id] - Update navigation item
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -53,23 +57,11 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { label, href, target, type, pageId, parentId, isActive } = body
-
-    if (!label?.trim()) {
-      return NextResponse.json({ error: 'Label is required' }, { status: 400 })
-    }
-
-    if (type === 'external' && !href?.trim()) {
-      return NextResponse.json({ error: 'URL is required for external links' }, { status: 400 })
-    }
-
-    if (type === 'page' && !pageId) {
-      return NextResponse.json({ error: 'Page selection is required' }, { status: 400 })
-    }
+    const { label, href, target, type, pageId, parentId, isActive, sortOrder } = body
 
     // Check if navigation item exists
     const existingItem = await db.cmsNavigation.findUnique({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     if (!existingItem) {
@@ -79,18 +71,32 @@ export async function PUT(
       )
     }
 
+    // Prepare update data
+    const updateData: any = {
+      updatedBy: session.user.id
+    }
+
+    if (label !== undefined) updateData.label = label.trim()
+    if (href !== undefined) updateData.href = href.trim()
+    if (target !== undefined) updateData.target = target
+    if (type !== undefined) updateData.type = type
+    if (pageId !== undefined) updateData.pageId = pageId
+    if (parentId !== undefined) updateData.parentId = parentId
+    if (isActive !== undefined) updateData.isActive = isActive
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder
+
+    // Validate required fields based on type
+    if (updateData.type === 'external' && !updateData.href) {
+      return NextResponse.json({ error: 'URL is required for external links' }, { status: 400 })
+    }
+
+    if (updateData.type === 'page' && !updateData.pageId) {
+      return NextResponse.json({ error: 'Page selection is required' }, { status: 400 })
+    }
+
     const navigationItem = await db.cmsNavigation.update({
-      where: { id: params.id },
-      data: {
-        label: label.trim(),
-        href: type === 'page' ? '' : (href?.trim() || ''),
-        target: target || null,
-        type,
-        pageId: type === 'page' ? pageId : null,
-        parentId: parentId || null,
-        isActive: isActive !== false,
-        updatedBy: session.user.id
-      },
+      where: { id: resolvedParams.id },
+      data: updateData,
       include: {
         page: {
           select: { id: true, title: true, slug: true }
@@ -108,10 +114,12 @@ export async function PUT(
   }
 }
 
+// DELETE /api/cms/navigation/[id] - Delete navigation item
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -120,8 +128,10 @@ export async function DELETE(
 
     // Check if navigation item exists
     const existingItem = await db.cmsNavigation.findUnique({
-      where: { id: params.id },
-      include: { children: true }
+      where: { id: resolvedParams.id },
+      include: {
+        children: true
+      }
     })
 
     if (!existingItem) {
@@ -131,19 +141,20 @@ export async function DELETE(
       )
     }
 
-    // Delete children first (if any)
-    if (existingItem.children.length > 0) {
-      await db.cmsNavigation.deleteMany({
-        where: { parentId: params.id }
-      })
+    // Check if item has children
+    if (existingItem.children && existingItem.children.length > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete navigation item with children. Remove children first.' },
+        { status: 400 }
+      )
     }
 
     // Delete the navigation item
     await db.cmsNavigation.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ message: 'Navigation item deleted successfully' })
   } catch (error) {
     console.error('Error deleting navigation item:', error)
     return NextResponse.json(

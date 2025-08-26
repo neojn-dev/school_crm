@@ -7,9 +7,10 @@ import type { Metadata } from "next"
 export async function generateMetadata({ 
   params 
 }: { 
-  params: { slug: string[] } 
+  params: Promise<{ slug: string[] }>
 }): Promise<Metadata> {
-  const slug = params.slug.join('/')
+  const resolvedParams = await params
+  const slug = resolvedParams.slug.join('/')
   
   // Get the page from database
   const page = await db.cmsPage.findFirst({
@@ -55,9 +56,10 @@ export async function generateMetadata({
 export default async function DynamicPage({ 
   params 
 }: { 
-  params: { slug: string[] } 
+  params: Promise<{ slug: string[] }>
 }) {
-  const slug = params.slug.join('/')
+  const resolvedParams = await params
+  const slug = resolvedParams.slug.join('/')
   
   // Get the page from database
   const page = await db.cmsPage.findFirst({

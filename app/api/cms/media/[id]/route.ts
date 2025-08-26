@@ -16,8 +16,9 @@ const updateMediaSchema = z.object({
 // GET /api/cms/media/[id] - Get single media file
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -29,7 +30,7 @@ export async function GET(
     }
 
     const media = await db.cmsMedia.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         uploadedByUser: { select: { id: true, username: true, firstName: true } }
       }
@@ -55,8 +56,9 @@ export async function GET(
 // PUT /api/cms/media/[id] - Update media file metadata
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -72,7 +74,7 @@ export async function PUT(
 
     // Check if media exists
     const existingMedia = await db.cmsMedia.findUnique({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     if (!existingMedia) {
@@ -84,7 +86,7 @@ export async function PUT(
 
     // Update the media
     const media = await db.cmsMedia.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data,
       include: {
         uploadedByUser: { select: { id: true, username: true, firstName: true } }
@@ -111,8 +113,9 @@ export async function PUT(
 // DELETE /api/cms/media/[id] - Delete media file
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -125,7 +128,7 @@ export async function DELETE(
 
     // Check if media exists
     const existingMedia = await db.cmsMedia.findUnique({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     if (!existingMedia) {
@@ -146,7 +149,7 @@ export async function DELETE(
 
     // Delete from database
     await db.cmsMedia.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     return NextResponse.json({ message: "Media file deleted successfully" })

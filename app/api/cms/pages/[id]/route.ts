@@ -21,8 +21,9 @@ const updatePageSchema = z.object({
 // GET /api/cms/pages/[id] - Get single page
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -34,7 +35,7 @@ export async function GET(
     }
 
     const page = await db.cmsPage.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         template: { select: { id: true, name: true } },
         createdByUser: { select: { id: true, username: true, firstName: true } },
@@ -68,8 +69,9 @@ export async function GET(
 // PUT /api/cms/pages/[id] - Update page
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -85,7 +87,7 @@ export async function PUT(
 
     // Check if page exists
     const existingPage = await db.cmsPage.findUnique({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     if (!existingPage) {
@@ -127,7 +129,7 @@ export async function PUT(
     }
 
     const page = await db.cmsPage.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: updateData,
       include: {
         template: { select: { id: true, name: true } },
@@ -156,8 +158,9 @@ export async function PUT(
 // DELETE /api/cms/pages/[id] - Delete page
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
     const session = await getServerSession(authOptions)
     
@@ -170,7 +173,7 @@ export async function DELETE(
 
     // Check if page exists
     const existingPage = await db.cmsPage.findUnique({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     if (!existingPage) {
@@ -182,7 +185,7 @@ export async function DELETE(
 
     // Delete the page (this will cascade delete related blocks)
     await db.cmsPage.delete({
-      where: { id: params.id }
+      where: { id: resolvedParams.id }
     })
 
     return NextResponse.json({ message: "Page deleted successfully" })

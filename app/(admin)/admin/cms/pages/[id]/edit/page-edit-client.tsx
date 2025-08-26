@@ -56,10 +56,13 @@ export function PageEditClient({ page }: PageEditClientProps) {
       })
 
       if (response.ok) {
-        // Optionally show success message
+        // Show success message
         console.log('Page saved successfully')
+        // You could add a toast notification here
+        alert('Page saved successfully!')
       } else {
         const error = await response.json()
+        console.error('Save error:', error)
         alert(`Error: ${error.error}`)
       }
     } catch (error) {

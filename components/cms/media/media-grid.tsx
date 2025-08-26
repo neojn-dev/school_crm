@@ -7,7 +7,8 @@ import {
   Download,
   Edit,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  File as FileIcon
 } from "lucide-react"
 import {
   DropdownMenu,

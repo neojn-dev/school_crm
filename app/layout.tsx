@@ -15,9 +15,10 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { db } from "@/lib/db"
-import { CmsWebsiteHeader } from "@/components/cms/cms-website-header"
+import { HierarchicalWebsiteHeader } from "@/components/cms/hierarchical-website-header-v2"
 import { WebsiteFooter } from "@/components/website-components"
 import { SessionProviderWrapper } from "@/components/providers/session-provider"
+import { headers } from 'next/headers'
 import "@/styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -57,14 +58,10 @@ export const metadata: Metadata = {
 
 async function getNavigationData() {
   try {
-    // Get navigation items
+    // Get all navigation items (we'll build hierarchy manually)
     const navigationItems = await db.cmsNavigation.findMany({
       where: { isActive: true },
       include: {
-        children: {
-          where: { isActive: true },
-          orderBy: { sortOrder: 'asc' }
-        },
         page: {
           select: { slug: true, title: true }
         }
@@ -78,23 +75,27 @@ async function getNavigationData() {
     // Get SEO settings for site name
     const seoSettings = await db.cmsSeoSettings.findFirst()
 
-    // Transform navigation data
-    const transformedNavigation = navigationItems
-      .filter(item => !item.parentId) // Only top-level items
-      .map(item => ({
-        id: item.id,
-        label: item.label,
-        href: item.type === 'page' && item.page ? `/${item.page.slug}` : item.href,
-        target: item.target || undefined,
-        type: item.type,
-        children: item.children?.map(child => ({
-          id: child.id,
-          label: child.label,
-          href: child.type === 'page' && child.page ? `/${child.page.slug}` : child.href,
-          target: child.target || undefined,
-          type: child.type
+    // Build hierarchical navigation structure (up to 4 levels)
+    const buildHierarchy = (items: any[], parentId: string | null = null): any[] => {
+      return items
+        .filter(item => item.parentId === parentId)
+        .map(item => ({
+          id: item.id,
+          label: item.label,
+          href: item.type === 'page' && item.page ? `/${item.page.slug}` : item.href,
+          target: item.target || undefined,
+          type: item.type,
+          isActive: item.isActive,
+          children: buildHierarchy(items, item.id)
         }))
-      }))
+        .sort((a, b) => {
+          const aItem = items.find(i => i.id === a.id)
+          const bItem = items.find(i => i.id === b.id)
+          return (aItem?.sortOrder || 0) - (bItem?.sortOrder || 0)
+        })
+    }
+
+    const transformedNavigation = buildHierarchy(navigationItems)
 
     return {
       navigation: transformedNavigation,
@@ -116,6 +117,23 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const headersList = await headers()
+  const isCmsRoute = headersList.get('x-is-cms-route') === 'true'
+
+  if (isCmsRoute) {
+    // CMS routes get minimal layout
+    return (
+      <html lang="en">
+        <body className={inter.className} suppressHydrationWarning>
+          <SessionProviderWrapper>
+            {children}
+          </SessionProviderWrapper>
+        </body>
+      </html>
+    )
+  }
+
+  // Regular website routes get full layout
   const { navigation, siteSettings, siteName } = await getNavigationData()
 
   return (
@@ -123,7 +141,7 @@ export default async function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <SessionProviderWrapper>
           <div className="min-h-screen flex flex-col">
-            <CmsWebsiteHeader 
+            <HierarchicalWebsiteHeader 
               navigation={navigation}
               siteSettings={siteSettings || undefined}
               siteName={siteName}

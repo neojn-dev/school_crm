@@ -54,17 +54,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Page selection is required' }, { status: 400 })
     }
 
-    // Get the next sort order
+    // Check nesting depth (max 4 levels)
+    if (parentId) {
+      let depth = 0
+      let currentParentId = parentId
+      
+      while (currentParentId && depth < 5) {
+        const parent = await db.cmsNavigation.findUnique({
+          where: { id: currentParentId },
+          select: { parentId: true }
+        })
+        
+        if (!parent) break
+        
+        depth++
+        currentParentId = parent.parentId
+        
+        if (depth >= 4) {
+          return NextResponse.json(
+            { error: 'Maximum nesting depth (4 levels) exceeded' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // Get the next sort order within the parent
     const lastItem = await db.cmsNavigation.findFirst({
       where: { parentId: parentId || null },
       orderBy: { sortOrder: 'desc' }
     })
     const sortOrder = (lastItem?.sortOrder || 0) + 1
 
+    // Set href based on type
+    let itemHref = ''
+    if (type === 'page' && pageId) {
+      // Get page slug for href
+      const page = await db.cmsPage.findUnique({
+        where: { id: pageId },
+        select: { slug: true }
+      })
+      itemHref = page ? `/${page.slug}` : ''
+    } else if (type === 'external') {
+      itemHref = href?.trim() || ''
+    } else if (type === 'section') {
+      itemHref = '#' // Section headers don't have links
+    }
+
     const navigationItem = await db.cmsNavigation.create({
       data: {
         label: label.trim(),
-        href: type === 'page' ? '' : (href?.trim() || ''),
+        href: itemHref,
         target: target || null,
         type,
         pageId: type === 'page' ? pageId : null,
@@ -77,6 +117,14 @@ export async function POST(request: NextRequest) {
       include: {
         page: {
           select: { id: true, title: true, slug: true }
+        },
+        children: {
+          include: {
+            page: {
+              select: { id: true, title: true, slug: true }
+            }
+          },
+          orderBy: { sortOrder: 'asc' }
         }
       }
     })

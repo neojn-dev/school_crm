@@ -10,8 +10,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
-    const { id } = await params
+    const { id } = resolvedParams
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -72,8 +73,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params
   try {
-    const { id } = await params
+    const { id } = resolvedParams
     const session = await getServerSession(authOptions)
 
     if (!session) {

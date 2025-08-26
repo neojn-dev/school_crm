@@ -63,9 +63,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
     if (showColorPicker) {
       document.addEventListener('mousedown', handleClickOutside)
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside)
-      }
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showColorPicker])
 

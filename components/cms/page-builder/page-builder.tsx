@@ -119,6 +119,7 @@ export function PageBuilder({
 
   // Save page
   const handleSave = useCallback(() => {
+    console.log('PageBuilder: Saving blocks', blocks)
     onSave?.(blocks)
   }, [blocks, onSave])
 

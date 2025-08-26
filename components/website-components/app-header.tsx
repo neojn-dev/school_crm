@@ -38,7 +38,7 @@ export function AppHeader() {
               <>
                 {/* Admin Panel Link */}
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/admin" className="flex items-center space-x-2">
+                  <Link href="/cms" className="flex items-center space-x-2">
                     <Settings className="h-4 w-4" />
                     <span>Admin Panel</span>
                   </Link>

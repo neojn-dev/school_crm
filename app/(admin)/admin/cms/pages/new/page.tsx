@@ -82,9 +82,11 @@ export default function NewPagePage() {
 
       if (response.ok) {
         const result = await response.json()
+        console.log('Page created successfully')
         router.push(`/admin/cms/pages/${result.page.id}/edit`)
       } else {
         const error = await response.json()
+        console.error('Create error:', error)
         alert(`Error: ${error.error}`)
       }
     } catch (error) {
