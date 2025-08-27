@@ -41,7 +41,7 @@ export default async function TemplatesManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
-          <p className="text-gray-600">Manage page templates and layouts</p>
+          <p className="text-gray-600">Templates for general pages are deprecated. Use the Blogs editor for rich content; Announcements and Tenders manage files and notices.</p>
         </div>
         <Link href="/admin/cms/templates/new">
           <Button className="flex items-center space-x-2">

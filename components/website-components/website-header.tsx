@@ -26,13 +26,12 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 
-// Navigation groups for public pages
+// Navigation groups for public pages (3 groups with 3 pages each)
 const navigationGroups = [
   {
-    title: "Company",
+    title: "About",
     items: [
       { title: "About Us", href: "/company/about", icon: Info },
-      { title: "Our Mission", href: "/company/mission", icon: Target },
       { title: "Leadership", href: "/company/leadership", icon: Users },
       { title: "Careers", href: "/company/careers", icon: Award }
     ]
@@ -40,19 +39,17 @@ const navigationGroups = [
   {
     title: "Services",
     items: [
-      { title: "What We Do", href: "/services/overview", icon: Lightbulb },
+      { title: "Overview", href: "/services/overview", icon: Lightbulb },
       { title: "Solutions", href: "/services/solutions", icon: Zap },
-      { title: "Industries", href: "/services/industries", icon: Building2 },
-      { title: "Case Studies", href: "/services/case-studies", icon: BarChart3 }
+      { title: "Industries", href: "/services/industries", icon: Building2 }
     ]
   },
   {
-    title: "Resources",
+    title: "Updates",
     items: [
-      { title: "Blog", href: "/resources/blog", icon: FileText },
-      { title: "News", href: "/resources/news", icon: TrendingUp },
-      { title: "Events", href: "/resources/events", icon: Calendar },
-      { title: "Support", href: "/resources/support", icon: HelpCircle }
+      { title: "Blog", href: "/updates/blog", icon: FileText },
+      { title: "Announcements", href: "/updates/announcements", icon: TrendingUp },
+      { title: "Tenders", href: "/updates/tenders", icon: BarChart3 }
     ]
   }
 ]
@@ -220,6 +217,15 @@ export function WebsiteHeader() {
                 )}
               </div>
             ))}
+            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+              <Link 
+                href="/contact" 
+                className="text-gray-600 hover:text-gray-900 transition-colors font-medium relative group"
+              >
+                Contact
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
+              </Link>
+            </motion.div>
           </nav>
 
           {/* Right Section - User Info and Auth */}
@@ -376,6 +382,19 @@ export function WebsiteHeader() {
                   </div>
                 </motion.div>
               ))}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <Link 
+                  href="/contact" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+              </motion.div>
               
               {!isAuthenticated && (
                 <motion.div

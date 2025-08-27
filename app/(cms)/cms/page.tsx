@@ -9,7 +9,8 @@ import {
   TrendingUp,
   Users,
   Globe,
-  Calendar
+  Calendar,
+  MousePointer
 } from "lucide-react"
 
 export default async function AdminDashboard() {
@@ -82,7 +83,7 @@ export default async function AdminDashboard() {
           Welcome back, {session?.user?.username}!
         </h1>
         <p className="mt-2 text-gray-600">
-          Here's what's happening with your content management system today.
+          CMS is now focused on Blogs, Announcements, and Tenders. Standard website pages are managed via code with reusable components.
         </p>
       </div>
 
@@ -180,6 +181,14 @@ export default async function AdminDashboard() {
               >
                 <FileText className="h-8 w-8 text-gray-400 mb-2" />
                 <span className="text-sm font-medium text-gray-900">New Page</span>
+              </a>
+              <a
+                href="/cms/pages/new"
+                className="flex flex-col items-center p-4 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-400 transition-colors bg-blue-50"
+              >
+                <MousePointer className="h-8 w-8 text-blue-500 mb-2" />
+                <span className="text-sm font-medium text-blue-900">Page Builder</span>
+                <span className="text-xs text-blue-600 mt-1">Drag & Drop</span>
               </a>
               <a
                 href="/cms/templates/new"

@@ -5,124 +5,38 @@ import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
   FileText, 
-  Layers, 
   Image, 
-  Settings, 
-  Search,
+  Settings,
   PlusCircle,
-  BarChart3,
-  Menu,
-  Globe,
   ChevronRight,
   Home,
-  Users,
-  Palette
+  Megaphone
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navigationSections = [
   {
-    title: "Content Management",
+    title: "Content",
     items: [
-      {
-        name: "Dashboard",
-        href: "/cms",
-        icon: LayoutDashboard,
-        description: "Overview and quick stats"
-      },
-      {
-        name: "Pages",
-        href: "/cms/pages",
-        icon: FileText,
-        description: "Manage website pages"
-      },
-      {
-        name: "Templates",
-        href: "/cms/templates",
-        icon: Layers,
-        description: "Page templates and layouts"
-      },
-      {
-        name: "Content Blocks",
-        href: "/cms/blocks",
-        icon: PlusCircle,
-        description: "Reusable content components"
-      }
+      { name: "Dashboard", href: "/cms", icon: LayoutDashboard, description: "Overview and quick stats" },
+      { name: "Blogs", href: "/cms/blogs", icon: FileText, description: "Create and edit blog posts" },
+      { name: "Announcements", href: "/cms/announcements", icon: Megaphone, description: "Manage announcements" },
+      { name: "Tenders", href: "/cms/tenders", icon: FileText, description: "Manage tenders and files" },
     ]
   },
   {
-    title: "Site Configuration",
+    title: "Assets",
     items: [
-      {
-        name: "Navigation",
-        href: "/cms/navigation",
-        icon: Menu,
-        description: "Site navigation structure"
-      },
-      {
-        name: "Site Settings",
-        href: "/cms/site-settings",
-        icon: Globe,
-        description: "Global site configuration"
-      },
-      {
-        name: "Media Library",
-        href: "/cms/media",
-        icon: Image,
-        description: "Images and file uploads"
-      }
-    ]
-  },
-  {
-    title: "Optimization",
-    items: [
-      {
-        name: "SEO Settings",
-        href: "/cms/seo",
-        icon: Search,
-        description: "Search engine optimization"
-      },
-      {
-        name: "Analytics",
-        href: "/cms/analytics",
-        icon: BarChart3,
-        description: "Site performance metrics"
-      }
-    ]
-  },
-  {
-    title: "System",
-    items: [
-      {
-        name: "Settings",
-        href: "/cms/settings",
-        icon: Settings,
-        description: "System configuration"
-      }
+      { name: "Media Library", href: "/cms/media", icon: Image, description: "Images and file uploads" }
     ]
   }
 ]
 
 const quickActions = [
-  {
-    name: "New Page",
-    href: "/cms/pages/new",
-    icon: PlusCircle,
-    color: "bg-blue-500"
-  },
-  {
-    name: "New Template",
-    href: "/cms/templates/new",
-    icon: Layers,
-    color: "bg-purple-500"
-  },
-  {
-    name: "View Site",
-    href: "/",
-    icon: Home,
-    color: "bg-green-500",
-    external: true
-  }
+  { name: "New Blog", href: "/cms/blogs/new", icon: PlusCircle, color: "bg-blue-500" },
+  { name: "New Announcement", href: "/cms/announcements/new", icon: Megaphone, color: "bg-purple-500" },
+  { name: "New Tender", href: "/cms/tenders/new", icon: FileText, color: "bg-orange-500" },
+  { name: "View Site", href: "/", icon: Home, color: "bg-green-500", external: true }
 ]
 
 export function AdminSidebar() {

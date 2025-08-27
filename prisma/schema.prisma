@@ -72,6 +72,11 @@ model User {
   navigationUpdated CmsNavigation[] @relation("NavigationUpdatedBy")
   siteSettingsUpdated CmsSiteSettings[] @relation("SiteSettingsUpdatedBy")
   
+  // Content Relations
+  blogPosts         BlogPost[]
+  announcements     Announcement[]
+  tenders           Tender[]
+  
   @@index([roleId])
   @@index([isActive])
   @@index([email])
@@ -593,6 +598,120 @@ model CmsSiteSettings {
   updatedByUser   User     @relation("SiteSettingsUpdatedBy", fields: [updatedBy], references: [id])
   
   @@index([updatedAt])
+}
+
+// ================================
+// SIMPLIFIED CMS CONTENT - Blogs, Announcements, Tenders
+// ================================
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  title       String   @db.VarChar(200)
+  slug        String   @unique @db.VarChar(200)
+  excerpt     String?  @db.VarChar(300)
+  content     String?  @db.LongText
+  coverImage  String?  @db.VarChar(500)
+  status      String   @default("draft") @db.VarChar(20) // draft, published
+  publishedAt DateTime?
+
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  tags        String?  // JSON array
+  attachments BlogAttachment[]
+
+  @@index([status, publishedAt])
+  @@index([createdAt])
+}
+
+model BlogAttachment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  blogId    String
+  filename  String
+  mimeType  String
+  size      Int
+  url       String   @db.VarChar(500)
+
+  blog      BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId])
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  title       String   @db.VarChar(200)
+  body        String?  @db.LongText
+  startAt     DateTime?
+  endAt       DateTime?
+  isActive    Boolean  @default(true)
+
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  attachments AnnouncementAttachment[]
+
+  @@index([isActive])
+  @@index([startAt])
+}
+
+model AnnouncementAttachment {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+
+  announcementId String
+  filename       String
+  mimeType       String
+  size           Int
+  url            String   @db.VarChar(500)
+
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+}
+
+model Tender {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  title        String   @db.VarChar(200)
+  description  String?  @db.Text
+  referenceNo  String?  @db.VarChar(100)
+  publishedAt  DateTime?
+  closingAt    DateTime?
+  isActive     Boolean  @default(true)
+
+  authorId     String?
+  author       User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  attachments  TenderAttachment[]
+
+  @@index([isActive])
+  @@index([publishedAt])
+  @@index([closingAt])
+}
+
+model TenderAttachment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  tenderId  String
+  filename  String
+  mimeType  String
+  size      Int
+  url       String   @db.VarChar(500)
+
+  tender    Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId])
 }
 
 

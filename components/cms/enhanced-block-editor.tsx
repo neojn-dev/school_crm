@@ -421,14 +421,33 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
 
   // Get field validation errors
   const getFieldErrors = (fieldName: string, isSettings = false) => {
-    return hasFieldErrors(block.component, fieldName, isSettings ? settings[fieldName] : content[fieldName], isSettings)
+    // Safety check for undefined values
+    if (!fieldName || !block?.component) {
+      return []
+    }
+    
+    try {
+      return hasFieldErrors(block.component, fieldName, isSettings ? settings[fieldName] : content[fieldName], isSettings)
+    } catch (error) {
+      console.warn('Error getting field errors:', error)
+      return []
+    }
   }
 
   // Render form field based on type
   const renderField = (fieldName: string, fieldConfig: FieldConfig, value: any, isSettings = false) => {
+    // Safety check for undefined or null fieldConfig
+    if (!fieldConfig || typeof fieldConfig !== 'object') {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700">Invalid field configuration</p>
+        </div>
+      )
+    }
+    
     const updateFunction = isSettings ? updateSettings : updateContent
     const fieldErrors = getFieldErrors(fieldName, isSettings)
-    const hasError = fieldErrors.length > 0
+    const hasError = Array.isArray(fieldErrors) && fieldErrors.length > 0
 
     switch (fieldConfig.type) {
       case 'text':
@@ -437,13 +456,13 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
             <Input
               value={value || ''}
               onChange={(e) => updateFunction(fieldName, e.target.value)}
-              placeholder={fieldConfig.placeholder}
+              placeholder={fieldConfig.placeholder || ''}
               className={hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
             />
             {hasError && (
               <div className="text-xs text-red-600">
-                {fieldErrors.map((error, index) => (
-                  <div key={index}>{error.message}</div>
+                {Array.isArray(fieldErrors) && fieldErrors.map((error, index) => (
+                  <div key={index}>{error?.message || 'Unknown error'}</div>
                 ))}
               </div>
             )}
@@ -456,14 +475,14 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
             <Textarea
               value={value || ''}
               onChange={(e) => updateFunction(fieldName, e.target.value)}
-              placeholder={fieldConfig.placeholder}
+              placeholder={fieldConfig.placeholder || ''}
               rows={3}
               className={hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
             />
             {hasError && (
               <div className="text-xs text-red-600">
-                {fieldErrors.map((error, index) => (
-                  <div key={index}>{error.message}</div>
+                {Array.isArray(fieldErrors) && fieldErrors.map((error, index) => (
+                  <div key={index}>{error?.message || 'Unknown error'}</div>
                 ))}
               </div>
             )}
@@ -477,9 +496,9 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>
-              {fieldConfig.options?.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {Array.isArray(fieldConfig.options) && fieldConfig.options.map((option) => (
+                <SelectItem key={option?.value || ''} value={option?.value || ''}>
+                  {option?.label || 'Unknown option'}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -495,7 +514,7 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
               onChange={(e) => updateFunction(fieldName, e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">{fieldConfig.label}</span>
+            <span className="text-sm text-gray-700">{fieldConfig.label || 'Unknown field'}</span>
           </label>
         )
       
@@ -522,8 +541,8 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
             type="number"
             value={value || ''}
             onChange={(e) => updateFunction(fieldName, Number(e.target.value))}
-            min={fieldConfig.min}
-            max={fieldConfig.max}
+            min={fieldConfig.min || undefined}
+            max={fieldConfig.max || undefined}
           />
         )
 
@@ -590,12 +609,19 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
   const groupFieldsByCategory = (fields: Record<string, FieldConfig>) => {
     const grouped: Record<string, Array<[string, FieldConfig]>> = {}
     
+    // Safety check for undefined or null fields
+    if (!fields || typeof fields !== 'object') {
+      return grouped
+    }
+    
     Object.entries(fields).forEach(([key, config]) => {
-      const category = config.category || 'general'
-      if (!grouped[category]) {
-        grouped[category] = []
+      if (config && typeof config === 'object') {
+        const category = config.category || 'general'
+        if (!grouped[category]) {
+          grouped[category] = []
+        }
+        grouped[category].push([key, config])
       }
-      grouped[category].push([key, config])
     })
     
     return grouped
@@ -603,6 +629,11 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
 
   // Get category icon
   const getCategoryIcon = (category: string) => {
+    // Safety check for undefined or null category
+    if (!category || typeof category !== 'string') {
+      return Settings
+    }
+    
     switch (category) {
       case 'content': return Type
       case 'layout': return Layout
@@ -618,23 +649,32 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
   }
 
   const blockConfig = getBlockConfig()
-  const contentGroups = groupFieldsByCategory(blockConfig.content)
-  const settingsGroups = groupFieldsByCategory(blockConfig.settings)
+  const contentGroups = groupFieldsByCategory(blockConfig?.content || {})
+  const settingsGroups = groupFieldsByCategory(blockConfig?.settings || {})
+
+  // Ensure block.type is defined to prevent accessibility errors
+  const blockType = block.type || 'Unknown'
+  const blockTitle = `Edit ${blockType} Block`
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0" role="dialog" aria-labelledby="block-editor-title" aria-describedby="block-editor-description">
-        <DialogHeader className="cms-card-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
-          <DialogTitle id="block-editor-title" className="flex items-center space-x-4">
+        {/* DialogTitle must be a direct child for accessibility */}
+        <DialogTitle id="block-editor-title" className="text-xs opacity-0 pointer-events-none">
+          {blockTitle}
+        </DialogTitle>
+        
+        <div className="cms-card-header bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+          <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <Settings className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Edit {block.type} Block</h2>
+              <h2 className="text-xl font-bold text-gray-900">{blockTitle}</h2>
               <p id="block-editor-description" className="text-sm text-gray-600 mt-1">Configure content, styling, and behavior settings</p>
             </div>
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        </div>
 
         <div className="cms-card-header bg-white">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" role="tablist" aria-label="Block editor sections">
@@ -684,7 +724,7 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
             <div className="p-8">
               {activeTab === 'content' && (
                 <div id="content-panel" role="tabpanel" aria-labelledby="content-tab" className="cms-form-section">
-                  {Object.entries(contentGroups).map(([category, fields]) => {
+                  {Object.entries(contentGroups || {}).map(([category, fields]) => {
                     const Icon = getCategoryIcon(category)
                     return (
                       <div key={category} className="cms-form-section">
@@ -698,19 +738,19 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
                           </div>
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                          {fields.map(([fieldName, fieldConfig]) => (
+                          {(fields || []).map(([fieldName, fieldConfig]) => (
                             <div key={fieldName} className="cms-form-group">
                               <Label 
                                 htmlFor={`content-${fieldName}`} 
                                 className="text-sm font-semibold text-gray-800 flex items-center"
                               >
-                                {fieldConfig.label}
-                                {fieldConfig.required && (
+                                {fieldConfig.label || 'Unknown field'}
+                                {fieldConfig.required === true && (
                                   <span className="text-red-500 ml-1" aria-label="Required field">*</span>
                                 )}
                               </Label>
                               {fieldConfig.description && (
-                                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{fieldConfig.description}</p>
+                                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{fieldConfig.description || ''}</p>
                               )}
                               <div className="mt-2">
                                 {renderField(fieldName, fieldConfig, content[fieldName])}
@@ -812,13 +852,13 @@ export function EnhancedBlockEditor({ block, onSave, onClose }: BlockEditorProps
                                 htmlFor={`settings-${fieldName}`} 
                                 className="text-sm font-semibold text-gray-800 flex items-center"
                               >
-                                {fieldConfig.label}
-                                {fieldConfig.required && (
+                                {fieldConfig.label || 'Unknown field'}
+                                {fieldConfig.required === true && (
                                   <span className="text-red-500 ml-1" aria-label="Required field">*</span>
                                 )}
                               </Label>
                               {fieldConfig.description && (
-                                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{fieldConfig.description}</p>
+                                <p className="text-sm text-gray-600 mt-1 leading-relaxed">{fieldConfig.description || ''}</p>
                               )}
                               <div className="mt-2">
                                 {renderField(fieldName, fieldConfig, settings[fieldName], true)}

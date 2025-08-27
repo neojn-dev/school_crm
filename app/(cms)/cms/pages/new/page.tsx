@@ -22,7 +22,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import { ArrowLeft, Save, Eye, Layers, Settings } from "lucide-react"
-import { PageBuilder } from "@/components/cms/page-builder/page-builder"
+import { DragDropPageBuilder } from "@/components/cms/page-builder/drag-drop-page-builder"
 import { TemplateSelector } from "@/components/cms/template-selector"
 import Link from "next/link"
 
@@ -197,7 +197,7 @@ export default function NewPagePage() {
 
       {/* Full Width Page Builder */}
       <div className="flex-1 overflow-hidden">
-        <PageBuilder
+        <DragDropPageBuilder
           initialBlocks={blocks}
           onSave={setBlocks}
         />

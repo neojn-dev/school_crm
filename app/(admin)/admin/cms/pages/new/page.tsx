@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Save, Eye } from "lucide-react"
-import { PageBuilder } from "@/components/cms/page-builder/page-builder"
+import { DragDropPageBuilder } from "@/components/cms/page-builder/drag-drop-page-builder"
 import Link from "next/link"
 
 interface PageData {
@@ -308,7 +308,7 @@ export default function NewPagePage() {
           <div className="lg:col-span-3">
             <Card className="h-full">
               <CardContent className="p-0 h-full">
-                <PageBuilder
+                <DragDropPageBuilder
                   initialBlocks={blocks}
                   onSave={setBlocks}
                 />

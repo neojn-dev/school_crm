@@ -22,7 +22,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import { ArrowLeft, Save, Eye, Trash2, Layers, Settings } from "lucide-react"
-import { PageBuilder } from "@/components/cms/page-builder/page-builder"
+import { DragDropPageBuilder } from "@/components/cms/page-builder/drag-drop-page-builder"
 import { TemplateSelector } from "@/components/cms/template-selector"
 import Link from "next/link"
 
@@ -216,7 +216,7 @@ export function PageEditClient({ page }: PageEditClientProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Full Width Page Builder */}
         <div className="flex-1 overflow-hidden">
-          <PageBuilder
+          <DragDropPageBuilder
             initialBlocks={blocks}
             onSave={setBlocks}
           />

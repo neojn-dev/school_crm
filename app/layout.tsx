@@ -14,9 +14,7 @@
 
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { db } from "@/lib/db"
-import { HierarchicalWebsiteHeader } from "@/components/cms/hierarchical-website-header-v2"
-import { WebsiteFooter } from "@/components/website-components"
+import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import { SessionProviderWrapper } from "@/components/providers/session-provider"
 import { headers } from 'next/headers'
 import "@/styles/globals.css"
@@ -56,62 +54,6 @@ export const metadata: Metadata = {
   },
 }
 
-async function getNavigationData() {
-  try {
-    // Get all navigation items (we'll build hierarchy manually)
-    const navigationItems = await db.cmsNavigation.findMany({
-      where: { isActive: true },
-      include: {
-        page: {
-          select: { slug: true, title: true }
-        }
-      },
-      orderBy: { sortOrder: 'asc' }
-    })
-
-    // Get site settings
-    const siteSettings = await db.cmsSiteSettings.findFirst()
-    
-    // Get SEO settings for site name
-    const seoSettings = await db.cmsSeoSettings.findFirst()
-
-    // Build hierarchical navigation structure (up to 4 levels)
-    const buildHierarchy = (items: any[], parentId: string | null = null): any[] => {
-      return items
-        .filter(item => item.parentId === parentId)
-        .map(item => ({
-          id: item.id,
-          label: item.label,
-          href: item.type === 'page' && item.page ? `/${item.page.slug}` : item.href,
-          target: item.target || undefined,
-          type: item.type,
-          isActive: item.isActive,
-          children: buildHierarchy(items, item.id)
-        }))
-        .sort((a, b) => {
-          const aItem = items.find(i => i.id === a.id)
-          const bItem = items.find(i => i.id === b.id)
-          return (aItem?.sortOrder || 0) - (bItem?.sortOrder || 0)
-        })
-    }
-
-    const transformedNavigation = buildHierarchy(navigationItems)
-
-    return {
-      navigation: transformedNavigation,
-      siteSettings,
-      siteName: seoSettings?.siteName || 'Your Website'
-    }
-  } catch (error) {
-    console.error('Error loading navigation data:', error)
-    return {
-      navigation: [],
-      siteSettings: null,
-      siteName: 'Your Website'
-    }
-  }
-}
-
 export default async function RootLayout({
   children,
 }: {
@@ -133,19 +75,12 @@ export default async function RootLayout({
     )
   }
 
-  // Regular website routes get full layout
-  const { navigation, siteSettings, siteName } = await getNavigationData()
-
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
         <SessionProviderWrapper>
           <div className="min-h-screen flex flex-col">
-            <HierarchicalWebsiteHeader 
-              navigation={navigation}
-              siteSettings={siteSettings || undefined}
-              siteName={siteName}
-            />
+            <WebsiteHeader />
             <main className="flex-1 pt-16 lg:pt-20">
               {children}
             </main>

@@ -1,21 +1,20 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { PagesClient } from "./pages-client"
+import Link from "next/link"
 
 export default async function PagesManagement() {
   const session = await getServerSession(authOptions)
   
-  // Get all pages with related data
-  const pages = await db.cmsPage.findMany({
-    include: {
-      template: { select: { name: true } },
-      createdByUser: { select: { username: true, firstName: true } },
-      updatedByUser: { select: { username: true, firstName: true } },
-      _count: { select: { blocks: true } }
-    },
-    orderBy: { updatedAt: 'desc' }
-  })
-
-  return <PagesClient initialPages={pages} />
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Pages</h1>
+          <p className="text-gray-600">General pages are now code-driven. Use Blogs, Announcements, and Tenders for CMS content.</p>
+        </div>
+        <Link href="/cms" className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:shadow-md">Back to CMS</Link>
+      </div>
+    </div>
+  )
 }
