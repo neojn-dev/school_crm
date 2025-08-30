@@ -36,10 +36,12 @@ import {
   TeamOrgChart,
   TeamLeadershipSpotlight,
   
-  // Stats Sections (3 variations)
+  // Stats Sections (5 variations)
   StatsGrid,
   StatsCards,
   StatsCircular,
+  StatsComparison,
+  StatsTimeline,
   
   // Service Showcases (6 variations)
   ServiceCards,
@@ -305,31 +307,31 @@ export default function HomePage() {
       <FeatureGrid2x2
         eyebrow="Essential Tools"
         title="Foundation Features"
-        items={featureData.slice(0, 4)}
+        features={featureData.slice(0, 4)}
       />
 
       <FeatureGrid3x3
         eyebrow="Complete Suite"
         title="Comprehensive Solutions"
-        items={featureData.slice(0, 9)}
+        features={featureData.slice(0, 9)}
       />
 
       <FeatureGrid4x4
         eyebrow="Full Spectrum"
         title="All-in-One Platform"
-        items={featureData}
+        features={featureData}
       />
 
       <FeatureGridMasonry
         eyebrow="Dynamic Layout"
         title="Masonry Grid Features"
-        items={featureData.slice(0, 8)}
+        features={featureData.slice(0, 8)}
       />
 
       <FeatureGridStaggered
         eyebrow="Animated Reveal"
         title="Staggered Animation Grid"
-        items={featureData.slice(0, 6)}
+        features={featureData.slice(0, 6)}
       />
 
       <FeatureGridHexagon
@@ -378,7 +380,19 @@ export default function HomePage() {
         stats={statsData.slice(0, 4)}
       />
 
+      <StatsComparison
+        eyebrow="Before vs After"
+        title="Transformation Metrics"
+        subtitle="See the dramatic improvements we deliver"
+        stats={statsData.slice(0, 4)}
+      />
 
+      <StatsTimeline
+        eyebrow="Growth Journey"
+        title="Timeline of Success"
+        subtitle="Our evolution through the years"
+        stats={statsData.slice(0, 5)}
+      />
 
       {/* Final CTA */}
       <CTABanner

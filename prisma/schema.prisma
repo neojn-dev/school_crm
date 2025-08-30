@@ -601,7 +601,7 @@ model CmsSiteSettings {
 }
 
 // ================================
-// SIMPLIFIED CMS CONTENT - Blogs, Announcements, Tenders
+// ENHANCED CMS CONTENT - Blogs, Announcements, Tenders with WYSIWYG
 // ================================
 
 model BlogPost {
@@ -609,37 +609,86 @@ model BlogPost {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Basic Information
   title       String   @db.VarChar(200)
   slug        String   @unique @db.VarChar(200)
-  excerpt     String?  @db.VarChar(300)
-  content     String?  @db.LongText
+  excerpt     String?  @db.VarChar(500)
+  content     String?  @db.LongText // WYSIWYG HTML content
+  
+  // Visual & Layout
   coverImage  String?  @db.VarChar(500)
-  status      String   @default("draft") @db.VarChar(20) // draft, published
+  headerImage String?  @db.VarChar(500)
+  layout      String   @default("default") @db.VarChar(50) // default, featured, sidebar, full-width
+  
+  // Publishing
+  status      String   @default("draft") @db.VarChar(20) // draft, published, archived
   publishedAt DateTime?
-
-  authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-
-  tags        String?  // JSON array
-  attachments BlogAttachment[]
+  featured    Boolean  @default(false)
+  
+  // SEO & Meta
+  metaTitle       String?  @db.VarChar(60)
+  metaDescription String?  @db.VarChar(160)
+  metaKeywords    String?  @db.Text // JSON array
+  canonicalUrl    String?  @db.VarChar(500)
+  
+  // Social Media
+  ogTitle       String?  @db.VarChar(100)
+  ogDescription String?  @db.VarChar(200)
+  ogImage       String?  @db.VarChar(500)
+  twitterCard   String?  @db.VarChar(20) // summary, summary_large_image
+  
+  // Content Organization
+  category      String?  @db.VarChar(100)
+  tags          String?  // JSON array
+  readingTime   Int?     // Estimated reading time in minutes
+  
+  // Author & Attribution
+  authorId      String?
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  // Attachments & Media
+  attachments   BlogAttachment[]
+  
+  // Analytics & Performance
+  viewCount     Int      @default(0)
+  lastViewedAt  DateTime?
+  
+  // Scheduling
+  scheduledAt   DateTime?
+  
+  // User tracking
+  createdBy     String?
+  updatedBy     String?
 
   @@index([status, publishedAt])
   @@index([createdAt])
+  @@index([category])
+  @@index([featured])
+  @@index([slug])
 }
 
 model BlogAttachment {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
 
-  blogId    String
-  filename  String
-  mimeType  String
-  size      Int
-  url       String   @db.VarChar(500)
+  blogId      String
+  filename    String   @db.VarChar(255)
+  originalName String  @db.VarChar(255)
+  mimeType    String   @db.VarChar(100)
+  size         Int
+  url          String   @db.VarChar(500)
+  altText      String?  @db.VarChar(255)
+  caption      String?  @db.Text
+  
+  // File metadata
+  width       Int?
+  height      Int?
+  duration    Int?     // For video/audio files in seconds
 
-  blog      BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blog        BlogPost @relation(fields: [blogId], references: [id], onDelete: Cascade)
 
   @@index([blogId])
+  @@index([mimeType])
 }
 
 model Announcement {
@@ -647,19 +696,59 @@ model Announcement {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Basic Information
   title       String   @db.VarChar(200)
-  body        String?  @db.LongText
+  slug        String?  @unique @db.VarChar(200)
+  excerpt     String?  @db.VarChar(500)
+  body        String?  @db.LongText // WYSIWYG HTML content
+  
+  // Visual & Layout
+  headerImage String?  @db.VarChar(500)
+  layout      String   @default("default") @db.VarChar(50) // default, featured, alert, banner
+  
+  // Publishing & Timing
+  status      String   @default("draft") @db.VarChar(20) // draft, published, archived
+  publishedAt DateTime?
   startAt     DateTime?
   endAt       DateTime?
   isActive    Boolean  @default(true)
-
-  authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-
-  attachments AnnouncementAttachment[]
+  featured    Boolean  @default(false)
+  
+  // SEO & Meta
+  metaTitle       String?  @db.VarChar(60)
+  metaDescription String?  @db.VarChar(160)
+  metaKeywords    String?  @db.Text // JSON array
+  
+  // Social Media
+  ogTitle       String?  @db.VarChar(100)
+  ogDescription String?  @db.VarChar(200)
+  ogImage       String?  @db.VarChar(500)
+  
+  // Content Organization
+  category      String?  @db.VarChar(100) // general, news, update, alert, event
+  priority      String   @default("normal") @db.VarChar(20) // low, normal, high, urgent
+  tags          String?  // JSON array
+  
+  // Author & Attribution
+  authorId      String?
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  // Attachments & Media
+  attachments  AnnouncementAttachment[]
+  
+  // Analytics
+  viewCount    Int      @default(0)
+  lastViewedAt DateTime?
+  
+  // User tracking
+  createdBy    String?
+  updatedBy    String?
 
   @@index([isActive])
   @@index([startAt])
+  @@index([status, publishedAt])
+  @@index([priority])
+  @@index([category])
 }
 
 model AnnouncementAttachment {
@@ -667,14 +756,23 @@ model AnnouncementAttachment {
   createdAt      DateTime @default(now())
 
   announcementId String
-  filename       String
-  mimeType       String
+  filename       String   @db.VarChar(255)
+  originalName   String   @db.VarChar(255)
+  mimeType       String   @db.VarChar(100)
   size           Int
   url            String   @db.VarChar(500)
+  altText        String?  @db.VarChar(255)
+  caption        String?  @db.Text
+  
+  // File metadata
+  width          Int?
+  height         Int?
+  duration       Int?     // For video/audio files in seconds
 
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
 
   @@index([announcementId])
+  @@index([mimeType])
 }
 
 model Tender {
@@ -682,21 +780,66 @@ model Tender {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Basic Information
   title        String   @db.VarChar(200)
-  description  String?  @db.Text
+  slug         String?  @unique @db.VarChar(200)
+  excerpt      String?  @db.VarChar(500)
+  description  String?  @db.LongText // WYSIWYG HTML content
+  
+  // Visual & Layout
+  headerImage  String?  @db.VarChar(500)
+  layout       String   @default("default") @db.VarChar(50) // default, featured, urgent, standard
+  
+  // Tender Specific
   referenceNo  String?  @db.VarChar(100)
+  tenderType   String?  @db.VarChar(100) // supply, service, construction, consultancy
+  estimatedValue String? @db.VarChar(100) // Estimated contract value
+  currency     String?  @db.VarChar(10)  // USD, EUR, etc.
+  
+  // Publishing & Timing
+  status       String   @default("draft") @db.VarChar(20) // draft, published, closed, awarded, cancelled
   publishedAt  DateTime?
   closingAt    DateTime?
   isActive     Boolean  @default(true)
-
-  authorId     String?
-  author       User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-
+  featured     Boolean  @default(false)
+  
+  // SEO & Meta
+  metaTitle       String?  @db.VarChar(60)
+  metaDescription String?  @db.VarChar(160)
+  metaKeywords    String?  @db.Text // JSON array
+  
+  // Social Media
+  ogTitle       String?  @db.VarChar(100)
+  ogDescription String?  @db.VarChar(200)
+  ogImage       String?  @db.VarChar(500)
+  
+  // Content Organization
+  category      String?  @db.VarChar(100) // government, private, international
+  sector        String?  @db.VarChar(100) // healthcare, education, infrastructure, etc.
+  tags          String?  // JSON array
+  
+  // Author & Attribution
+  authorId      String?
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  // Attachments & Media
   attachments  TenderAttachment[]
+  
+  // Analytics
+  viewCount    Int      @default(0)
+  lastViewedAt DateTime?
+  
+  // User tracking
+  createdBy    String?
+  updatedBy    String?
 
   @@index([isActive])
   @@index([publishedAt])
   @@index([closingAt])
+  @@index([status])
+  @@index([tenderType])
+  @@index([category])
+  @@index([sector])
 }
 
 model TenderAttachment {
@@ -704,14 +847,23 @@ model TenderAttachment {
   createdAt DateTime @default(now())
 
   tenderId  String
-  filename  String
-  mimeType  String
+  filename  String   @db.VarChar(255)
+  originalName String @db.VarChar(255)
+  mimeType  String   @db.VarChar(100)
   size      Int
   url       String   @db.VarChar(500)
+  altText   String?  @db.VarChar(255)
+  caption   String?  @db.Text
+  
+  // File metadata
+  width     Int?
+  height    Int?
+  duration  Int?     // For video/audio files in seconds
 
   tender    Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
 
   @@index([tenderId])
+  @@index([mimeType])
 }
 
 

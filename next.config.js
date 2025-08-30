@@ -5,7 +5,7 @@ const nextConfig = {
   },
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
   images: {
-    domains: ['localhost', 'images.unsplash.com'],
+    domains: ['localhost', 'images.unsplash.com', 'via.placeholder.com'],
   },
   outputFileTracingRoot: __dirname,
   typescript: {
