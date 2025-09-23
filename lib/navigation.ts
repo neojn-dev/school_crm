@@ -6,7 +6,8 @@ import {
   Scale,
   Layers,
   UserCog,
-  Shield
+  Shield,
+  Settings
 } from "lucide-react"
 import { LucideIcon } from "lucide-react"
 
@@ -119,6 +120,18 @@ export const navigationItems: NavigationItem[] = [
     activeIconBg: "bg-orange-100",
     textColor: "text-orange-700",
     hoverBg: "hover:bg-orange-50/80"
+  },
+  {
+    title: "CMS Admin",
+    href: "/cms",
+    icon: Settings,
+    description: "Content Management System",
+    color: "from-indigo-100 to-indigo-200",
+    activeColor: "from-indigo-200 to-indigo-300",
+    iconBg: "bg-indigo-50",
+    activeIconBg: "bg-indigo-100",
+    textColor: "text-indigo-700",
+    hoverBg: "hover:bg-indigo-50/80"
   }
 ]
 
@@ -129,8 +142,8 @@ export const navigationItems: NavigationItem[] = [
  */
 export function getFilteredNavigationItems(userRole?: string): NavigationItem[] {
   return navigationItems.filter(item => {
-    // Only show Users and Roles to Admin users
-    if (item.href === '/users' || item.href === '/roles') {
+    // Only show Users, Roles, and CMS to Admin users
+    if (item.href === '/users' || item.href === '/roles' || item.href === '/cms') {
       return userRole === 'Admin'
     }
     // Show all other items to everyone

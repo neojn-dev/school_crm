@@ -1,16 +1,16 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
+import Link from "next/link"
 import { 
   FileText, 
-  Layers, 
+  Megaphone, 
   Image, 
   Eye,
   TrendingUp,
-  Users,
-  Globe,
+  Plus,
   Calendar,
-  MousePointer
+  ArrowRight
 } from "lucide-react"
 
 export default async function AdminDashboard() {
@@ -18,86 +18,104 @@ export default async function AdminDashboard() {
   
   // Get CMS statistics
   const [
-    totalPages,
-    publishedPages,
-    totalTemplates,
-    totalBlocks,
+    totalBlogs,
+    publishedBlogs,
+    totalAnnouncements,
+    publishedAnnouncements,
+    totalTenders,
+    publishedTenders,
     totalMedia,
-    recentPages
+    recentBlogs,
+    recentAnnouncements,
+    recentTenders
   ] = await Promise.all([
-    db.cmsPage.count(),
-    db.cmsPage.count({ where: { isPublished: true } }),
-    db.cmsTemplate.count({ where: { isActive: true } }),
-    db.cmsBlock.count(),
+    db.blogPost.count(),
+    db.blogPost.count({ where: { status: 'published' } }),
+    db.announcement.count(),
+    db.announcement.count({ where: { status: 'published' } }),
+    db.tender.count(),
+    db.tender.count({ where: { status: 'published' } }),
     db.cmsMedia.count(),
-    db.cmsPage.findMany({
-      take: 5,
+    db.blogPost.findMany({
+      take: 3,
       orderBy: { updatedAt: 'desc' },
-      include: {
-        template: { select: { name: true } },
-        updatedByUser: { select: { username: true, firstName: true } }
-      }
+      select: { id: true, title: true, status: true, updatedAt: true }
+    }),
+    db.announcement.findMany({
+      take: 3,
+      orderBy: { updatedAt: 'desc' },
+      select: { id: true, title: true, status: true, updatedAt: true }
+    }),
+    db.tender.findMany({
+      take: 3,
+      orderBy: { updatedAt: 'desc' },
+      select: { id: true, title: true, status: true, updatedAt: true }
     })
   ])
 
   const stats = [
     {
-      name: "Total Pages",
-      value: totalPages,
+      name: "Blog Posts",
+      total: totalBlogs,
+      published: publishedBlogs,
       icon: FileText,
       color: "bg-blue-500",
-      change: "+12%",
-      changeType: "increase"
+      href: "/cms/blogs",
+      createHref: "/cms/blogs/new"
     },
     {
-      name: "Published Pages",
-      value: publishedPages,
-      icon: Globe,
-      color: "bg-green-500",
-      change: "+8%",
-      changeType: "increase"
-    },
-    {
-      name: "Templates",
-      value: totalTemplates,
-      icon: Layers,
+      name: "Announcements",
+      total: totalAnnouncements,
+      published: publishedAnnouncements,
+      icon: Megaphone,
       color: "bg-purple-500",
-      change: "+2%",
-      changeType: "increase"
+      href: "/cms/announcements",
+      createHref: "/cms/announcements/new"
+    },
+    {
+      name: "Tenders",
+      total: totalTenders,
+      published: publishedTenders,
+      icon: FileText,
+      color: "bg-orange-500",
+      href: "/cms/tenders",
+      createHref: "/cms/tenders/new"
     },
     {
       name: "Media Files",
-      value: totalMedia,
+      total: totalMedia,
+      published: totalMedia,
       icon: Image,
-      color: "bg-orange-500",
-      change: "+15%",
-      changeType: "increase"
+      color: "bg-green-500",
+      href: "/cms/media",
+      createHref: "/cms/media"
     }
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Welcome Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {session?.user?.username}!
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Welcome back, {session?.user?.username || 'Admin'}!
         </h1>
-        <p className="mt-2 text-gray-600">
-          CMS is now focused on Blogs, Announcements, and Tenders. Standard website pages are managed via code with reusable components.
+        <p className="text-gray-600 text-lg">
+          Manage your content with our streamlined CMS focused on blogs, announcements, and tenders.
         </p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div
+          <Link
             key={stat.name}
-            className="bg-white overflow-hidden shadow rounded-lg"
+            href={stat.href}
+            className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:shadow-md transition-shadow group"
           >
-            <div className="p-5">
+            <div className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className={`${stat.color} p-3 rounded-md`}>
+                  <div className={`${stat.color} p-3 rounded-lg group-hover:scale-105 transition-transform`}>
                     <stat.icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
@@ -108,135 +126,191 @@ export default async function AdminDashboard() {
                     </dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
-                        {stat.value}
+                        {stat.total}
                       </div>
-                      <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                        <TrendingUp className="h-4 w-4 mr-1" />
-                        {stat.change}
+                      <div className="ml-2 text-sm text-gray-500">
+                        ({stat.published} published)
                       </div>
                     </dd>
                   </dl>
                 </div>
               </div>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-sm text-gray-500 group-hover:text-gray-700">View all</span>
+                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            href="/cms/blogs/new"
+            className="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+          >
+            <div className="bg-blue-500 p-2 rounded-lg mr-3 group-hover:scale-105 transition-transform">
+              <Plus className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-medium text-blue-700">New Blog Post</span>
+          </Link>
+          
+          <Link
+            href="/cms/announcements/new"
+            className="flex items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group"
+          >
+            <div className="bg-purple-500 p-2 rounded-lg mr-3 group-hover:scale-105 transition-transform">
+              <Plus className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-medium text-purple-700">New Announcement</span>
+          </Link>
+          
+          <Link
+            href="/cms/tenders/new"
+            className="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors group"
+          >
+            <div className="bg-orange-500 p-2 rounded-lg mr-3 group-hover:scale-105 transition-transform">
+              <Plus className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-medium text-orange-700">New Tender</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Pages */}
-        <div className="bg-white shadow rounded-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Blogs */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Pages</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Recent Blogs</h3>
+              <Link href="/cms/blogs" className="text-sm text-blue-600 hover:text-blue-700">
+                View all
+              </Link>
+            </div>
           </div>
           <div className="divide-y divide-gray-200">
-            {recentPages.length > 0 ? (
-              recentPages.map((page) => (
-                <div key={page.id} className="px-6 py-4">
+            {recentBlogs.length > 0 ? (
+              recentBlogs.map((blog) => (
+                <div key={blog.id} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {page.title}
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {blog.title}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {page.template?.name || 'No template'} • 
-                        Updated by {page.updatedByUser.firstName || page.updatedByUser.username}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        page.isPublished 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {page.isPublished ? 'Published' : 'Draft'}
-                      </span>
+                      <div className="flex items-center mt-1">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          blog.status === 'published' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {blog.status}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          {new Date(blog.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
               <div className="px-6 py-8 text-center">
-                <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No pages yet</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by creating your first page.
-                </p>
+                <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No blog posts yet</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white shadow rounded-lg">
+        {/* Recent Announcements */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-2 gap-4">
-              <a
-                href="/cms/pages/new"
-                className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <FileText className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">New Page</span>
-              </a>
-              <a
-                href="/cms/pages/new"
-                className="flex flex-col items-center p-4 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-400 transition-colors bg-blue-50"
-              >
-                <MousePointer className="h-8 w-8 text-blue-500 mb-2" />
-                <span className="text-sm font-medium text-blue-900">Page Builder</span>
-                <span className="text-xs text-blue-600 mt-1">Drag & Drop</span>
-              </a>
-              <a
-                href="/cms/templates/new"
-                className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <Layers className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">New Template</span>
-              </a>
-              <a
-                href="/cms/media"
-                className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <Image className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">Media Library</span>
-              </a>
-              <a
-                href="/cms/pages"
-                className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-              >
-                <Eye className="h-8 w-8 text-gray-400 mb-2" />
-                <span className="text-sm font-medium text-gray-900">View All Pages</span>
-              </a>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Recent Announcements</h3>
+              <Link href="/cms/announcements" className="text-sm text-purple-600 hover:text-purple-700">
+                View all
+              </Link>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* System Status */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">System Status</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">99.9%</div>
-              <div className="text-sm text-gray-500">Uptime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{totalBlocks}</div>
-              <div className="text-sm text-gray-500">Content Blocks</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {Math.round((totalMedia / 1024 / 1024) * 100) / 100} MB
+          <div className="divide-y divide-gray-200">
+            {recentAnnouncements.length > 0 ? (
+              recentAnnouncements.map((announcement) => (
+                <div key={announcement.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {announcement.title}
+                      </p>
+                      <div className="flex items-center mt-1">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          announcement.status === 'published' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {announcement.status}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          {new Date(announcement.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-6 py-8 text-center">
+                <Megaphone className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No announcements yet</p>
               </div>
-              <div className="text-sm text-gray-500">Storage Used</div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Tenders */}
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Recent Tenders</h3>
+              <Link href="/cms/tenders" className="text-sm text-orange-600 hover:text-orange-700">
+                View all
+              </Link>
             </div>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {recentTenders.length > 0 ? (
+              recentTenders.map((tender) => (
+                <div key={tender.id} className="px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {tender.title}
+                      </p>
+                      <div className="flex items-center mt-1">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          tender.status === 'published' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {tender.status}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          {new Date(tender.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="px-6 py-8 text-center">
+                <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No tenders yet</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

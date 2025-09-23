@@ -115,12 +115,17 @@ export function WysiwygEditor({
   const [canRedo, setCanRedo] = useState(false)
 
   useEffect(() => {
-    setContent(value)
-  }, [value])
+    if (value !== content) {
+      setContent(value)
+    }
+  }, [value, content])
 
-  useEffect(() => {
-    onChange(content)
-  }, [content, onChange])
+  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const newContent = e.currentTarget.innerHTML
+    setContent(newContent)
+    onChange(newContent)
+    updateUndoRedoState()
+  }
 
   const execCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value)
@@ -160,11 +165,6 @@ export function WysiwygEditor({
     }
   }
 
-  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = e.currentTarget.innerHTML
-    setContent(newContent)
-    updateUndoRedoState()
-  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Tab') {
