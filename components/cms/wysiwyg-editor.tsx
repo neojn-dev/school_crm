@@ -114,18 +114,39 @@ export function WysiwygEditor({
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
 
-  useEffect(() => {
-    if (value !== content) {
-      setContent(value)
-    }
-  }, [value, content])
+  // Track if the editor is currently focused to avoid interfering with user typing
+  const [isFocused, setIsFocused] = useState(false)
 
-  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
+
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = e.currentTarget.innerHTML
     setContent(newContent)
     onChange(newContent)
     updateUndoRedoState()
   }
+
+  const handleFocus = () => {
+    setIsFocused(true)
+  }
+
+  const handleBlur = () => {
+    setIsFocused(false)
+  }
+
+  // Initialize content when editor is first created
+  useEffect(() => {
+    if (editorRef.current && value && !editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = value
+    }
+  }, [value])
+
+  // Update content when value prop changes (only when not focused)
+  useEffect(() => {
+    if (editorRef.current && value !== content && !isFocused) {
+      editorRef.current.innerHTML = value
+      setContent(value)
+    }
+  }, [value, content, isFocused])
 
   const execCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value)
@@ -467,13 +488,14 @@ export function WysiwygEditor({
           <div
             ref={editorRef}
             contentEditable
-            className="p-4 min-h-[200px] outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+            className="p-4 min-h-[200px] outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset [&:empty:before]:content-[attr(data-placeholder)] [&:empty:before]:text-gray-400 [&:empty:before]:pointer-events-none"
             style={{ height }}
-            onInput={handleContentChange}
+            onInput={handleInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            dangerouslySetInnerHTML={{ __html: content }}
-            placeholder={placeholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            data-placeholder={placeholder}
           />
         )}
       </div>
@@ -698,9 +720,24 @@ export function WysiwygEditor({
           <div className="bg-white rounded-lg p-6 w-4/5 h-4/5 max-w-6xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Media Library</h3>
-              <Button variant="outline" onClick={() => setShowMediaLibrary(false)}>
-                Close
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => {
+                    // This would open the enhanced media uploader
+                    // For now, we'll show a placeholder
+                    alert('Media uploader with crop functionality would open here')
+                  }}
+                  className="flex items-center space-x-2"
+                >
+                  <Image className="h-4 w-4" />
+                  <span>Upload New</span>
+                </Button>
+                <Button variant="outline" onClick={() => setShowMediaLibrary(false)}>
+                  Close
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-4 gap-4 h-full overflow-y-auto">
               {/* Sample media items - in real implementation, fetch from API */}

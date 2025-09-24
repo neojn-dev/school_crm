@@ -19,8 +19,10 @@ import {
   Image as ImageIcon,
   Video,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Crop
 } from "lucide-react"
+import { EnhancedMediaUploader } from "./enhanced-media-uploader"
 
 interface MediaUploaderProps {
   onUpload: (files: any[]) => void
@@ -38,6 +40,14 @@ interface UploadFile {
 }
 
 export function MediaUploader({ onUpload, onClose }: MediaUploaderProps) {
+  const [useEnhancedUploader, setUseEnhancedUploader] = useState(true)
+  
+  // If enhanced uploader is enabled, use it
+  if (useEnhancedUploader) {
+    return <EnhancedMediaUploader onUpload={onUpload} onClose={onClose} />
+  }
+
+  // Fallback to original uploader
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
@@ -158,7 +168,20 @@ export function MediaUploader({ onUpload, onClose }: MediaUploaderProps) {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Files</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Upload Files</DialogTitle>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUseEnhancedUploader(!useEnhancedUploader)}
+                className="flex items-center space-x-2"
+              >
+                <Crop className="h-4 w-4" />
+                <span>{useEnhancedUploader ? 'Basic' : 'Enhanced'}</span>
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">

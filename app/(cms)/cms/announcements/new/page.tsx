@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { WysiwygEditor } from "@/components/cms/wysiwyg-editor"
+import { ImageSelector } from "@/components/cms/image-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -280,16 +281,15 @@ export default function NewAnnouncementPage() {
               <CardTitle>Images & Media</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="headerImage">Header Image</Label>
-                <Input
-                  id="headerImage"
-                  value={formData.headerImage}
-                  onChange={(e) => setFormData(prev => ({ ...prev, headerImage: e.target.value }))}
-                  placeholder="https://example.com/header-image.jpg"
-                />
-                <p className="text-xs text-gray-500">Large image at the top of the announcement</p>
-              </div>
+              <ImageSelector
+                value={formData.headerImage}
+                onChange={(url) => setFormData(prev => ({ ...prev, headerImage: url }))}
+                label="Header Image"
+                description="Large image displayed at the top of the announcement"
+                placeholder="Select a header image for your announcement"
+                allowUpload={true}
+                allowCrop={true}
+              />
             </CardContent>
           </Card>
         </TabsContent>

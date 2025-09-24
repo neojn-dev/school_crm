@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { MediaLibraryClient } from "./media-library-client"
+import { ImageManager } from "@/components/cms/image-manager"
 
 export default async function MediaLibraryPage() {
   const session = await getServerSession(authOptions)
@@ -42,9 +43,14 @@ export default async function MediaLibraryPage() {
   }))
 
   return (
-    <MediaLibraryClient 
-      initialMediaFiles={transformedMediaFiles}
-      stats={stats}
-    />
+    <div className="h-screen">
+      <ImageManager
+        isOpen={true}
+        allowSelection={false}
+        allowUpload={true}
+        allowEdit={true}
+        allowDelete={true}
+      />
+    </div>
   )
 }

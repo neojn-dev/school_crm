@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { WysiwygEditor } from "@/components/cms/wysiwyg-editor"
+import { ImageSelector } from "@/components/cms/image-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -101,6 +102,11 @@ export default function NewBlogPostPage() {
     ogDescription: '',
     ogImage: '',
     twitterCard: 'summary'
+  })
+  const [imageMetadata, setImageMetadata] = useState({
+    coverImage: null as any,
+    headerImage: null as any,
+    ogImage: null as any
   })
 
   const generateSlug = (title: string) => {
@@ -272,29 +278,33 @@ export default function NewBlogPostPage() {
             <CardHeader>
               <CardTitle>Images & Media</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="coverImage">Cover Image</Label>
-                  <Input
-                    id="coverImage"
-                    value={formData.coverImage}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coverImage: e.target.value }))}
-                    placeholder="https://example.com/cover-image.jpg"
-                  />
-                  <p className="text-xs text-gray-500">Main image displayed in blog listings</p>
-                </div>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <ImageSelector
+                  value={formData.coverImage}
+                  onChange={(url, metadata) => {
+                    setFormData(prev => ({ ...prev, coverImage: url }))
+                    setImageMetadata(prev => ({ ...prev, coverImage: metadata }))
+                  }}
+                  label="Cover Image"
+                  description="Main image displayed in blog listings and social media previews"
+                  placeholder="Select a cover image for your blog post"
+                  allowUpload={true}
+                  allowCrop={true}
+                />
                 
-                <div className="space-y-2">
-                  <Label htmlFor="headerImage">Header Image</Label>
-                  <Input
-                    id="headerImage"
-                    value={formData.headerImage}
-                    onChange={(e) => setFormData(prev => ({ ...prev, headerImage: e.target.value }))}
-                    placeholder="https://example.com/header-image.jpg"
-                  />
-                  <p className="text-xs text-gray-500">Large image at the top of the blog post</p>
-                </div>
+                <ImageSelector
+                  value={formData.headerImage}
+                  onChange={(url, metadata) => {
+                    setFormData(prev => ({ ...prev, headerImage: url }))
+                    setImageMetadata(prev => ({ ...prev, headerImage: metadata }))
+                  }}
+                  label="Header Image"
+                  description="Large image displayed at the top of the blog post"
+                  placeholder="Select a header image for your blog post"
+                  allowUpload={true}
+                  allowCrop={true}
+                />
               </div>
             </CardContent>
           </Card>
@@ -393,16 +403,22 @@ export default function NewBlogPostPage() {
                 </div>
               </div>
 
+              <div className="space-y-4">
+                <ImageSelector
+                  value={formData.ogImage}
+                  onChange={(url, metadata) => {
+                    setFormData(prev => ({ ...prev, ogImage: url }))
+                    setImageMetadata(prev => ({ ...prev, ogImage: metadata }))
+                  }}
+                  label="Open Graph Image"
+                  description="Image displayed when sharing on social media platforms"
+                  placeholder="Select an image for social media sharing"
+                  allowUpload={true}
+                  allowCrop={true}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="ogImage">Open Graph Image</Label>
-                  <Input
-                    id="ogImage"
-                    value={formData.ogImage}
-                    onChange={(e) => setFormData(prev => ({ ...prev, ogImage: e.target.value }))}
-                    placeholder="https://example.com/social-image.jpg"
-                  />
-                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="twitterCard">Twitter Card Type</Label>
