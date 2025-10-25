@@ -1,20 +1,15 @@
 /**
- * ROOT LAYOUT - CMS-Driven Public Website Layout
+ * ROOT LAYOUT - Minimal Layout for Public Pages
  * 
- * This layout provides the structure for the CMS-driven public website.
- * It dynamically loads:
- * - Navigation structure from CMS
- * - Site settings (logo, branding, etc.)
- * - SEO configuration
- * - Footer content and social links
+ * This layout provides minimal structure for public pages only.
+ * Authenticated routes have their own layouts and don't inherit this.
  * 
- * Used by: Public website pages (/, /about, /services, etc.)
- * Note: Auth and admin routes have their own layouts
+ * Used by: Public pages (/, /signin, /signup, etc.)
+ * Note: Auth and authenticated routes have their own layouts
  */
 
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { WebsiteHeader, WebsiteFooter } from "@/components/website-components"
 import { SessionProviderWrapper } from "@/components/providers/session-provider"
 import { headers } from 'next/headers'
 import "@/styles/globals.css"
@@ -23,23 +18,23 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
-  title: "NextJS Template App",
-  description: "A production-ready NextJS template with authentication, data management, and modern UI",
-  keywords: ["nextjs", "typescript", "prisma", "tailwind", "shadcn"],
-  authors: [{ name: "Template App" }],
-  creator: "Template App",
+  title: "School CRM - Modern School Management",
+  description: "Streamline your school operations with our comprehensive CRM system. Manage students, staff, academics, and analytics all in one place.",
+  keywords: ["school", "crm", "education", "management", "students", "teachers"],
+  authors: [{ name: "School CRM" }],
+  creator: "School CRM",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "http://localhost:3000",
-    title: "NextJS Template App",
-    description: "A production-ready NextJS template with authentication, data management, and modern UI",
-    siteName: "NextJS Template App",
+    title: "School CRM - Modern School Management",
+    description: "Streamline your school operations with our comprehensive CRM system.",
+    siteName: "School CRM",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NextJS Template App",
-    description: "A production-ready NextJS template with authentication, data management, and modern UI",
+    title: "School CRM - Modern School Management",
+    description: "Streamline your school operations with our comprehensive CRM system.",
   },
   robots: {
     index: true,
@@ -59,33 +54,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const headersList = await headers()
-  const isCmsRoute = headersList.get('x-is-cms-route') === 'true'
-
-  if (isCmsRoute) {
-    // CMS routes get minimal layout
-    return (
-      <html lang="en">
-        <body className={inter.className} suppressHydrationWarning>
-          <SessionProviderWrapper>
-            {children}
-          </SessionProviderWrapper>
-        </body>
-      </html>
-    )
-  }
-
+  // Always provide minimal layout for all routes
+  // Individual route groups will handle their own layouts
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
         <SessionProviderWrapper>
-          <div className="min-h-screen flex flex-col">
-            <WebsiteHeader />
-            <main className="flex-1 pt-16 lg:pt-20">
-              {children}
-            </main>
-            <WebsiteFooter />
-          </div>
+          {children}
         </SessionProviderWrapper>
       </body>
     </html>

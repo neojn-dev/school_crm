@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Delete selected users
       // Filter out the current admin and main admin from the deletion list
-      const safeIds = ids.filter(id => 
+      const safeIds = ids.filter((id: string) => 
         id !== session.user.id && 
         id !== 'admin'
       )

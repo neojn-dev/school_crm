@@ -131,30 +131,30 @@ export default function AppLayout({
 
   return (
     <ErrorBoundary>
-      <div className="h-screen bg-gray-50 flex overflow-hidden">
-        {/* Full Height Sidebar */}
-        <div className="hidden lg:block h-full flex-shrink-0">
-          <Sidebar isCollapsed={isCollapsed} onToggle={toggleCollapse} />
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Full-width Header */}
+        <div className="flex-shrink-0">
+          <AppHeader />
         </div>
 
-        {/* Main Content Area - Header, Content, Footer */}
-        <div className="flex-1 flex flex-col h-full min-h-0">
-          {/* App Header - Positioned to the right of sidebar */}
-          <div className="flex-shrink-0">
-            <AppHeader />
+        {/* Main Content Area with Sidebar */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <Sidebar isCollapsed={false} onToggle={() => {}} />
           </div>
-          
-          {/* Main Content - Scrollable area */}
-          <main className="flex-1 overflow-y-auto bg-gray-50 min-h-0">
+
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto bg-gray-50">
             <div key={pathname} className="p-6 min-h-full">
               {children}
             </div>
           </main>
-          
-          {/* App Footer - Positioned to the right of sidebar */}
-          <div className="flex-shrink-0">
-            <AppFooter />
-          </div>
+        </div>
+
+        {/* Full-width Footer */}
+        <div className="flex-shrink-0">
+          <AppFooter />
         </div>
 
         {/* Mobile Menu Button */}
